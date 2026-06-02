@@ -296,7 +296,7 @@ function VisualGenerator() {
 
   return (
 
-    {!user && (
+    {user && (
       <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)'}}>
         <div style={{width:360,padding:40,borderRadius:16,background:'var(--card)',boxShadow:'0 4px 24px rgba(0,0,0,0.08)'}}>
           <div style={{textAlign:'center',marginBottom:32}}>
