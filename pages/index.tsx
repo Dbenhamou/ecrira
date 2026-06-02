@@ -326,7 +326,7 @@ function VisualGenerator() {
         </div>
       </div>
     )}
-    {user && (
+ n  {authChecked && user && (
     <div style={{display:'flex',gap:28,alignItems:'flex-start'}}>
 
       {/* CONTROLS */}
@@ -574,6 +574,7 @@ export default function Home() {
   const [aSev, setASev] = useState('CRITIQUE')
   const previewRef = useRef<HTMLDivElement>(null)
   const [user, setUser] = useState<any>(null)
+  const [authChecked, setAuthChecked] = useState(false)
   const [authEmail, setAuthEmail] = useState('')
   const [authPassword, setAuthPassword] = useState('')
   const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
@@ -584,6 +585,7 @@ export default function Home() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
+      setAuthChecked(true)
       if (session?.user) {
         supabase.from('profiles').select('*').eq('id', session.user.id).single().then(({ data }) => {
           if (data) { setProfile(data); if (data.brand_bg) setVizColors({bg:data.brand_bg,text:data.brand_text||'#232323',accent:data.brand_accent||'#4F6754'}) }
