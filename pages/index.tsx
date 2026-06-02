@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase'
 
 type Idea = { topic: string; title: string; hook: string; recommended?: boolean }
 type Post = { id: string; topic: string; content: string; format: string; created_at: string }
-type Profile = { role: string; company: string; sector: string; audience: string; tech_stack: string; lang: string; name: string; brand_bg: string; brand_text: string; brand_accent: string; webhook_url: string }
+type Profile = { role: string; company: string; sector: string; audience: string; tech_stack: string; lang: string; name: string; brand_bg: string; brand_text: string; brand_accent: string; webhook_url: string; domain: string }
 
 const DEFAULT_PROFILE: Profile = {
   name: 'David', role: 'Account Executive (AE)', company: 'Cyna',
