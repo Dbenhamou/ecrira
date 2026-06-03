@@ -6,7 +6,7 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { topic, format, length, tone, profile } = req.body
+  const { topic, format, length, tone, profile, seed } = req.body
 
   const formatMap: Record<string, string> = {
     educational: 'post éducatif avec conseil actionnable',
@@ -26,7 +26,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const sector = profile?.sector || ''
   const audience = profile?.audience || 'Professionnels LinkedIn'
   const techStack = profile?.tech_stack || ''
-  const lang = profile?.lang === 'en' ? 'Anglais' : 'Français'
+  const lang = (profile?.lang || 'fr') === 'en' ? 'English' : 'Français'
+  const langInstruction = (profile?.lang || 'fr') === 'en' ? 'Write the post in English.' : 'Rédige le post en français.'
   const writingStyle = profile?.writing_style || ''
 
   // Parse writing_style — supports JSON array (new) or plain string (legacy)
@@ -68,10 +69,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     + 'Secteur : ' + (sector || 'Non precise') + '.\n'
     + 'Audience : ' + audience + '.\n'
     + (techStack ? 'Stack : ' + techStack + '.\n' : '')
-    + 'Langue : ' + lang + '.\n\n'
+    + 'Langue : ' + lang + '. ' + langInstruction + '\n\n'
     + styleSection + '\n\n'
     + "- N'utilise JAMAIS de Markdown : pas de **, pas de __, pas de ##, pas de *\n"
     + '- Le texte doit etre brut, pret a coller sur LinkedIn tel quel\n\n'
+    + (seed ? 'Seed de variation : ' + seed + ' — utilise cet angle unique, different des posts habituels sur ce sujet.\n' : '')
     + 'Reponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
 
   try {

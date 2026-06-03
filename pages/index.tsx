@@ -631,6 +631,16 @@ export default function Home() {
                 ))}
               </div>
             </div>
+            {!linkedinConnected && (
+              <div style={{margin:'0 10px 4px',padding:'8px 10px',background:'rgba(0,119,181,0.08)',border:'1px solid rgba(0,119,181,0.2)',borderRadius:8,fontSize:11,color:'#0077B5',cursor:'pointer'}} onClick={connectLinkedIn}>
+                🔗 Connecter LinkedIn pour publier
+              </div>
+            )}
+            {!linkedinConnected && (
+              <div style={{margin:'0 10px 4px',padding:'8px 10px',background:'rgba(0,119,181,0.08)',border:'1px solid rgba(0,119,181,0.2)',borderRadius:8,fontSize:11,color:'#0077B5',cursor:'pointer'}} onClick={connectLinkedIn}>
+                🔗 Connecter LinkedIn pour publier
+              </div>
+            )}
             <div style={{padding:'4px 10px'}}><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11,color:'var(--text3)'}} onClick={signOut}>{T('sign_out')}</button></div>
           </div>
         </aside>
@@ -724,7 +734,7 @@ export default function Home() {
                       </button>
                     ) : (
                       <button className="btn btn-primary" style={{fontSize:12,flex:2,justifyContent:'center',background:'#0077B5'}} onClick={connectLinkedIn}>
-                        {T('connect_linkedin')}
+                        🔗 Connecter LinkedIn
                       </button>
                     )}
                   </div>
@@ -749,7 +759,8 @@ export default function Home() {
               <div className="card empty">
                 <div className="empty-icon">📅</div>
                 <div className="empty-title">Aucun post planifié</div>
-                <div className="empty-body">Dans Rédiger, génère un post et clique sur "Planifier" pour le programmer.</div>
+                <div className="empty-body" style={{marginBottom:16}}>Génère un post et planifie-le pour publier au bon moment.</div>
+                <button className="btn btn-primary" style={{justifyContent:'center'}} onClick={()=>setPage('rediger')}>✦ Créer un post à planifier</button>
               </div>
             ) : (
               <div>
