@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 
-type Idea = { topic: string; title: string; hook: string; recommended?: boolean }
+type Idea = { topic: string; title: string; hook: string }
 type Post = { id: string; topic: string; content: string; format: string; created_at: string }
-type Profile = { role: string; company: string; sector: string; audience: string; tech_stack: string; lang: string; name: string; brand_bg: string; brand_text: string; brand_accent: string; webhook_url: string; domain: string }
+type Profile = { role: string; company: string; sector: string; audience: string; tech_stack: string; lang: string; name: string; brand_bg: string; brand_text: string; brand_accent: string; webhook_url: string }
 
 const DEFAULT_PROFILE: Profile = {
   name: 'David', role: 'Account Executive (AE)', company: 'Cyna',
@@ -13,7 +13,6 @@ const DEFAULT_PROFILE: Profile = {
   tech_stack: 'Microsoft, Azure, Entra ID, M365', lang: 'fr',
   brand_bg: '#F8F6F2', brand_text: '#232323', brand_accent: '#4F6754',
   webhook_url: '',
-  domain: '',
 }
 
 const PALETTES = [
@@ -295,7 +294,6 @@ function VisualGenerator() {
   )
 
   return (
-
     <div style={{display:'flex',gap:28,alignItems:'flex-start'}}>
 
       {/* CONTROLS */}
@@ -502,6 +500,7 @@ function VisualGenerator() {
         </div>
       </div>
 
+    </div>
   )
 }
 
@@ -541,28 +540,8 @@ export default function Home() {
   const [aItems, setAItems] = useState('Appliquer KB5049981 immédiatement\nVérifier l\'exposition des endpoints\nActiver les alertes Defender')
   const [aSev, setASev] = useState('CRITIQUE')
   const previewRef = useRef<HTMLDivElement>(null)
-  const [user, setUser] = useState<any>(null)
-  const [authChecked, setAuthChecked] = useState(false)
-  const [authEmail, setAuthEmail] = useState('')
-  const [authPassword, setAuthPassword] = useState('')
-  const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
-  const [authLoading, setAuthLoading] = useState(false)
-  const [showVisualInPublish, setShowVisualInPublish] = useState(false)
-  const [ideasLastGenerated, setIdeasLastGenerated] = useState<number>(0)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setAuthChecked(true)
-      if (session?.user) {
-        supabase.from('profiles').select('*').eq('id', session.user.id).single().then(({ data }) => {
-          if (data) { setProfile(data); if (data.brand_bg) setVizColors({bg:data.brand_bg,text:data.brand_text||'#232323',accent:data.brand_accent||'#4F6754'}) }
-        })
-      }
-    })
-    supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
     const saved = localStorage.getItem('postoria_posts')
     const count = localStorage.getItem('postoria_count')
     const prof = localStorage.getItem('postoria_profile')
@@ -608,15 +587,7 @@ export default function Home() {
   }
   const deletePost = (id:string) => { const u=savedPosts.filter(p=>p.id!==id); setSavedPosts(u); localStorage.setItem('postoria_posts',JSON.stringify(u)); showToast('Post supprimé') }
   const copyText = (text:string) => { navigator.clipboard.writeText(text); showToast('Copié ✓') }
-  const saveProfile = async () => {
-    if (user) {
-      await supabase.from('profiles').upsert({ id: user.id, ...profile })
-      showToast('Profil enregistré ✓')
-    } else {
-      localStorage.setItem('postoria_profile', JSON.stringify(profile))
-      showToast('Profil enregistré ✓')
-    }
-  }
+  const saveProfile = () => { localStorage.setItem('postoria_profile',JSON.stringify(profile)); showToast('Profil enregistré ✓') }
 
   const publishPost = async (scheduled?: string) => {
     if (!postOutput.trim()) { showToast('Aucun post à publier'); return }
@@ -814,13 +785,7 @@ export default function Home() {
                   {postOutput&&<div style={{display:'flex',gap:7,flexWrap:'wrap' as const}}>
                     <button className="btn btn-ghost" onClick={savePost}>↓ Sauvegarder</button>
                     <button className="btn btn-ghost" onClick={()=>copyText(postOutput)}>⎘ Copier</button>
-                    <div style={{marginBottom:8}}>
-                <label style={{fontSize:12,display:'flex',alignItems:'center',gap:6,cursor:'pointer'}}>
-                  <input type="checkbox" checked={showVisualInPublish} onChange={e=>setShowVisualInPublish(e.target.checked)}/>
-                  Joindre un visuel (optionnel)
-                </label>
-              </div>
-              <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing} style={{background:'#0077B5'}}>
+                    <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing} style={{background:'#0077B5'}}>
                       {publishing ? <><span className="spinner"/> Envoi…</> : '🔗 Publier sur LinkedIn'}
                     </button>
                   </div>}
@@ -875,7 +840,6 @@ export default function Home() {
                 <div className="card">
                   <div className="section-label">Stack & style</div>
                   <div className="form-group"><label className="form-label">Technologies</label><input type="text" className="form-input" value={profile.tech_stack} onChange={e=>setProfile(p=>({...p,tech_stack:e.target.value}))}/></div>
-              <div className="form-group"><label className="form-label">Domaine entreprise</label><input type="text" className="form-input" placeholder="ex: cyna.fr" value={profile.domain||''} onChange={e=>setProfile(p=>({...p,domain:e.target.value}))}/><div style={{fontSize:11,color:'var(--text2)',marginTop:3}}>Utilisé pour détecter votre secteur et extraire vos couleurs automatiquement</div></div>
                   <div style={{marginTop:8}}><span className="badge badge-forest">Ton expert</span>&nbsp;<span className="badge badge-copper">MSP France</span></div>
                 </div>
               </div>
@@ -886,7 +850,6 @@ export default function Home() {
       </div>
       <div className={`toast ${toastVisible?'show':''}`}>{toast}</div>
     </>
-    )}
   )
 }
 
