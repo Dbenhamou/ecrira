@@ -702,9 +702,9 @@ export default function Home() {
                 {onboardingStep===0&&'Bienvenue'}{onboardingStep===1&&'Connecte LinkedIn'}{onboardingStep===2&&'Ton profil'}
               </div>
               <div style={{fontSize:13,color:'rgba(255,255,255,0.7)'}}>
-                {onboardingStep===0&&'Postoria genere tes posts LinkedIn en quelques secondes.'}
-                {onboardingStep===1&&'LinkedIn pre-remplit ton nom et enrichit ton profil.'}
-                {onboardingStep===2&&'Verifie et complete les infos detectees.'}
+                {onboardingStep===0&&'Postoria génère tes posts LinkedIn en quelques secondes.'}
+                {onboardingStep===1&&'LinkedIn pré-remplit ton nom et enrichit ton profil.'}
+                {onboardingStep===2&&'Vérifiez et complétez les infos détectées.'}
               </div>
               <div style={{display:'flex',gap:6,marginTop:16}}>
                 {[0,1,2].map(i=>(<div key={i} style={{width:i===onboardingStep?20:6,height:6,borderRadius:3,background:i===onboardingStep?'white':'rgba(255,255,255,0.3)',transition:'all 0.2s'}}/>))}
@@ -713,7 +713,7 @@ export default function Home() {
             <div style={{padding:'24px 32px 28px'}}>
               {onboardingStep===0&&(
                 <div>
-                  {[{icon:'*',title:'10 idees par jour',desc:'Generees selon ton secteur et ton audience LinkedIn'},{icon:'o',title:'Post en 30 secondes',desc:'Genere, edite, publie directement sur LinkedIn'},{icon:'-',title:'Visuels 1080px',desc:'Cree des images pro pour accompagner chaque post'}].map((f,i)=>(
+                  {[{icon:'✦',title:'10 idées par jour',desc:'Générées selon ton secteur et ton audience LinkedIn'},{icon:'◎',title:'Post en 30 secondes',desc:'Génère, édite, publie directement sur LinkedIn'},{icon:'◫',title:'Visuels 1080px',desc:'Crée des images pro pour accompagner chaque post'}].map((f,i)=>(
                     <div key={i} style={{display:'flex',gap:14,marginBottom:14}}>
                       <div style={{width:32,height:32,background:'var(--sand)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>{f.icon}</div>
                       <div><div style={{fontSize:13,fontWeight:500,color:'var(--text1)',marginBottom:2}}>{f.title}</div><div style={{fontSize:12,color:'var(--text2)'}}>{f.desc}</div></div>
@@ -725,13 +725,13 @@ export default function Home() {
               {onboardingStep===1&&(
                 <div>
                   <div style={{background:'rgba(0,119,181,0.05)',border:'1px solid rgba(0,119,181,0.15)',borderRadius:12,padding:'14px 16px',marginBottom:10}}>
-                    <div style={{fontSize:13,fontWeight:600,color:'#0077B5',marginBottom:4}}>1. Connecte LinkedIn</div>
-                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:10}}>Recupere ton nom et enrichit ton profil automatiquement.</div>
-                    <button className="btn btn-primary" style={{background:'#0077B5',width:'100%',justifyContent:'center'}} onClick={connectLinkedIn}>{linkedinConnected?'OK LinkedIn connecte':'Connecter LinkedIn'}</button>
+                    <div style={{fontSize:13,fontWeight:600,color:'#0077B5',marginBottom:4}}>🔗 Connecte LinkedIn</div>
+                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:10}}>Récupère ton nom et enrichit ton profil automatiquement.</div>
+                    <button className="btn btn-primary" style={{background:'#0077B5',width:'100%',justifyContent:'center'}} onClick={connectLinkedIn}>{linkedinConnected?'✓ LinkedIn connecté':'Se connecter avec LinkedIn'}</button>
                   </div>
                   <div style={{background:'rgba(79,103,84,0.05)',border:'1px solid rgba(79,103,84,0.15)',borderRadius:12,padding:'14px 16px',marginBottom:14}}>
-                    <div style={{fontSize:13,fontWeight:600,color:'var(--forest)',marginBottom:4}}>2. Enrichir depuis ton site</div>
-                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>Analyse ton site pour pre-remplir secteur, audience, stack.</div>
+                    <div style={{fontSize:13,fontWeight:600,color:'var(--forest)',marginBottom:4}}>✦ Enrichir depuis ton site</div>
+                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>Analyse ton site pour pré-remplir secteur, audience, stack.</div>
                     <div style={{display:'flex',gap:8}}>
                       <input className="form-input" placeholder="ex: cyna.fr" value={profile.domain||''} onChange={(e:any)=>setProfile((p:any)=>({...p,domain:e.target.value}))} style={{flex:1,fontSize:12}}/>
                       <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={enrichProfile} disabled={enriching}>{enriching?<><span className="spinner"/>...</>:'Analyser'}</button>
