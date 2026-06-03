@@ -395,15 +395,45 @@ export default function Home() {
     setSavingProfile(false)
   }
 
+  const [linkedinConnected, setLinkedinConnected] = useState(false)
+
+  useEffect(() => {
+    // Check LinkedIn connection status from URL param
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get('linkedin') === 'success') {
+        setLinkedinConnected(true)
+        showToast('✓ LinkedIn connecté !')
+        window.history.replaceState({}, '', '/')
+      } else if (params.get('linkedin') === 'error') {
+        showToast('Erreur connexion LinkedIn')
+        window.history.replaceState({}, '', '/')
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    // Check if linkedin_token exists in profile
+    if ((profile as any).linkedin_token) setLinkedinConnected(true)
+  }, [profile])
+
+  const connectLinkedIn = () => {
+    window.location.href = '/api/linkedin/auth'
+  }
+
   const publishPost = async (scheduled?: string) => {
     if (!postOutput.trim()) { showToast('Aucun post à publier'); return }
-    if (!profile.webhook_url) { showToast('Configure d\'abord ton URL webhook dans Mon profil'); return }
+    if (!userId) { showToast('Non connecté'); return }
     setPublishing(true)
     try {
-      const res = await fetch('/api/publish', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content:postOutput,webhookUrl:profile.webhook_url,scheduledAt:scheduled||null}) })
+      const res = await fetch('/api/linkedin/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, content: postOutput }),
+      })
       const data = await res.json()
-      if (data.success) showToast('✓ Post envoyé à LinkedIn via Zapier !')
-      else showToast('Erreur : '+(data.error||'inconnue'))
+      if (data.success) showToast('✓ Post publié sur LinkedIn !')
+      else showToast(data.error || 'Erreur publication')
     } catch { showToast('Erreur réseau') }
     setPublishing(false)
   }
@@ -530,13 +560,16 @@ export default function Home() {
                       <div><div style={{fontSize:12,fontWeight:600,color:'var(--forest)',marginBottom:2}}>🖼 Ajouter un visuel</div><div style={{fontSize:11,color:'var(--text2)'}}>Génère une image 1080×1080 à partir de ce post.</div></div>
                       <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={()=>setShowVisualModal(true)}>Créer le visuel →</button>
                     </div>
-                    <div style={{display:'flex',gap:7,alignItems:'center'}}>
-                      <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing} style={{background:'#0077B5',flex:1,justifyContent:'center'}}>{publishing?<><span className="spinner"/> Envoi…</>:'🔗 Publier sur LinkedIn'}</button>
-                    </div>
-                    <div style={{display:'flex',gap:7,alignItems:'center',marginTop:8}}>
-                      <input type="datetime-local" className="form-input" value={scheduleDate} onChange={e=>setScheduleDate(e.target.value)} style={{fontSize:12,flex:1}}/>
-                      <button className="btn btn-secondary" onClick={()=>publishPost(scheduleDate)} disabled={publishing||!scheduleDate} style={{fontSize:12,whiteSpace:'nowrap' as const}}>📅 Planifier</button>
-                    </div>
+                    {linkedinConnected ? (
+                      <div style={{display:'flex',gap:7,alignItems:'center'}}>
+                        <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing} style={{background:'#0077B5',flex:1,justifyContent:'center'}}>{publishing?<><span className="spinner"/> Publication…</>:'🔗 Publier sur LinkedIn'}</button>
+                      </div>
+                    ) : (
+                      <div style={{background:'rgba(0,119,181,0.06)',border:'1px solid rgba(0,119,181,0.2)',borderRadius:12,padding:'12px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+                        <div><div style={{fontSize:12,fontWeight:600,color:'#0077B5',marginBottom:2}}>🔗 Publier directement sur LinkedIn</div><div style={{fontSize:11,color:'var(--text2)'}}>Connecte ton compte LinkedIn pour publier en 1 clic.</div></div>
+                        <button className="btn btn-primary" style={{fontSize:12,flexShrink:0,background:'#0077B5'}} onClick={connectLinkedIn}>Connecter →</button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -611,9 +644,14 @@ export default function Home() {
                 ))}
                 <div className="form-group"><label className="form-label">Langue</label><select className="form-input" value={profile.lang} onChange={e=>setProfile(p=>({...p,lang:e.target.value}))}><option value="fr">Français</option><option value="en">English</option></select></div>
                 <div className="form-group">
-                  <label className="form-label">URL Webhook Zapier</label>
-                  <input type="text" className="form-input" placeholder="https://hooks.zapier.com/hooks/catch/..." value={profile.webhook_url||''} onChange={e=>setProfile(p=>({...p,webhook_url:e.target.value}))} style={{fontSize:12}}/>
-                  <div style={{fontSize:11,color:'var(--text3)',marginTop:4}}>Colle ici l'URL générée par Zapier pour publier sur LinkedIn.</div>
+                  <label className="form-label">Publication LinkedIn</label>
+                  <div style={{background:linkedinConnected?'rgba(79,103,84,0.06)':'rgba(0,119,181,0.05)',border:`1px solid ${linkedinConnected?'rgba(79,103,84,0.2)':'rgba(0,119,181,0.2)'}`,borderRadius:10,padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
+                    <div>
+                      <div style={{fontSize:12,fontWeight:600,color:linkedinConnected?'var(--forest)':'#0077B5',marginBottom:2}}>{linkedinConnected?'✓ LinkedIn connecté':'LinkedIn non connecté'}</div>
+                      <div style={{fontSize:11,color:'var(--text2)'}}>{linkedinConnected?'Tu peux publier directement depuis Rédiger.':'Connecte ton compte pour publier en 1 clic.'}</div>
+                    </div>
+                    <button className="btn btn-primary" style={{fontSize:11,flexShrink:0,background:linkedinConnected?'var(--forest)':'#0077B5'}} onClick={connectLinkedIn}>{linkedinConnected?'Reconnecter':'Connecter →'}</button>
+                  </div>
                 </div>
                 <button className="btn btn-primary" onClick={handleSaveProfile} disabled={savingProfile}>{savingProfile?<><span className="spinner"/> Sauvegarde…</>:'Enregistrer'}</button>
               </div>
