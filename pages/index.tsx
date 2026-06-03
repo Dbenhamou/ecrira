@@ -1,25 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
+import { useProfile } from '../lib/useProfile'
 
 type Idea = { topic: string; title: string; hook: string; recommended?: boolean }
 type Post = { id: string; topic: string; content: string; format: string; created_at: string }
-type Profile = {
-  role: string; company: string; sector: string; audience: string;
-  tech_stack: string; lang: string; name: string; domain: string;
-  brand_bg: string; brand_text: string; brand_accent: string; webhook_url: string
-}
-
-const DEFAULT_PROFILE: Profile = {
-  name: 'David', role: 'Account Executive (AE)', company: 'Cyna',
-  sector: 'Cybersécurité B2B – partenaires MSP',
-  audience: 'Professionnels MSP, DSI, RSSI – France',
-  tech_stack: 'Microsoft, Azure, Entra ID, M365',
-  domain: 'cyna.fr',
-  lang: 'fr',
-  brand_bg: '#F8F6F2', brand_text: '#232323', brand_accent: '#4F6754',
-  webhook_url: '',
-}
 
 const PALETTES = [
   { name:'Postoria Ivory', bg:'#F8F6F2', text:'#232323', accent:'#4F6754' },
@@ -64,11 +49,16 @@ type VisualModalProps = {
   onClose: () => void
   postContent: string
   postTopic: string
-  profile: Profile
+  profileName: string
+  profileRole: string
+  profileCompany: string
+  profileSector: string
+  brandBg: string
+  brandText: string
+  brandAccent: string
 }
 
-function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalProps) {
-  // Extract a punchy hook from post content (first non-empty line ≤ 120 chars)
+function VisualModal({ onClose, postContent, postTopic, profileName, profileRole, profileCompany, profileSector, brandBg, brandText, brandAccent }: VisualModalProps) {
   const extractHook = (content: string): string => {
     const lines = content.split('\n').map(l => l.trim()).filter(Boolean)
     for (const line of lines) {
@@ -80,13 +70,13 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
 
   const [s, setS] = useState<any>({
     tpl: 'quote', fmt: 'square',
-    colors: { bg: profile.brand_bg || '#F8F6F2', text: profile.brand_text || '#232323', accent: profile.brand_accent || '#4F6754' },
+    colors: { bg: brandBg || '#F8F6F2', text: brandText || '#232323', accent: brandAccent || '#4F6754' },
     font: 'playfair', textSize: 'L', align: 'left',
     accentStyle: 'bar', bgPattern: 'none',
     sectorIcon: 'cyber', logoUrl: null, logoPos: 'tl', logoSize: 36, showWatermark: true,
     qText: extractHook(postContent),
-    qAuthor: `${profile.name} · ${profile.role.split(' ')[0]} @${profile.company}`,
-    qTag: postTopic || profile.sector?.split('–')[0]?.trim() || 'Cybersécurité MSP',
+    qAuthor: `${profileName} · ${profileRole.split(' ')[0]} @${profileCompany}`,
+    qTag: postTopic || profileSector?.split('–')[0]?.trim() || 'Cybersécurité MSP',
     sNum: '73', sUnit: '%', sLabel: 'des MSP ne testent jamais leur PRA',
     sCtx: extractHook(postContent),
     sSrc: 'Source',
@@ -141,7 +131,7 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
     } else {
       inner = `<div style="width:${sz}px;height:${sz}px;background:${accentCol};border-radius:${p(8)}px;display:flex;align-items:center;justify-content:center;">${logoSVGfn(bgCol,Math.round(sz*0.55))}</div>`
     }
-    const watermark = s.showWatermark ? `<span style="font-family:'Inter',sans-serif;font-size:${p(13)}px;font-weight:600;letter-spacing:.06em;color:${bgCol === s.colors.bg ? s.colors.text : bgCol};margin-left:${p(8)}px;">POSTORIA</span>` : ''
+    const watermark = s.showWatermark ? `<span style="font-family:'Inter',sans-serif;font-size:${p(13)}px;font-weight:600;letter-spacing:.06em;color:${s.colors.text};margin-left:${p(8)}px;">POSTORIA</span>` : ''
     return `<div style="position:absolute;inset:${p(44)}px;display:flex;align-items:${ai};justify-content:${jc};pointer-events:none;z-index:2;">
       <div style="display:flex;align-items:center;">${inner}${watermark}</div>
     </div>`
@@ -159,9 +149,7 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
 
     if (s.tpl === 'quote') {
       return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:${fontStack};box-sizing:border-box;">
-        ${buildPattern(text)}
-        ${buildAccentEl(S, accent)}
-        ${buildLogoEl(S, bg, accent)}
+        ${buildPattern(text)}${buildAccentEl(S, accent)}${buildLogoEl(S, bg, accent)}
         <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:${pad}px ${pad}px ${pad}px ${padL}px;">
           <div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:${ta};">
             <div style="font-size:${fs(108)}px;line-height:.75;color:${accent};margin-bottom:${p(14)}px;font-weight:700;opacity:.18;">"</div>
@@ -179,9 +167,7 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
 
     if (s.tpl === 'stat') {
       return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:'Inter',sans-serif;box-sizing:border-box;">
-        ${buildPattern(text)}
-        ${buildAccentEl(S, accent)}
-        ${buildLogoEl(S, bg, accent)}
+        ${buildPattern(text)}${buildAccentEl(S, accent)}${buildLogoEl(S, bg, accent)}
         <div style="position:absolute;right:${p(-20)}px;bottom:${p(-50)}px;font-family:${fontStack};font-size:${p(360)}px;font-weight:700;color:${text};opacity:.04;line-height:1;pointer-events:none;">${s.sNum}</div>
         <div style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1;padding:${pad}px ${pad}px ${pad}px ${padL}px;">
           <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
@@ -202,7 +188,6 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
       </div>`
     }
 
-    // ALERT
     const sevC = s.aSev==='CRITIQUE'?'#C0392B':s.aSev==='ÉLEVÉE'?'#D35400':'#E67E22'
     const sevBg = s.aSev==='CRITIQUE'?'rgba(192,57,43,.1)':s.aSev==='ÉLEVÉE'?'rgba(211,84,0,.1)':'rgba(230,126,34,.1)'
     const itemsHTML = s.aItems.split('\n').filter((l:string)=>l.trim()).map((it:string) =>
@@ -211,9 +196,7 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
         <span>${it}</span>
       </div>`).join('')
     return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:'Inter',sans-serif;box-sizing:border-box;">
-      ${buildPattern(text)}
-      ${buildAccentEl(S, sevC)}
-      ${buildLogoEl(S, bg, accent)}
+      ${buildPattern(text)}${buildAccentEl(S, sevC)}${buildLogoEl(S, bg, accent)}
       <div style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1;padding:${pad}px ${pad}px ${pad}px ${padL}px;">
         <div style="display:flex;justify-content:flex-end;margin-bottom:${p(32)}px;">
           <span style="font-size:${p(12)}px;font-weight:700;padding:${p(6)}px ${p(16)}px;border-radius:${p(20)}px;background:${sevBg};color:${sevC};letter-spacing:.06em;">${s.aSev}</span>
@@ -247,71 +230,32 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
     document.body.removeChild(div)
   }, [s])
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => upd({ logoUrl: ev.target?.result as string })
-    reader.readAsDataURL(file)
-  }
-
   const S_BASE = 1080
   const H_BASE = s.fmt==='portrait' ? Math.round(S_BASE*1.25) : S_BASE
   const previewW = Math.round(S_BASE * zoom / 100)
   const previewH = Math.round(H_BASE * zoom / 100)
-
   const QUICK_COLORS = ['#FFFFFF','#232323','#F8F6F2','#ECE6DD','#4F6754','#A8784F','#2563EB','#DC2626','#D97706','#7C3AED']
   const POS_GRID = [['tl','tc','tr'],['ml','mc','mr'],['bl','bc','br']]
   const POS_LABELS: Record<string,string> = {tl:'↖',tc:'↑',tr:'↗',ml:'←',mc:'·',mr:'→',bl:'↙',bc:'↓',br:'↘'}
 
   return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 500,
-      background: 'rgba(0,0,0,0.55)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      backdropFilter: 'blur(4px)',
-      padding: 20,
-    }} onClick={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div style={{
-        background: 'var(--ivory)',
-        borderRadius: 20,
-        width: '100%', maxWidth: 1100,
-        maxHeight: '92vh',
-        display: 'flex', flexDirection: 'column',
-        boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
-        overflow: 'hidden',
-      }}>
-        {/* Modal header */}
-        <div style={{
-          padding: '16px 24px',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          background: 'var(--white)',
-          flexShrink: 0,
-        }}>
+    <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',padding:20}} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
+      <div style={{background:'var(--ivory)',borderRadius:20,width:'100%',maxWidth:1100,maxHeight:'92vh',display:'flex',flexDirection:'column',boxShadow:'0 24px 80px rgba(0,0,0,0.25)',overflow:'hidden'}}>
+        <div style={{padding:'16px 24px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'var(--white)',flexShrink:0}}>
           <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--copper)', letterSpacing: '.08em', textTransform: 'uppercase', marginBottom: 2 }}>Visuel du post</div>
-            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 500, color: 'var(--text1)' }}>Générateur de visuel</div>
+            <div style={{fontSize:11,fontWeight:600,color:'var(--copper)',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:2}}>Visuel du post</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:500,color:'var(--text1)'}}>Générateur de visuel</div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => exportPNG()}>↓ Télécharger PNG</button>
-            <button className="btn btn-ghost" style={{ fontSize: 12 }} onClick={onClose}>✕ Fermer</button>
+          <div style={{display:'flex',gap:8}}>
+            <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>exportPNG()}>↓ Télécharger PNG</button>
+            <button className="btn btn-ghost" style={{fontSize:12}} onClick={onClose}>✕ Fermer</button>
           </div>
         </div>
-
-        {/* Modal body */}
-        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-          {/* Controls */}
-          <div style={{
-            width: 264, flexShrink: 0,
-            overflowY: 'auto', padding: 16,
-            borderRight: '1px solid var(--border)',
-            display: 'flex', flexDirection: 'column', gap: 10,
-            background: 'var(--white)',
-          }}>
-            {/* Template */}
-            <div className="card-sm" style={{ padding: '12px 14px' }}>
+        <div style={{display:'flex',flex:1,overflow:'hidden'}}>
+          <div style={{width:264,flexShrink:0,overflowY:'auto',padding:16,borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',gap:10,background:'var(--white)'}}>
+            <div className="card-sm" style={{padding:'12px 14px'}}>
               <div className="section-label">Template</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 5 }}>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:5}}>
                 {[{id:'quote',icon:'❝',label:'Quote'},{id:'stat',icon:'◎',label:'Stat'},{id:'alert',icon:'⚡',label:'Alerte'}].map(t=>(
                   <button key={t.id} onClick={()=>upd({tpl:t.id})} style={{padding:'7px 4px',borderRadius:8,border:`1px solid ${s.tpl===t.id?'var(--forest)':'var(--border)'}`,background:s.tpl===t.id?'var(--forest)':'var(--ivory)',color:s.tpl===t.id?'white':'var(--text2)',fontSize:10,fontWeight:500,cursor:'pointer',textAlign:'center' as const,fontFamily:'inherit'}}>
                     <span style={{display:'block',fontSize:14,marginBottom:1}}>{t.icon}</span>{t.label}
@@ -319,18 +263,15 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
                 ))}
               </div>
             </div>
-
-            {/* Tabs */}
-            <div style={{ display: 'flex', gap: 5 }}>
-              {(['basic','advanced'] as const).map(id => (
+            <div style={{display:'flex',gap:5}}>
+              {(['basic','advanced'] as const).map(id=>(
                 <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${tab===id?'var(--forest)':'var(--border)'}`,background:tab===id?'var(--forest)':'var(--ivory)',color:tab===id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>
                   {id==='basic'?'Basique':'Avancé'}
                 </button>
               ))}
             </div>
-
             {tab==='basic' && <>
-              <div className="card-sm" style={{ padding: '12px 14px' }}>
+              <div className="card-sm" style={{padding:'12px 14px'}}>
                 <div className="section-label">Couleurs</div>
                 {([['Fond','bg'],['Texte','text'],['Accent','accent']] as [string,string][]).map(([label,key])=>(
                   <div key={key} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7}}>
@@ -340,20 +281,13 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
                   </div>
                 ))}
                 <div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>
-                  {QUICK_COLORS.map((c,i)=>(
-                    <div key={i} onClick={()=>updC('accent',c)} title={c}
-                      style={{width:20,height:20,borderRadius:'50%',background:c,border:`2px solid ${c==='#FFFFFF'?'#e0ddd8':'transparent'}`,cursor:'pointer',boxShadow:'0 1px 3px rgba(0,0,0,.15)'}}/>
-                  ))}
+                  {QUICK_COLORS.map((c,i)=>(<div key={i} onClick={()=>updC('accent',c)} title={c} style={{width:20,height:20,borderRadius:'50%',background:c,border:`2px solid ${c==='#FFFFFF'?'#e0ddd8':'transparent'}`,cursor:'pointer',boxShadow:'0 1px 3px rgba(0,0,0,.15)'}}/>))}
                 </div>
                 <div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>
-                  {PALETTES.map((p:any,i:number)=>(
-                    <div key={i} onClick={()=>upd({colors:{bg:p.bg,text:p.text,accent:p.accent}})} title={p.name}
-                      style={{width:20,height:20,borderRadius:5,background:p.bg,border:`2px solid ${p.accent}`,cursor:'pointer'}}/>
-                  ))}
+                  {PALETTES.map((p:any,i:number)=>(<div key={i} onClick={()=>upd({colors:{bg:p.bg,text:p.text,accent:p.accent}})} title={p.name} style={{width:20,height:20,borderRadius:5,background:p.bg,border:`2px solid ${p.accent}`,cursor:'pointer'}}/>))}
                 </div>
               </div>
-
-              <div className="card-sm" style={{ padding: '12px 14px' }}>
+              <div className="card-sm" style={{padding:'12px 14px'}}>
                 <div className="section-label">Contenu</div>
                 {s.tpl==='quote' && <>
                   <div className="form-group" style={{marginBottom:10}}><label className="form-label">Citation</label><textarea className="form-input" rows={4} value={s.qText} onChange={(e:any)=>upd({qText:e.target.value})} style={{fontSize:11}}/></div>
@@ -378,126 +312,37 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
                 </>}
               </div>
             </>}
-
             {tab==='advanced' && <>
-              <div className="card-sm" style={{ padding: '12px 14px' }}>
+              <div className="card-sm" style={{padding:'12px 14px'}}>
                 <div className="section-label">Typographie</div>
-                <div className="form-group" style={{marginBottom:10}}>
-                  <label className="form-label">Police</label>
-                  <select className="form-input" value={s.font} onChange={(e:any)=>upd({font:e.target.value})} style={{fontSize:11}}>
-                    {FONTS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}
-                  </select>
-                </div>
-                <div className="form-group" style={{marginBottom:10}}>
-                  <label className="form-label">Taille</label>
-                  <div style={{display:'flex',gap:4}}>
-                    {['S','M','L','XL'].map(sz=>(
-                      <button key={sz} onClick={()=>upd({textSize:sz})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.textSize===sz?'var(--forest)':'var(--border)'}`,background:s.textSize===sz?'var(--forest)':'var(--ivory)',color:s.textSize===sz?'white':'var(--text2)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>{sz}</button>
-                    ))}
-                  </div>
-                </div>
-                <div className="form-group" style={{marginBottom:0}}>
-                  <label className="form-label">Alignement</label>
-                  <div style={{display:'flex',gap:4}}>
-                    {[{id:'left',l:'Gauche'},{id:'center',l:'Centré'}].map(a=>(
-                      <button key={a.id} onClick={()=>upd({align:a.id})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.align===a.id?'var(--forest)':'var(--border)'}`,background:s.align===a.id?'var(--forest)':'var(--ivory)',color:s.align===a.id?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{a.l}</button>
-                    ))}
-                  </div>
-                </div>
+                <div className="form-group" style={{marginBottom:10}}><label className="form-label">Police</label><select className="form-input" value={s.font} onChange={(e:any)=>upd({font:e.target.value})} style={{fontSize:11}}>{FONTS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></div>
+                <div className="form-group" style={{marginBottom:10}}><label className="form-label">Taille</label><div style={{display:'flex',gap:4}}>{['S','M','L','XL'].map(sz=>(<button key={sz} onClick={()=>upd({textSize:sz})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.textSize===sz?'var(--forest)':'var(--border)'}`,background:s.textSize===sz?'var(--forest)':'var(--ivory)',color:s.textSize===sz?'white':'var(--text2)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>{sz}</button>))}</div></div>
+                <div className="form-group" style={{marginBottom:0}}><label className="form-label">Alignement</label><div style={{display:'flex',gap:4}}>{[{id:'left',l:'Gauche'},{id:'center',l:'Centré'}].map(a=>(<button key={a.id} onClick={()=>upd({align:a.id})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.align===a.id?'var(--forest)':'var(--border)'}`,background:s.align===a.id?'var(--forest)':'var(--ivory)',color:s.align===a.id?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{a.l}</button>))}</div></div>
               </div>
-
-              <div className="card-sm" style={{ padding: '12px 14px' }}>
+              <div className="card-sm" style={{padding:'12px 14px'}}>
                 <div className="section-label">Décoration</div>
-                <div className="form-group" style={{marginBottom:10}}>
-                  <label className="form-label">Accent</label>
-                  <select className="form-input" value={s.accentStyle} onChange={(e:any)=>upd({accentStyle:e.target.value})} style={{fontSize:11}}>
-                    <option value="bar">Barre verticale gauche</option>
-                    <option value="top">Barre horizontale haut</option>
-                    <option value="gradient">Gradient latéral</option>
-                    <option value="none">Aucun</option>
-                  </select>
-                </div>
-                <div className="form-group" style={{marginBottom:0}}>
-                  <label className="form-label">Motif de fond</label>
-                  <select className="form-input" value={s.bgPattern} onChange={(e:any)=>upd({bgPattern:e.target.value})} style={{fontSize:11}}>
-                    <option value="none">Aucun</option>
-                    <option value="dots">Points</option>
-                    <option value="grid">Grille</option>
-                    <option value="diag">Diagonales</option>
-                    <option value="circles">Cercles</option>
-                  </select>
-                </div>
+                <div className="form-group" style={{marginBottom:10}}><label className="form-label">Accent</label><select className="form-input" value={s.accentStyle} onChange={(e:any)=>upd({accentStyle:e.target.value})} style={{fontSize:11}}><option value="bar">Barre verticale gauche</option><option value="top">Barre horizontale haut</option><option value="gradient">Gradient latéral</option><option value="none">Aucun</option></select></div>
+                <div className="form-group" style={{marginBottom:0}}><label className="form-label">Motif de fond</label><select className="form-input" value={s.bgPattern} onChange={(e:any)=>upd({bgPattern:e.target.value})} style={{fontSize:11}}><option value="none">Aucun</option><option value="dots">Points</option><option value="grid">Grille</option><option value="diag">Diagonales</option><option value="circles">Cercles</option></select></div>
               </div>
-
-              <div className="card-sm" style={{ padding: '12px 14px' }}>
+              <div className="card-sm" style={{padding:'12px 14px'}}>
                 <div className="section-label">Logo & icône</div>
-                <div className="form-group" style={{marginBottom:10}}>
-                  <label className="form-label">Upload logo</label>
-                  <input ref={fileRef} type="file" accept="image/*" onChange={handleLogoUpload} style={{display:'none'}}/>
-                  <div style={{display:'flex',gap:6}}>
-                    <button onClick={()=>fileRef.current?.click()} className="btn btn-ghost" style={{fontSize:11,flex:1,justifyContent:'center'}}>{s.logoUrl?'✓ Logo chargé':'↑ Choisir'}</button>
-                    {s.logoUrl && <button onClick={()=>upd({logoUrl:null})} className="btn btn-ghost" style={{fontSize:10,color:'#c0392b',borderColor:'transparent'}}>✕</button>}
-                  </div>
-                </div>
-                {!s.logoUrl && <div className="form-group" style={{marginBottom:10}}>
-                  <label className="form-label">Icône sectorielle</label>
-                  <select className="form-input" value={s.sectorIcon} onChange={(e:any)=>upd({sectorIcon:e.target.value})} style={{fontSize:11}}>
-                    <option value="cyber">🔒 Cybersécurité</option>
-                    <option value="finance">💳 Finance</option>
-                    <option value="tech">💻 Tech</option>
-                    <option value="marketing">📣 Marketing</option>
-                    <option value="rh">👥 RH</option>
-                    <option value="sante">❤️ Santé</option>
-                    <option value="conseil">📋 Conseil</option>
-                    <option value="none">Aucune</option>
-                  </select>
-                </div>}
-                <div className="form-group" style={{marginBottom:8}}>
-                  <label className="form-label">Position</label>
-                  <div style={{display:'inline-grid',gridTemplateColumns:'repeat(3,26px)',gap:3}}>
-                    {POS_GRID.map(row=>row.map(pos=>(
-                      <button key={pos} onClick={()=>upd({logoPos:pos})} style={{width:26,height:26,borderRadius:5,border:`1px solid ${s.logoPos===pos?'var(--forest)':'var(--border)'}`,background:s.logoPos===pos?'var(--forest)':'var(--ivory)',color:s.logoPos===pos?'white':'var(--text2)',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                        {POS_LABELS[pos]}
-                      </button>
-                    )))}
-                  </div>
-                </div>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                  <span style={{fontSize:11,color:'var(--text2)'}}>Watermark</span>
-                  <div className={`toggle ${s.showWatermark?'on':''}`} onClick={()=>upd({showWatermark:!s.showWatermark})}><div className="toggle-dot"/></div>
-                </div>
+                <input ref={fileRef} type="file" accept="image/*" onChange={(e:any)=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>upd({logoUrl:ev.target?.result});r.readAsDataURL(f)}} style={{display:'none'}}/>
+                <div style={{display:'flex',gap:6,marginBottom:10}}><button onClick={()=>fileRef.current?.click()} className="btn btn-ghost" style={{fontSize:11,flex:1,justifyContent:'center'}}>{s.logoUrl?'✓ Logo chargé':'↑ Choisir'}</button>{s.logoUrl&&<button onClick={()=>upd({logoUrl:null})} className="btn btn-ghost" style={{fontSize:10,color:'#c0392b',borderColor:'transparent'}}>✕</button>}</div>
+                {!s.logoUrl && <div className="form-group" style={{marginBottom:10}}><label className="form-label">Icône sectorielle</label><select className="form-input" value={s.sectorIcon} onChange={(e:any)=>upd({sectorIcon:e.target.value})} style={{fontSize:11}}><option value="cyber">🔒 Cybersécurité</option><option value="finance">💳 Finance</option><option value="tech">💻 Tech</option><option value="marketing">📣 Marketing</option><option value="rh">👥 RH</option><option value="sante">❤️ Santé</option><option value="conseil">📋 Conseil</option><option value="none">Aucune</option></select></div>}
+                <div className="form-group" style={{marginBottom:8}}><label className="form-label">Position</label><div style={{display:'inline-grid',gridTemplateColumns:'repeat(3,26px)',gap:3}}>{POS_GRID.map(row=>row.map(pos=>(<button key={pos} onClick={()=>upd({logoPos:pos})} style={{width:26,height:26,borderRadius:5,border:`1px solid ${s.logoPos===pos?'var(--forest)':'var(--border)'}`,background:s.logoPos===pos?'var(--forest)':'var(--ivory)',color:s.logoPos===pos?'white':'var(--text2)',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>{POS_LABELS[pos]}</button>)))}</div></div>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span style={{fontSize:11,color:'var(--text2)'}}>Watermark</span><div className={`toggle ${s.showWatermark?'on':''}`} onClick={()=>upd({showWatermark:!s.showWatermark})}><div className="toggle-dot"/></div></div>
               </div>
             </>}
-
-            {/* Format */}
-            <div className="card-sm" style={{ padding: '12px 14px' }}>
+            <div className="card-sm" style={{padding:'12px 14px'}}>
               <div className="section-label">Format</div>
-              <div style={{display:'flex',gap:5,marginBottom:10}}>
-                {['square','portrait'].map(f=>(
-                  <button key={f} onClick={()=>upd({fmt:f})} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${s.fmt===f?'var(--forest)':'var(--border)'}`,background:s.fmt===f?'var(--forest)':'var(--ivory)',color:s.fmt===f?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>
-                    {f==='square'?'1080×1080':'1080×1350'}
-                  </button>
-                ))}
-              </div>
-              <div style={{marginBottom:10}}>
-                <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><label style={{fontSize:10,color:'var(--text2)',fontWeight:500}}>Zoom</label><span style={{fontSize:10,color:'var(--text3)',fontFamily:'monospace'}}>{zoom}%</span></div>
-                <input type="range" min={30} max={100} value={zoom} onChange={(e:any)=>setZoom(parseInt(e.target.value))} style={{width:'100%',accentColor:'var(--forest)'}}/>
-              </div>
-              <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',fontSize:12,marginBottom:5}} onClick={()=>exportPNG()}>↓ PNG {s.fmt==='square'?'1080×1080':'1080×1350'}</button>
+              <div style={{display:'flex',gap:5,marginBottom:10}}>{['square','portrait'].map(f=>(<button key={f} onClick={()=>upd({fmt:f})} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${s.fmt===f?'var(--forest)':'var(--border)'}`,background:s.fmt===f?'var(--forest)':'var(--ivory)',color:s.fmt===f?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{f==='square'?'1080×1080':'1080×1350'}</button>))}</div>
+              <div style={{marginBottom:10}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><label style={{fontSize:10,color:'var(--text2)',fontWeight:500}}>Zoom</label><span style={{fontSize:10,color:'var(--text3)',fontFamily:'monospace'}}>{zoom}%</span></div><input type="range" min={30} max={100} value={zoom} onChange={(e:any)=>setZoom(parseInt(e.target.value))} style={{width:'100%',accentColor:'var(--forest)'}}/></div>
+              <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',fontSize:12,marginBottom:5}} onClick={()=>exportPNG()}>↓ PNG</button>
               <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11}} onClick={async()=>{await exportPNG('square');await new Promise(r=>setTimeout(r,400));await exportPNG('portrait')}}>↓ Les 2 formats</button>
             </div>
           </div>
-
-          {/* Preview */}
-          <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center',
-            background: 'var(--sand)',
-            overflow: 'auto', padding: 24,
-          }}>
-            <div style={{fontSize:10,color:'var(--text3)',marginBottom:12,fontWeight:500,textTransform:'uppercase' as const,letterSpacing:'.08em'}}>
-              Aperçu {zoom}% — {s.fmt==='square'?'1080 × 1080':'1080 × 1350'}
-            </div>
+          <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--sand)',overflow:'auto',padding:24}}>
+            <div style={{fontSize:10,color:'var(--text3)',marginBottom:12,fontWeight:500,textTransform:'uppercase' as const,letterSpacing:'.08em'}}>Aperçu {zoom}% — {s.fmt==='square'?'1080 × 1080':'1080 × 1350'}</div>
             <div style={{borderRadius:Math.round(14*zoom/100),overflow:'hidden',boxShadow:'0 20px 60px rgba(0,0,0,.18)',flexShrink:0,width:previewW,height:previewH}}>
               <div style={{transform:`scale(${zoom/100})`,transformOrigin:'top left',width:S_BASE,height:H_BASE}} dangerouslySetInnerHTML={{__html:buildViz(S_BASE)}}/>
             </div>
@@ -510,11 +355,11 @@ function VisualModal({ onClose, postContent, postTopic, profile }: VisualModalPr
 
 // ─── MAIN ──────────────────────────────────────────────────────────────────────
 export default function Home() {
+  const { profile, setProfile, saveProfile, signOut, loading } = useProfile()
   const [page, setPage] = useState('apercu')
   const [dark, setDark] = useState(false)
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
-  const [profile, setProfile] = useState<Profile>(DEFAULT_PROFILE)
   const [generatedCount, setGeneratedCount] = useState(0)
   const [loadingIdeas, setLoadingIdeas] = useState(false)
   const [loadingPost, setLoadingPost] = useState(false)
@@ -528,18 +373,18 @@ export default function Home() {
   const [publishing, setPublishing] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [showVisualModal, setShowVisualModal] = useState(false)
+  const [savingProfile, setSavingProfile] = useState(false)
   const [ideasRefreshCountdown, setIdeasRefreshCountdown] = useState<number | null>(null)
   const ideasLastRefresh = useRef<number | null>(null)
-  const IDEAS_REFRESH_MS = 2 * 60 * 60 * 1000 // 2h
+  const IDEAS_REFRESH_MS = 2 * 60 * 60 * 1000
 
+  // Load localStorage data (posts + count + theme)
   useEffect(() => {
     const saved = localStorage.getItem('postoria_posts')
     const count = localStorage.getItem('postoria_count')
-    const prof = localStorage.getItem('postoria_profile')
     const theme = localStorage.getItem('postoria_dark')
     if (saved) setSavedPosts(JSON.parse(saved))
     if (count) setGeneratedCount(parseInt(count))
-    if (prof) setProfile(JSON.parse(prof))
     if (theme === '1') { setDark(true); document.documentElement.dataset.theme = 'dark' }
   }, [])
 
@@ -550,26 +395,22 @@ export default function Home() {
         const elapsed = Date.now() - ideasLastRefresh.current
         const remaining = IDEAS_REFRESH_MS - elapsed
         if (remaining <= 0) {
-          // Trigger refresh silently
-          fetch('/api/ideas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profile }) })
-            .then(r => r.json())
-            .then(data => { if (data.ideas) { setIdeas(data.ideas); ideasLastRefresh.current = Date.now(); setIdeasRefreshCountdown(IDEAS_REFRESH_MS) } })
-            .catch(() => {})
+          fetch('/api/ideas', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({profile}) })
+            .then(r=>r.json()).then(data=>{if(data.ideas){setIdeas(data.ideas);ideasLastRefresh.current=Date.now();setIdeasRefreshCountdown(IDEAS_REFRESH_MS)}}).catch(()=>{})
         } else {
           setIdeasRefreshCountdown(remaining)
         }
       }
-    }, 60000) // check every minute
+    }, 60000)
     return () => clearInterval(interval)
   }, [profile])
 
   const formatCountdown = (ms: number) => {
-    const m = Math.floor(ms / 60000)
-    const h = Math.floor(m / 60)
+    const m = Math.floor(ms / 60000); const h = Math.floor(m / 60)
     return h > 0 ? `${h}h${String(m % 60).padStart(2,'0')}` : `${m}m`
   }
 
-  const showToast = (msg: string) => { setToast(msg); setToastVisible(true); setTimeout(() => setToastVisible(false), 2600) }
+  const showToast = (msg: string) => { setToast(msg); setToastVisible(true); setTimeout(()=>setToastVisible(false), 2600) }
   const toggleDark = () => { const n=!dark; setDark(n); document.documentElement.dataset.theme=n?'dark':''; localStorage.setItem('postoria_dark',n?'1':'0') }
 
   const generateIdeas = async () => {
@@ -577,11 +418,8 @@ export default function Home() {
     try {
       const res = await fetch('/api/ideas', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({profile}) })
       const data = await res.json()
-      if (data.ideas) {
-        setIdeas(data.ideas)
-        ideasLastRefresh.current = Date.now()
-        setIdeasRefreshCountdown(IDEAS_REFRESH_MS)
-      } else showToast('Erreur : '+(data.error||'inconnue'))
+      if (data.ideas) { setIdeas(data.ideas); ideasLastRefresh.current=Date.now(); setIdeasRefreshCountdown(IDEAS_REFRESH_MS) }
+      else showToast('Erreur : '+(data.error||'inconnue'))
     } catch { showToast('Erreur réseau') }
     setLoadingIdeas(false)
   }
@@ -607,21 +445,23 @@ export default function Home() {
   }
   const deletePost = (id:string) => { const u=savedPosts.filter(p=>p.id!==id); setSavedPosts(u); localStorage.setItem('postoria_posts',JSON.stringify(u)); showToast('Post supprimé') }
   const copyText = (text:string) => { navigator.clipboard.writeText(text); showToast('Copié ✓') }
-  const saveProfile = () => { localStorage.setItem('postoria_profile',JSON.stringify(profile)); showToast('Profil enregistré ✓') }
+
+  const handleSaveProfile = async () => {
+    setSavingProfile(true)
+    const ok = await saveProfile(profile)
+    showToast(ok ? 'Profil enregistré ✓' : 'Erreur lors de la sauvegarde')
+    setSavingProfile(false)
+  }
 
   const publishPost = async (scheduled?: string) => {
     if (!postOutput.trim()) { showToast('Aucun post à publier'); return }
     if (!profile.webhook_url) { showToast('Configure d\'abord ton URL webhook dans Mon profil'); return }
     setPublishing(true)
     try {
-      const res = await fetch('/api/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: postOutput, webhookUrl: profile.webhook_url, scheduledAt: scheduled || null }),
-      })
+      const res = await fetch('/api/publish', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({content:postOutput,webhookUrl:profile.webhook_url,scheduledAt:scheduled||null}) })
       const data = await res.json()
       if (data.success) showToast('✓ Post envoyé à LinkedIn via Zapier !')
-      else showToast('Erreur : ' + (data.error || 'inconnue'))
+      else showToast('Erreur : '+(data.error||'inconnue'))
     } catch { showToast('Erreur réseau') }
     setPublishing(false)
   }
@@ -637,98 +477,85 @@ export default function Home() {
     { id:'profil', label:'Mon profil', icon:<UserIcon/> },
   ]
 
+  // Loading screen while checking auth
+  if (loading) {
+    return (
+      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#F8F6F2',fontFamily:"'Inter',sans-serif"}}>
+        <div style={{textAlign:'center' as const}}>
+          <div style={{width:36,height:36,background:'#4F6754',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg>
+          </div>
+          <div style={{fontSize:13,color:'#727272'}}>Chargement…</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <Head><title>Postoria</title></Head>
       <div className="app">
-
-        {/* SIDEBAR */}
         <aside className="sidebar">
           <div className="sidebar-logo">
             <div className="logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
             <span className="logo-name">POSTORIA</span>
           </div>
           <nav className="sidebar-nav">
-            {navItems.map(item => (
-              <button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>{item.icon}{item.label}</button>
-            ))}
+            {navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>{item.icon}{item.label}</button>))}
           </nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
-              <div className="user-avatar">{profile.name.slice(0,2).toUpperCase()}</div>
-              <div><div className="user-name">{profile.name}</div><div className="user-role">AE · Cyna</div></div>
+              <div className="user-avatar">{profile.name ? profile.name.slice(0,2).toUpperCase() : '??'}</div>
+              <div><div className="user-name">{profile.name || 'Mon compte'}</div><div className="user-role">{profile.role ? `${profile.role.split(' ')[0]} · ${profile.company}` : 'Compléter le profil'}</div></div>
             </div>
             <div className="theme-row">
               <span>Mode sombre</span>
               <div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div>
             </div>
+            <div style={{padding:'4px 10px'}}>
+              <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11,color:'var(--text3)'}} onClick={signOut}>↩ Se déconnecter</button>
+            </div>
           </div>
         </aside>
 
         <div className="main">
-
           {/* APERÇU */}
           <div className={`page ${page==='apercu'?'active':''}`}>
             <div className="eyebrow">Tableau de bord</div>
-            <div className="page-title">Bonjour, {profile.name}.</div>
+            <div className="page-title">Bonjour{profile.name ? `, ${profile.name}` : ''}.  </div>
             <div className="copper-rule"/>
             <div className="page-sub">{new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
             <div className="stats-grid">
               <div className="stat-card"><div className="stat-label">Posts générés</div><div className="stat-value">{generatedCount}</div><div className="stat-note">cette session</div></div>
               <div className="stat-card"><div className="stat-label">Bibliothèque</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">posts sauvegardés</div></div>
-              <div className="stat-card"><div className="stat-label">Secteur actif</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>Cyber</div><div className="stat-note">MSP · B2B France</div></div>
+              <div className="stat-card"><div className="stat-label">Secteur actif</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>{profile.sector?.split(' ')[0] || 'Cyber'}</div><div className="stat-note">{profile.company || 'Mon entreprise'}</div></div>
             </div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
               <div className="section-label" style={{marginBottom:0}}>Idées du jour</div>
               <div style={{display:'flex',alignItems:'center',gap:10}}>
-                {ideasRefreshCountdown !== null && (
-                  <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--text3)'}}>
-                    <div className="dot"/>
-                    Refresh dans {formatCountdown(ideasRefreshCountdown)}
-                  </div>
-                )}
+                {ideasRefreshCountdown !== null && (<div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--text3)'}}><div className="dot"/>Refresh dans {formatCountdown(ideasRefreshCountdown)}</div>)}
                 <button className="btn btn-primary" onClick={generateIdeas} disabled={loadingIdeas}>{loadingIdeas?<><span className="spinner"/> Génération…</>:'✦ Générer les idées'}</button>
               </div>
             </div>
             {loadingIdeas&&<div style={{marginBottom:12}}><div className="strip"/></div>}
-            {ideas.length===0&&!loadingIdeas?(
-              <div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Vos idées du jour vous attendent</div><div className="empty-body">Cliquez sur "Générer les idées" pour recevoir 10 sujets personnalisés.</div></div>
-            ):ideas.map((idea,i)=>(
-              <div key={i} className={`idea-card fade ${idea.recommended?'idea-recommended':''}`} style={{animationDelay:`${i*.06}s`, border: idea.recommended ? '1px solid rgba(168,120,79,0.4)' : undefined, background: idea.recommended ? 'rgba(168,120,79,0.04)' : undefined}}>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                  <span className="idea-tag">{idea.topic}</span>
-                  {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--copper)',border:'1px solid rgba(168,120,79,0.25)',letterSpacing:'.04em'}}>★ Recommandé</span>}
-                </div>
-                <div className="idea-title">{idea.title}</div>
-                <div className="idea-hook">{idea.hook}</div>
-                <div className="idea-actions">
-                  <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button>
-                  <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button>
-                </div>
-              </div>
-            ))}
+            {ideas.length===0&&!loadingIdeas?(<div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Vos idées du jour vous attendent</div><div className="empty-body">Cliquez sur "Générer les idées" pour recevoir 10 sujets personnalisés.</div></div>)
+            :ideas.map((idea,i)=>(<div key={i} className="idea-card fade" style={{animationDelay:`${i*.06}s`,border:idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined,background:idea.recommended?'rgba(168,120,79,0.04)':undefined}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span className="idea-tag">{idea.topic}</span>{idea.recommended&&<span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--copper)',border:'1px solid rgba(168,120,79,0.25)'}}>★ Recommandé</span>}</div>
+              <div className="idea-title">{idea.title}</div><div className="idea-hook">{idea.hook}</div>
+              <div className="idea-actions"><button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button><button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button></div>
+            </div>))}
           </div>
 
           {/* IDÉES */}
           <div className={`page ${page==='idees'?'active':''}`}>
             <div className="eyebrow">Inspiration</div><div className="page-title">Idées du jour</div><div className="copper-rule"/>
             <div className="page-sub">10 sujets calibrés pour votre audience, renouvelés toutes les 2h.</div>
-            {ideas.length===0?(
-              <div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Aucune idée générée</div><div className="empty-body">Retournez sur l'Aperçu et cliquez sur "Générer les idées".</div></div>
-            ):ideas.map((idea,i)=>(
-              <div key={i} className="idea-card fade" style={{border: idea.recommended ? '1px solid rgba(168,120,79,0.4)' : undefined}}>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                  <span className="idea-tag">{idea.topic}</span>
-                  {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--copper)',border:'1px solid rgba(168,120,79,0.25)'}}>★ Recommandé</span>}
-                </div>
-                <div className="idea-title">{idea.title}</div>
-                <div className="idea-hook">{idea.hook}</div>
-                <div className="idea-actions">
-                  <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button>
-                  <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button>
-                </div>
-              </div>
-            ))}
+            {ideas.length===0?(<div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Aucune idée générée</div><div className="empty-body">Retournez sur l'Aperçu et cliquez sur "Générer les idées".</div></div>)
+            :ideas.map((idea,i)=>(<div key={i} className="idea-card fade" style={{border:idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span className="idea-tag">{idea.topic}</span>{idea.recommended&&<span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--copper)',border:'1px solid rgba(168,120,79,0.25)'}}>★ Recommandé</span>}</div>
+              <div className="idea-title">{idea.title}</div><div className="idea-hook">{idea.hook}</div>
+              <div className="idea-actions"><button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button><button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button></div>
+            </div>))}
           </div>
 
           {/* RÉDIGER */}
@@ -744,54 +571,25 @@ export default function Home() {
                 <div className="form-group"><label className="form-label">Ton</label><div style={{marginTop:4}}>{['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}</div></div>
                 <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>generatePost()} disabled={loadingPost}>{loadingPost?<><span className="spinner"/> Génération…</>:'✦ Générer le post'}</button>
               </div>
-
               <div className="card">
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
                   <div className="section-label" style={{marginBottom:0}}>Résultat</div>
-                  {postOutput && (
-                    <div style={{display:'flex',gap:7,flexWrap:'wrap' as const}}>
-                      <button className="btn btn-ghost" onClick={savePost}>↓ Sauvegarder</button>
-                      <button className="btn btn-ghost" onClick={()=>copyText(postOutput)}>⎘ Copier</button>
-                    </div>
-                  )}
+                  {postOutput&&<div style={{display:'flex',gap:7,flexWrap:'wrap' as const}}><button className="btn btn-ghost" onClick={savePost}>↓ Sauvegarder</button><button className="btn btn-ghost" onClick={()=>copyText(postOutput)}>⎘ Copier</button></div>}
                 </div>
                 {loadingPost&&<div style={{marginBottom:12}}><div className="strip"/></div>}
                 <textarea className="post-editor" value={postOutput} onChange={e=>setPostOutput(e.target.value)} placeholder="Votre post apparaîtra ici…"/>
-
-                {postOutput && (
+                {postOutput&&(
                   <div style={{marginTop:14}}>
-                    {/* Visual CTA */}
-                    <div style={{
-                      background:'rgba(79,103,84,0.05)',
-                      border:'1px solid rgba(79,103,84,0.18)',
-                      borderRadius:12,
-                      padding:'12px 14px',
-                      marginBottom:12,
-                      display:'flex',
-                      alignItems:'center',
-                      justifyContent:'space-between',
-                      gap:12,
-                    }}>
-                      <div>
-                        <div style={{fontSize:12,fontWeight:600,color:'var(--forest)',marginBottom:2}}>🖼 Ajouter un visuel</div>
-                        <div style={{fontSize:11,color:'var(--text2)'}}>Génère une image 1080×1080 à partir de ce post.</div>
-                      </div>
-                      <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={()=>setShowVisualModal(true)}>
-                        Créer le visuel →
-                      </button>
+                    <div style={{background:'rgba(79,103,84,0.05)',border:'1px solid rgba(79,103,84,0.18)',borderRadius:12,padding:'12px 14px',marginBottom:12,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+                      <div><div style={{fontSize:12,fontWeight:600,color:'var(--forest)',marginBottom:2}}>🖼 Ajouter un visuel</div><div style={{fontSize:11,color:'var(--text2)'}}>Génère une image 1080×1080 à partir de ce post.</div></div>
+                      <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={()=>setShowVisualModal(true)}>Créer le visuel →</button>
                     </div>
-
-                    {/* Publish row */}
                     <div style={{display:'flex',gap:7,flexWrap:'wrap' as const,alignItems:'center'}}>
-                      <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing} style={{background:'#0077B5',flex:1,justifyContent:'center'}}>
-                        {publishing ? <><span className="spinner"/> Envoi…</> : '🔗 Publier sur LinkedIn'}
-                      </button>
+                      <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing} style={{background:'#0077B5',flex:1,justifyContent:'center'}}>{publishing?<><span className="spinner"/> Envoi…</>:'🔗 Publier sur LinkedIn'}</button>
                     </div>
                     <div style={{display:'flex',gap:7,alignItems:'center',marginTop:8}}>
                       <input type="datetime-local" className="form-input" value={scheduleDate} onChange={e=>setScheduleDate(e.target.value)} style={{fontSize:12,flex:1}}/>
-                      <button className="btn btn-secondary" onClick={()=>publishPost(scheduleDate)} disabled={publishing||!scheduleDate} style={{fontSize:12,whiteSpace:'nowrap' as const}}>
-                        📅 Planifier
-                      </button>
+                      <button className="btn btn-secondary" onClick={()=>publishPost(scheduleDate)} disabled={publishing||!scheduleDate} style={{fontSize:12,whiteSpace:'nowrap' as const}}>📅 Planifier</button>
                     </div>
                   </div>
                 )}
@@ -803,86 +601,51 @@ export default function Home() {
           <div className={`page ${page==='visuels'?'active':''}`} style={{maxWidth:'100%',padding:'28px 32px'}}>
             <div className="eyebrow">Création visuelle</div><div className="page-title">Générateur visuel</div><div className="copper-rule"/>
             <div style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:16,padding:'20px 24px',marginBottom:18,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:500,color:'var(--text1)',marginBottom:4}}>Créer un visuel depuis un post</div>
-                <div style={{fontSize:13,color:'var(--text2)'}}>Génère d'abord un post dans Rédiger, puis clique sur "Créer le visuel" pour l'ouvrir ici.</div>
-              </div>
-              {postOutput && (
-                <button className="btn btn-primary" style={{flexShrink:0}} onClick={()=>setShowVisualModal(true)}>
-                  Ouvrir le générateur →
-                </button>
-              )}
+              <div><div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:500,color:'var(--text1)',marginBottom:4}}>Créer un visuel depuis un post</div><div style={{fontSize:13,color:'var(--text2)'}}>Génère d'abord un post dans Rédiger, puis clique sur "Créer le visuel".</div></div>
+              {postOutput&&(<button className="btn btn-primary" style={{flexShrink:0}} onClick={()=>setShowVisualModal(true)}>Ouvrir le générateur →</button>)}
             </div>
-            <div style={{background:'var(--sand)',borderRadius:16,padding:'40px 24px',textAlign:'center' as const}}>
-              <div style={{fontSize:28,marginBottom:12,opacity:.3}}>◫</div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontStyle:'italic',color:'var(--text2)',marginBottom:6}}>Générateur intégré au flow publication</div>
-              <div style={{fontSize:13,color:'var(--text3)'}}>Rendez-vous dans Rédiger → générez un post → cliquez sur "Créer le visuel".</div>
-            </div>
+            <div style={{background:'var(--sand)',borderRadius:16,padding:'40px 24px',textAlign:'center' as const}}><div style={{fontSize:28,marginBottom:12,opacity:.3}}>◫</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontStyle:'italic',color:'var(--text2)',marginBottom:6}}>Générateur intégré au flow publication</div><div style={{fontSize:13,color:'var(--text3)'}}>Rendez-vous dans Rédiger → générez un post → cliquez sur "Créer le visuel".</div></div>
           </div>
 
           {/* BIBLIOTHÈQUE */}
           <div className={`page ${page==='bibliotheque'?'active':''}`}>
             <div className="eyebrow">Vos contenus</div><div className="page-title">Bibliothèque</div><div className="copper-rule"/>
             <div className="page-sub">Tous vos posts sauvegardés.</div>
-            {savedPosts.length===0?(
-              <div className="card empty"><div className="empty-icon">◫</div><div className="empty-title">Bibliothèque vide</div><div className="empty-body">Générez des posts et cliquez sur "Sauvegarder".</div></div>
-            ):savedPosts.map(p=>(
-              <div key={p.id} className="saved-card fade">
-                <div className="saved-header">
-                  <div><span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span><span style={{fontSize:11,color:'var(--text3)',marginLeft:8}}>{p.created_at}</span></div>
-                  <button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>Supprimer</button>
-                </div>
-                <div className="saved-title">{p.topic}</div>
-                <div className="saved-preview">{p.content.substring(0,180)}…</div>
-                <div style={{display:'flex',gap:7}}>
-                  <button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button>
-                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>Modifier</button>
-                </div>
-              </div>
-            ))}
+            {savedPosts.length===0?(<div className="card empty"><div className="empty-icon">◫</div><div className="empty-title">Bibliothèque vide</div><div className="empty-body">Générez des posts et cliquez sur "Sauvegarder".</div></div>)
+            :savedPosts.map(p=>(<div key={p.id} className="saved-card fade"><div className="saved-header"><div><span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span><span style={{fontSize:11,color:'var(--text3)',marginLeft:8}}>{p.created_at}</span></div><button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>Supprimer</button></div><div className="saved-title">{p.topic}</div><div className="saved-preview">{p.content.substring(0,180)}…</div><div style={{display:'flex',gap:7}}><button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>Modifier</button></div></div>))}
           </div>
 
           {/* PROFIL */}
           <div className={`page ${page==='profil'?'active':''}`}>
             <div className="eyebrow">Paramètres</div><div className="page-title">Mon profil</div><div className="copper-rule"/>
-            <div className="page-sub">Votre contexte guide chaque génération.</div>
+            <div className="page-sub">Votre contexte guide chaque génération. Sauvegardé dans Supabase.</div>
             <div className="profile-hero">
-              <div className="profile-avatar">{profile.name.slice(0,2).toUpperCase()}</div>
-              <div><div className="profile-name">{profile.name}</div><div className="profile-role">{profile.role} · {profile.company}</div></div>
+              <div className="profile-avatar">{profile.name ? profile.name.slice(0,2).toUpperCase() : '??'}</div>
+              <div><div className="profile-name">{profile.name || 'Mon compte'}</div><div className="profile-role">{profile.role} · {profile.company}</div></div>
             </div>
             <div className="grid2">
               <div className="card">
                 <div className="section-label">Identité professionnelle</div>
-                {([
-                  ['Prénom','name'],
-                  ['Rôle','role'],
-                  ['Entreprise','company'],
-                  ['Secteur','sector'],
-                  ['Audience LinkedIn','audience'],
-                  ['Domaine email','domain'],
-                ] as [string,keyof Profile][]).map(([label,key])=>(
+                {([['Prénom','name'],['Rôle','role'],['Entreprise','company'],['Secteur','sector'],['Audience LinkedIn','audience'],['Domaine email','domain']] as [string,keyof typeof profile][]).map(([label,key])=>(
                   <div className="form-group" key={key}>
                     <label className="form-label">{label}</label>
-                    <input type="text" className="form-input" value={profile[key]} placeholder={key==='domain'?'ex: cyna.fr':undefined} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))}/>
-                    {key==='domain' && <div style={{fontSize:11,color:'var(--text3)',marginTop:3}}>Utilisé pour personnaliser les idées selon votre domaine d'activité.</div>}
+                    <input type="text" className="form-input" value={profile[key]||''} placeholder={key==='domain'?'ex: cyna.fr':undefined} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))}/>
+                    {key==='domain'&&<div style={{fontSize:11,color:'var(--text3)',marginTop:3}}>Utilisé pour personnaliser les idées selon votre domaine.</div>}
                   </div>
                 ))}
-                <div className="form-group">
-                  <label className="form-label">Langue</label>
-                  <select className="form-input" value={profile.lang} onChange={e=>setProfile(p=>({...p,lang:e.target.value}))}><option value="fr">Français</option><option value="en">English</option></select>
-                </div>
+                <div className="form-group"><label className="form-label">Langue</label><select className="form-input" value={profile.lang} onChange={e=>setProfile(p=>({...p,lang:e.target.value}))}><option value="fr">Français</option><option value="en">English</option></select></div>
                 <div className="form-group">
                   <label className="form-label">URL Webhook Zapier</label>
                   <input type="text" className="form-input" placeholder="https://hooks.zapier.com/hooks/catch/..." value={profile.webhook_url||''} onChange={e=>setProfile(p=>({...p,webhook_url:e.target.value}))} style={{fontSize:12}}/>
                   <div style={{fontSize:11,color:'var(--text3)',marginTop:4}}>Colle ici l'URL générée par Zapier pour publier sur LinkedIn.</div>
                 </div>
-                <button className="btn btn-primary" onClick={saveProfile}>Enregistrer</button>
+                <button className="btn btn-primary" onClick={handleSaveProfile} disabled={savingProfile}>{savingProfile?<><span className="spinner"/> Sauvegarde…</>:'Enregistrer'}</button>
               </div>
               <div>
                 <div className="card" style={{marginBottom:16}}>
                   <div className="section-label">Couleurs de marque</div>
                   <div style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Utilisées par défaut dans le générateur visuel.</div>
-                  {([['Fond','brand_bg'],['Texte','brand_text'],['Accent','brand_accent']] as [string,keyof Profile][]).map(([label,key])=>(
+                  {([['Fond','brand_bg'],['Texte','brand_text'],['Accent','brand_accent']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div key={key} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                       <span style={{fontSize:11,color:'var(--text2)',width:50}}>{label}</span>
                       <input type="color" value={profile[key]||'#F8F6F2'} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))} style={{width:30,height:30,borderRadius:8,border:'1px solid var(--border)',cursor:'pointer',padding:2}}/>
@@ -892,23 +655,27 @@ export default function Home() {
                 </div>
                 <div className="card">
                   <div className="section-label">Stack & style</div>
-                  <div className="form-group"><label className="form-label">Technologies</label><input type="text" className="form-input" value={profile.tech_stack} onChange={e=>setProfile(p=>({...p,tech_stack:e.target.value}))}/></div>
+                  <div className="form-group"><label className="form-label">Technologies</label><input type="text" className="form-input" value={profile.tech_stack||''} onChange={e=>setProfile(p=>({...p,tech_stack:e.target.value}))}/></div>
                   <div style={{marginTop:8}}><span className="badge badge-forest">Ton expert</span>&nbsp;<span className="badge badge-copper">MSP France</span></div>
                 </div>
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
-      {/* VISUAL MODAL */}
-      {showVisualModal && (
+      {showVisualModal&&(
         <VisualModal
-          onClose={() => setShowVisualModal(false)}
+          onClose={()=>setShowVisualModal(false)}
           postContent={postOutput}
           postTopic={postTopic}
-          profile={profile}
+          profileName={profile.name}
+          profileRole={profile.role}
+          profileCompany={profile.company}
+          profileSector={profile.sector}
+          brandBg={profile.brand_bg}
+          brandText={profile.brand_text}
+          brandAccent={profile.brand_accent}
         />
       )}
 
