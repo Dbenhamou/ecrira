@@ -81,19 +81,21 @@ html, body {
 }
 .sidebar-nav {
   flex: 1; padding: 14px 10px;
-  display: flex; flex-direction: column; gap: 2px;
+  display: flex; flex-direction: column; gap: 4px;
 }
 .nav-link {
   display: flex; align-items: center; gap: 9px;
-  padding: 8px 12px; border-radius: 10px;
+  padding: 9px 12px; border-radius: 10px;
   font-size: 13px; font-weight: 400;
   color: var(--text2);
   cursor: pointer;
   transition: all 0.15s;
   text-decoration: none;
+  border: none; background: transparent; width: 100%; text-align: left;
 }
 .nav-link:hover { background: var(--sand); color: var(--text1); }
-.nav-link.active { background: var(--sand); color: var(--forest); font-weight: 500; }
+.nav-link.active { background: var(--forest); color: white; font-weight: 500; }
+.nav-link.active svg { stroke: white; opacity: 0.9; }
 .nav-link svg { width: 15px; height: 15px; flex-shrink: 0; }
 
 .sidebar-footer {
