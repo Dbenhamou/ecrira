@@ -181,6 +181,9 @@ export default function Home() {
   const [ideasGeneratedAt, setIdeasGeneratedAt] = useState<Date | null>(null)
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
   const [generatedCount, setGeneratedCount] = useState(0)
+  const [scheduledPosts, setScheduledPosts] = useState<any[]>([])
+  const [scheduling, setScheduling] = useState(false)
+  const [scheduleDateTime, setScheduleDateTime] = useState('')
   const [loadingIdeas, setLoadingIdeas] = useState(false)
   const [loadingPosts, setLoadingPosts] = useState(false)
   const [loadingPost, setLoadingPost] = useState(false)
@@ -213,6 +216,7 @@ export default function Home() {
     loadPosts()
     loadIdeas()
     loadCount()
+    loadScheduledPosts()
   }, [userId])
 
   useEffect(() => {
@@ -256,6 +260,14 @@ export default function Home() {
   }
 
   // ── Supabase: load generated count ──
+  const loadScheduledPosts = async () => {
+    const { data } = await supabase
+      .from('scheduled_posts')
+      .select('*')
+      .order('scheduled_at', { ascending: true })
+    if (data) setScheduledPosts(data)
+  }
+
   const loadCount = async () => {
     const { count } = await supabase.from('saved_posts').select('*', { count: 'exact', head: true })
     if (count !== null) setGeneratedCount(count)
@@ -436,6 +448,35 @@ export default function Home() {
     window.location.href = `/api/linkedin/auth?userId=${userId}`
   }
 
+  const schedulePost = async () => {
+    if (!postOutput.trim()) { showToast('Aucun post à planifier'); return }
+    if (!scheduleDateTime) { showToast('Choisis une date et heure'); return }
+    if (!userId) return
+    setScheduling(true)
+    const { data, error } = await supabase.from('scheduled_posts').insert({
+      user_id: userId,
+      topic: postTopic || 'Sans titre',
+      content: postOutput,
+      format: postFormat,
+      scheduled_at: new Date(scheduleDateTime).toISOString(),
+      status: 'scheduled',
+    }).select().single()
+    if (!error && data) {
+      setScheduledPosts(prev => [...prev, data].sort((a,b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()))
+      showToast('Post planifié ✓')
+      setScheduleDateTime('')
+    } else {
+      showToast('Erreur lors de la planification')
+    }
+    setScheduling(false)
+  }
+
+  const cancelScheduled = async (id: string) => {
+    await supabase.from('scheduled_posts').delete().eq('id', id)
+    setScheduledPosts(prev => prev.filter(p => p.id !== id))
+    showToast('Post annulé')
+  }
+
   const publishPost = async (scheduled?: string) => {
     if (!postOutput.trim()) { showToast('Aucun post à publier'); return }
     if (!userId) { showToast('Non connecté'); return }
@@ -459,6 +500,9 @@ export default function Home() {
     { id:'idees', label:T('nav_idees'), icon:<BulbIcon/> },
     { id:'rediger', label:T('nav_rediger'), icon:<EditIcon/> },
     { id:'visuels', label:T('nav_visuels'), icon:<ImgIcon/> },
+    { id:'calendrier', label:T('nav_calendrier') || 'Calendrier', icon:<CalIcon/> },
+    { id:'calendrier', label:'Calendrier', icon:<CalIcon/> },
+    { id:'calendrier', label:'Calendrier', icon:<CalIcon/> },
     { id:'bibliotheque', label:T('nav_bibliotheque'), icon:<BookIcon/> },
     { id:'profil', label:T('nav_profil'), icon:<UserIcon/> },
   ]
@@ -650,9 +694,99 @@ export default function Home() {
                       </button>
                     )}
                   </div>
+                  <div style={{display:'flex',gap:7,alignItems:'center'}}>
+                    <input type="datetime-local" className="form-input" value={scheduleDateTime} onChange={e=>setScheduleDateTime(e.target.value)} style={{fontSize:12,flex:1}}/>
+                    <button className="btn btn-secondary" onClick={schedulePost} disabled={scheduling||!postOutput||!scheduleDateTime} style={{fontSize:12,whiteSpace:'nowrap' as const,flexShrink:0}}>
+                      {scheduling?<><span className="spinner" style={{borderTopColor:'var(--forest)'}}/>…</>:'📅 Planifier'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* CALENDRIER */}
+          <div className={`page ${page==='calendrier'?'active':''}`}>
+            <div className="eyebrow">Planification</div>
+            <div className="page-title">Calendrier éditorial</div>
+            <div className="copper-rule"/>
+            <div className="page-sub">Vos posts planifiés — publiez au bon moment.</div>
+            {scheduledPosts.length === 0 ? (
+              <div className="card empty">
+                <div className="empty-icon">📅</div>
+                <div className="empty-title">Aucun post planifié</div>
+                <div className="empty-body">Dans Rédiger, génère un post et clique sur "Planifier" pour le programmer.</div>
+              </div>
+            ) : (
+              <div>
+                {scheduledPosts.map((p: any) => {
+                  const date = new Date(p.scheduled_at)
+                  const isPast = date < new Date()
+                  return (
+                    <div key={p.id} className="saved-card fade" style={{opacity: isPast ? 0.6 : 1}}>
+                      <div className="saved-header">
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <span className={`badge ${isPast?'badge-copper':'badge-forest'}`}>
+                            {isPast ? 'Passé' : 'Planifié'}
+                          </span>
+                          <span style={{fontSize:12,fontWeight:500,color:'var(--text1)'}}>
+                            {date.toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'})} à {date.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}
+                          </span>
+                        </div>
+                        <button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>cancelScheduled(p.id)}>Annuler</button>
+                      </div>
+                      <div className="saved-title">{p.topic}</div>
+                      <div className="saved-preview">{p.content.substring(0,160)}…</div>
+                      <div style={{display:'flex',gap:7}}>
+                        <button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button>
+                        <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>Modifier</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* CALENDRIER */}
+          <div className={`page ${page==='calendrier'?'active':''}`}>
+            <div className="eyebrow">Planification</div>
+            <div className="page-title">Calendrier éditorial</div>
+            <div className="copper-rule"/>
+            <div className="page-sub">Vos posts planifiés — publiez au bon moment.</div>
+            {scheduledPosts.length === 0 ? (
+              <div className="card empty">
+                <div className="empty-icon">📅</div>
+                <div className="empty-title">Aucun post planifié</div>
+                <div className="empty-body">Dans Rédiger, génère un post et clique sur "Planifier" pour le programmer.</div>
+              </div>
+            ) : (
+              <div>
+                {scheduledPosts.map((p: any) => {
+                  const date = new Date(p.scheduled_at)
+                  const isPast = date < new Date()
+                  return (
+                    <div key={p.id} className="saved-card fade" style={{opacity: isPast ? 0.6 : 1}}>
+                      <div className="saved-header">
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <span className={`badge ${isPast?'badge-copper':'badge-forest'}`}>{isPast ? 'Passé' : 'Planifié'}</span>
+                          <span style={{fontSize:12,fontWeight:500,color:'var(--text1)'}}>
+                            {date.toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'})} à {date.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}
+                          </span>
+                        </div>
+                        <button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>cancelScheduled(p.id)}>Annuler</button>
+                      </div>
+                      <div className="saved-title">{p.topic}</div>
+                      <div className="saved-preview">{p.content.substring(0,160)}…</div>
+                      <div style={{display:'flex',gap:7}}>
+                        <button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button>
+                        <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>Modifier</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
           {/* VISUELS */}
@@ -763,6 +897,8 @@ export default function Home() {
           {id:'apercu',label:T('nav_apercu'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
           {id:'idees',label:T('nav_idees_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
           {id:'rediger',label:T('nav_rediger'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
+          {id:'calendrier',label:'Agenda',icon:<CalIcon/>},
+          {id:'calendrier',label:'Agenda',icon:<CalIcon/>},
           {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
           {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
         ].map(item=>(
@@ -858,6 +994,8 @@ export default function Home() {
   )
 }
 
+const CalIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+const CalIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
 const GridIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
 const BulbIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>
 const EditIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>
