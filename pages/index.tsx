@@ -46,16 +46,9 @@ const PATTERNS_SVG: Record<string,string> = {
 
 // ─── VISUAL MODAL ──────────────────────────────────────────────────────────────
 type VisualModalProps = {
-  onClose: () => void
-  postContent: string
-  postTopic: string
-  profileName: string
-  profileRole: string
-  profileCompany: string
-  profileSector: string
-  brandBg: string
-  brandText: string
-  brandAccent: string
+  onClose: () => void; postContent: string; postTopic: string
+  profileName: string; profileRole: string; profileCompany: string; profileSector: string
+  brandBg: string; brandText: string; brandAccent: string
 }
 
 function VisualModal({ onClose, postContent, postTopic, profileName, profileRole, profileCompany, profileSector, brandBg, brandText, brandAccent }: VisualModalProps) {
@@ -69,277 +62,102 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
   }
 
   const [s, setS] = useState<any>({
-    tpl: 'quote', fmt: 'square',
-    colors: { bg: brandBg || '#F8F6F2', text: brandText || '#232323', accent: brandAccent || '#4F6754' },
-    font: 'playfair', textSize: 'L', align: 'left',
-    accentStyle: 'bar', bgPattern: 'none',
-    sectorIcon: 'cyber', logoUrl: null, logoPos: 'tl', logoSize: 36, showWatermark: true,
-    qText: extractHook(postContent),
-    qAuthor: `${profileName} · ${profileRole.split(' ')[0]} @${profileCompany}`,
-    qTag: postTopic || profileSector?.split('–')[0]?.trim() || 'Cybersécurité MSP',
-    sNum: '73', sUnit: '%', sLabel: 'des MSP ne testent jamais leur PRA',
-    sCtx: extractHook(postContent),
-    sSrc: 'Source',
-    aRef: 'Alerte', aTitle: postTopic || 'Titre de l\'alerte',
-    aDesc: extractHook(postContent),
-    aItems: postContent.split('\n').filter((l:string) => l.trim().match(/^[→•\-–*]/)).slice(0,3).map((l:string)=>l.replace(/^[→•\-–*]\s*/,'')).join('\n') || 'Action 1\nAction 2\nAction 3',
-    aSev: 'CRITIQUE',
+    tpl:'quote', fmt:'square',
+    colors:{ bg:brandBg||'#F8F6F2', text:brandText||'#232323', accent:brandAccent||'#4F6754' },
+    font:'playfair', textSize:'L', align:'left', accentStyle:'bar', bgPattern:'none',
+    sectorIcon:'cyber', logoUrl:null, logoPos:'tl', logoSize:36, showWatermark:true,
+    qText:extractHook(postContent),
+    qAuthor:`${profileName} · ${profileRole.split(' ')[0]} @${profileCompany}`,
+    qTag:postTopic||profileSector?.split('–')[0]?.trim()||'Cybersécurité MSP',
+    sNum:'73', sUnit:'%', sLabel:'des MSP ne testent jamais leur PRA',
+    sCtx:extractHook(postContent), sSrc:'Source',
+    aRef:'Alerte', aTitle:postTopic||'Titre de l\'alerte',
+    aDesc:extractHook(postContent),
+    aItems:postContent.split('\n').filter((l:string)=>l.trim().match(/^[→•\-–*]/)).slice(0,3).map((l:string)=>l.replace(/^[→•\-–*]\s*/,'')).join('\n')||'Action 1\nAction 2\nAction 3',
+    aSev:'CRITIQUE',
   })
-
   const [zoom, setZoom] = useState(50)
   const [tab, setTab] = useState<'basic'|'advanced'>('basic')
   const fileRef = useRef<HTMLInputElement>(null)
-
-  const upd = (k: any) => setS((prev: any) => ({ ...prev, ...k }))
-  const updC = (k: string, v: string) => setS((prev: any) => ({ ...prev, colors: { ...prev.colors, [k]: v } }))
-
-  const mix = (hex: string, a: number) => {
-    const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16)
-    return `rgba(${r},${g},${b},${a})`
-  }
+  const upd = (k:any) => setS((p:any)=>({...p,...k}))
+  const updC = (k:string,v:string) => setS((p:any)=>({...p,colors:{...p.colors,[k]:v}}))
+  const mix = (hex:string,a:number) => { const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},${a})` }
   const getDate = () => new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})
-  const fontStack = (FONTS.find(f=>f.id===s.font)?.stack) || "'Playfair Display',serif"
-  const sizeMult = ({S:0.8,M:1,L:1.2,XL:1.5} as any)[s.textSize] || 1
-  const logoSVGfn = (col: string, sz: number) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="${col}" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="${col}" opacity=".5"/></svg>`
+  const fontStack = FONTS.find(f=>f.id===s.font)?.stack||"'Playfair Display',serif"
+  const sizeMult = ({S:0.8,M:1,L:1.2,XL:1.5} as any)[s.textSize]||1
+  const logoSVGfn = (col:string,sz:number) => `<svg xmlns="http://www.w3.org/2000/svg" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="${col}" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="${col}" opacity=".5"/></svg>`
+  const buildPattern = (col:string) => (PATTERNS_SVG[s.bgPattern]||'').replace(/FILLCOL/g,col)
+  const LOGO_POS: Record<string,[string,string]> = { tl:['flex-start','flex-start'],tc:['center','flex-start'],tr:['flex-end','flex-start'],ml:['flex-start','center'],mc:['center','center'],mr:['flex-end','center'],bl:['flex-start','flex-end'],bc:['center','flex-end'],br:['flex-end','flex-end'] }
 
-  const buildPattern = (col: string) => (PATTERNS_SVG[s.bgPattern]||'').replace(/FILLCOL/g, col)
-
-  const LOGO_POSITIONS: Record<string,[string,string]> = {
-    tl:['flex-start','flex-start'], tc:['center','flex-start'], tr:['flex-end','flex-start'],
-    ml:['flex-start','center'],    mc:['center','center'],    mr:['flex-end','center'],
-    bl:['flex-start','flex-end'],  bc:['center','flex-end'],  br:['flex-end','flex-end'],
-  }
-
-  const buildAccentEl = (S: number, col: string) => {
-    const p = (v: number) => Math.round(v*(S/1080))
-    if (s.accentStyle==='bar') return `<div style="position:absolute;left:0;top:0;bottom:0;width:${p(7)}px;background:${col};"></div>`
-    if (s.accentStyle==='top') return `<div style="position:absolute;left:0;top:0;right:0;height:${p(7)}px;background:${col};"></div>`
-    if (s.accentStyle==='gradient') return `<div style="position:absolute;left:0;top:0;bottom:0;width:${p(240)}px;background:linear-gradient(to right,${mix(col,.18)},transparent);pointer-events:none;"></div>`
+  const buildAccentEl = (S:number,col:string) => {
+    const p=(v:number)=>Math.round(v*(S/1080))
+    if(s.accentStyle==='bar') return `<div style="position:absolute;left:0;top:0;bottom:0;width:${p(7)}px;background:${col};"></div>`
+    if(s.accentStyle==='top') return `<div style="position:absolute;left:0;top:0;right:0;height:${p(7)}px;background:${col};"></div>`
+    if(s.accentStyle==='gradient') return `<div style="position:absolute;left:0;top:0;bottom:0;width:${p(240)}px;background:linear-gradient(to right,${mix(col,.18)},transparent);pointer-events:none;"></div>`
     return ''
   }
 
-  const buildLogoEl = (S: number, bgCol: string, accentCol: string) => {
-    const p = (v: number) => Math.round(v*(S/1080))
-    const sz = p(s.logoSize)
-    const [jc, ai] = LOGO_POSITIONS[s.logoPos] || ['flex-start','flex-start']
-    let inner = ''
-    if (s.logoUrl) {
-      inner = `<img src="${s.logoUrl}" style="width:${sz}px;height:${sz}px;object-fit:contain;border-radius:${p(6)}px;" />`
-    } else if (s.sectorIcon && SECTOR_ICONS_SVG[s.sectorIcon]) {
-      inner = `<div style="width:${sz}px;height:${sz}px;background:${accentCol};border-radius:${p(8)}px;display:flex;align-items:center;justify-content:center;padding:${Math.round(sz*0.18)}px;color:${bgCol};">${SECTOR_ICONS_SVG[s.sectorIcon].replace(/currentColor/g,bgCol)}</div>`
-    } else {
-      inner = `<div style="width:${sz}px;height:${sz}px;background:${accentCol};border-radius:${p(8)}px;display:flex;align-items:center;justify-content:center;">${logoSVGfn(bgCol,Math.round(sz*0.55))}</div>`
-    }
-    const watermark = s.showWatermark ? `<span style="font-family:'Inter',sans-serif;font-size:${p(13)}px;font-weight:600;letter-spacing:.06em;color:${s.colors.text};margin-left:${p(8)}px;">POSTORIA</span>` : ''
-    return `<div style="position:absolute;inset:${p(44)}px;display:flex;align-items:${ai};justify-content:${jc};pointer-events:none;z-index:2;">
-      <div style="display:flex;align-items:center;">${inner}${watermark}</div>
-    </div>`
+  const buildLogoEl = (S:number,bgCol:string,accentCol:string) => {
+    const p=(v:number)=>Math.round(v*(S/1080)); const sz=p(s.logoSize)
+    const [jc,ai]=LOGO_POS[s.logoPos]||['flex-start','flex-start']
+    let inner=''
+    if(s.logoUrl) inner=`<img src="${s.logoUrl}" style="width:${sz}px;height:${sz}px;object-fit:contain;border-radius:${p(6)}px;" />`
+    else if(s.sectorIcon&&SECTOR_ICONS_SVG[s.sectorIcon]) inner=`<div style="width:${sz}px;height:${sz}px;background:${accentCol};border-radius:${p(8)}px;display:flex;align-items:center;justify-content:center;padding:${Math.round(sz*0.18)}px;color:${bgCol};">${SECTOR_ICONS_SVG[s.sectorIcon].replace(/currentColor/g,bgCol)}</div>`
+    else inner=`<div style="width:${sz}px;height:${sz}px;background:${accentCol};border-radius:${p(8)}px;display:flex;align-items:center;justify-content:center;">${logoSVGfn(bgCol,Math.round(sz*0.55))}</div>`
+    const wm=s.showWatermark?`<span style="font-family:'Inter',sans-serif;font-size:${p(13)}px;font-weight:600;letter-spacing:.06em;color:${s.colors.text};margin-left:${p(8)}px;">POSTORIA</span>`:''
+    return `<div style="position:absolute;inset:${p(44)}px;display:flex;align-items:${ai};justify-content:${jc};pointer-events:none;z-index:2;"><div style="display:flex;align-items:center;">${inner}${wm}</div></div>`
   }
 
-  const buildViz = (S: number): string => {
-    const H = s.fmt==='portrait' ? Math.round(S*1.25) : S
-    const {bg, text, accent} = s.colors
-    const sub = mix(text, .58)
-    const p = (v: number) => Math.round(v*(S/1080))
-    const fs = (base: number) => Math.round(base * sizeMult * (S/1080))
-    const padL = s.accentStyle==='bar' ? p(80) : p(56)
-    const pad = p(52)
-    const ta = s.align
-
-    if (s.tpl === 'quote') {
-      return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:${fontStack};box-sizing:border-box;">
-        ${buildPattern(text)}${buildAccentEl(S, accent)}${buildLogoEl(S, bg, accent)}
-        <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:${pad}px ${pad}px ${pad}px ${padL}px;">
-          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:${ta};">
-            <div style="font-size:${fs(108)}px;line-height:.75;color:${accent};margin-bottom:${p(14)}px;font-weight:700;opacity:.18;">"</div>
-            <div style="font-size:${fs(46)}px;font-weight:500;line-height:1.28;font-style:italic;color:${text};">${s.qText}</div>
-            <div style="width:${p(48)}px;height:${p(3)}px;background:${accent};margin:${p(26)}px ${ta==='center'?'auto':'0'} ${p(18)}px;border-radius:2px;"></div>
-            <div style="font-family:'Inter',sans-serif;font-size:${fs(16)}px;font-weight:500;color:${sub};">${s.qAuthor}</div>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:${p(24)}px;">
-            <span style="font-family:'Inter',sans-serif;font-size:${p(12)}px;padding:${p(5)}px ${p(14)}px;border-radius:${p(20)}px;border:1px solid ${mix(accent,.4)};color:${accent};">${s.qTag}</span>
-            <span style="font-family:'Inter',sans-serif;font-size:${p(11)}px;color:${mix(text,.3)};">${getDate()}</span>
-          </div>
-        </div>
-      </div>`
-    }
-
-    if (s.tpl === 'stat') {
-      return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:'Inter',sans-serif;box-sizing:border-box;">
-        ${buildPattern(text)}${buildAccentEl(S, accent)}${buildLogoEl(S, bg, accent)}
-        <div style="position:absolute;right:${p(-20)}px;bottom:${p(-50)}px;font-family:${fontStack};font-size:${p(360)}px;font-weight:700;color:${text};opacity:.04;line-height:1;pointer-events:none;">${s.sNum}</div>
-        <div style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1;padding:${pad}px ${pad}px ${pad}px ${padL}px;">
-          <div style="flex:1;display:flex;flex-direction:column;justify-content:center;">
-            <div style="font-size:${p(11)}px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:${mix(text,.4)};margin-bottom:${p(10)}px;">Chiffre clé</div>
-            <div style="display:flex;align-items:flex-end;gap:${p(6)}px;margin-bottom:${p(14)}px;">
-              <span style="font-family:${fontStack};font-size:${fs(128)}px;font-weight:700;color:${accent};line-height:.85;">${s.sNum}</span>
-              <span style="font-family:${fontStack};font-size:${fs(50)}px;color:${mix(accent,.6)};padding-bottom:${p(10)}px;">${s.sUnit}</span>
-            </div>
-            <div style="font-size:${fs(22)}px;color:${text};line-height:1.35;margin-bottom:${p(22)}px;max-width:${p(720)}px;">${s.sLabel}</div>
-            <div style="width:${p(48)}px;height:${p(3)}px;background:${accent};margin-bottom:${p(20)}px;border-radius:2px;"></div>
-            <div style="font-size:${fs(17)}px;line-height:1.7;color:${sub};max-width:${p(680)}px;">${s.sCtx}</div>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:${p(24)}px;">
-            <span style="font-family:'Inter',sans-serif;font-size:${p(12)}px;padding:${p(5)}px ${p(14)}px;border-radius:${p(20)}px;border:1px solid ${mix(text,.18)};color:${sub};">${s.sSrc}</span>
-            <span style="font-family:'Inter',sans-serif;font-size:${p(11)}px;color:${mix(text,.3)};">${getDate()}</span>
-          </div>
-        </div>
-      </div>`
-    }
-
-    const sevC = s.aSev==='CRITIQUE'?'#C0392B':s.aSev==='ÉLEVÉE'?'#D35400':'#E67E22'
-    const sevBg = s.aSev==='CRITIQUE'?'rgba(192,57,43,.1)':s.aSev==='ÉLEVÉE'?'rgba(211,84,0,.1)':'rgba(230,126,34,.1)'
-    const itemsHTML = s.aItems.split('\n').filter((l:string)=>l.trim()).map((it:string) =>
-      `<div style="display:flex;align-items:flex-start;gap:${p(12)}px;font-size:${fs(17)}px;line-height:1.55;color:${sub};">
-        <div style="width:${p(7)}px;height:${p(7)}px;border-radius:50%;background:${sevC};margin-top:${p(7)}px;flex-shrink:0;"></div>
-        <span>${it}</span>
-      </div>`).join('')
-    return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:'Inter',sans-serif;box-sizing:border-box;">
-      ${buildPattern(text)}${buildAccentEl(S, sevC)}${buildLogoEl(S, bg, accent)}
-      <div style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1;padding:${pad}px ${pad}px ${pad}px ${padL}px;">
-        <div style="display:flex;justify-content:flex-end;margin-bottom:${p(32)}px;">
-          <span style="font-size:${p(12)}px;font-weight:700;padding:${p(6)}px ${p(16)}px;border-radius:${p(20)}px;background:${sevBg};color:${sevC};letter-spacing:.06em;">${s.aSev}</span>
-        </div>
-        <div style="font-size:${p(13)}px;font-weight:700;letter-spacing:.1em;color:${mix(sevC,.8)};margin-bottom:${p(10)}px;text-transform:uppercase;">${s.aRef}</div>
-        <div style="font-family:${fontStack};font-size:${fs(42)}px;font-weight:600;line-height:1.2;color:${text};margin-bottom:${p(14)}px;">${s.aTitle}</div>
-        <div style="width:${p(48)}px;height:${p(4)}px;background:${sevC};border-radius:2px;margin-bottom:${p(18)}px;"></div>
-        <div style="font-size:${fs(17)}px;line-height:1.65;color:${sub};margin-bottom:${p(20)}px;max-width:${p(720)}px;">${s.aDesc}</div>
-        <div style="display:flex;flex-direction:column;gap:${p(10)}px;flex:1;">${itemsHTML}</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:${p(24)}px;">
-          <div style="display:flex;align-items:center;gap:${p(8)}px;"><div style="width:${p(8)}px;height:${p(8)}px;border-radius:50%;background:${sevC};"></div><span style="font-size:${p(12)}px;font-weight:600;color:${sevC};">Alerte sécurité</span></div>
-          <span style="font-size:${p(11)}px;color:${mix(text,.3)};">${getDate()}</span>
-        </div>
-      </div>
-    </div>`
+  const buildViz = (S:number):string => {
+    const H=s.fmt==='portrait'?Math.round(S*1.25):S
+    const {bg,text,accent}=s.colors; const sub=mix(text,.58)
+    const p=(v:number)=>Math.round(v*(S/1080)); const fs=(base:number)=>Math.round(base*sizeMult*(S/1080))
+    const padL=s.accentStyle==='bar'?p(80):p(56); const pad=p(52); const ta=s.align
+    if(s.tpl==='quote') return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:${fontStack};box-sizing:border-box;">${buildPattern(text)}${buildAccentEl(S,accent)}${buildLogoEl(S,bg,accent)}<div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;padding:${pad}px ${pad}px ${pad}px ${padL}px;"><div style="flex:1;display:flex;flex-direction:column;justify-content:center;text-align:${ta};"><div style="font-size:${fs(108)}px;line-height:.75;color:${accent};margin-bottom:${p(14)}px;font-weight:700;opacity:.18;">"</div><div style="font-size:${fs(46)}px;font-weight:500;line-height:1.28;font-style:italic;color:${text};">${s.qText}</div><div style="width:${p(48)}px;height:${p(3)}px;background:${accent};margin:${p(26)}px ${ta==='center'?'auto':'0'} ${p(18)}px;border-radius:2px;"></div><div style="font-family:'Inter',sans-serif;font-size:${fs(16)}px;font-weight:500;color:${sub};">${s.qAuthor}</div></div><div style="display:flex;align-items:center;justify-content:space-between;margin-top:${p(24)}px;"><span style="font-family:'Inter',sans-serif;font-size:${p(12)}px;padding:${p(5)}px ${p(14)}px;border-radius:${p(20)}px;border:1px solid ${mix(accent,.4)};color:${accent};">${s.qTag}</span><span style="font-family:'Inter',sans-serif;font-size:${p(11)}px;color:${mix(text,.3)};">${getDate()}</span></div></div></div>`
+    if(s.tpl==='stat') return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:'Inter',sans-serif;box-sizing:border-box;">${buildPattern(text)}${buildAccentEl(S,accent)}${buildLogoEl(S,bg,accent)}<div style="position:absolute;right:${p(-20)}px;bottom:${p(-50)}px;font-family:${fontStack};font-size:${p(360)}px;font-weight:700;color:${text};opacity:.04;line-height:1;pointer-events:none;">${s.sNum}</div><div style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1;padding:${pad}px ${pad}px ${pad}px ${padL}px;"><div style="flex:1;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:${p(11)}px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:${mix(text,.4)};margin-bottom:${p(10)}px;">Chiffre clé</div><div style="display:flex;align-items:flex-end;gap:${p(6)}px;margin-bottom:${p(14)}px;"><span style="font-family:${fontStack};font-size:${fs(128)}px;font-weight:700;color:${accent};line-height:.85;">${s.sNum}</span><span style="font-family:${fontStack};font-size:${fs(50)}px;color:${mix(accent,.6)};padding-bottom:${p(10)}px;">${s.sUnit}</span></div><div style="font-size:${fs(22)}px;color:${text};line-height:1.35;margin-bottom:${p(22)}px;max-width:${p(720)}px;">${s.sLabel}</div><div style="width:${p(48)}px;height:${p(3)}px;background:${accent};margin-bottom:${p(20)}px;border-radius:2px;"></div><div style="font-size:${fs(17)}px;line-height:1.7;color:${sub};max-width:${p(680)}px;">${s.sCtx}</div></div><div style="display:flex;align-items:center;justify-content:space-between;padding-top:${p(24)}px;"><span style="font-family:'Inter',sans-serif;font-size:${p(12)}px;padding:${p(5)}px ${p(14)}px;border-radius:${p(20)}px;border:1px solid ${mix(text,.18)};color:${sub};">${s.sSrc}</span><span style="font-family:'Inter',sans-serif;font-size:${p(11)}px;color:${mix(text,.3)};">${getDate()}</span></div></div></div>`
+    const sevC=s.aSev==='CRITIQUE'?'#C0392B':s.aSev==='ÉLEVÉE'?'#D35400':'#E67E22'
+    const sevBg=s.aSev==='CRITIQUE'?'rgba(192,57,43,.1)':s.aSev==='ÉLEVÉE'?'rgba(211,84,0,.1)':'rgba(230,126,34,.1)'
+    const itemsHTML=s.aItems.split('\n').filter((l:string)=>l.trim()).map((it:string)=>`<div style="display:flex;align-items:flex-start;gap:${p(12)}px;font-size:${fs(17)}px;line-height:1.55;color:${sub};"><div style="width:${p(7)}px;height:${p(7)}px;border-radius:50%;background:${sevC};margin-top:${p(7)}px;flex-shrink:0;"></div><span>${it}</span></div>`).join('')
+    return `<div style="width:${S}px;height:${H}px;background:${bg};display:flex;flex-direction:column;position:relative;overflow:hidden;font-family:'Inter',sans-serif;box-sizing:border-box;">${buildPattern(text)}${buildAccentEl(S,sevC)}${buildLogoEl(S,bg,accent)}<div style="position:relative;z-index:1;display:flex;flex-direction:column;flex:1;padding:${pad}px ${pad}px ${pad}px ${padL}px;"><div style="display:flex;justify-content:flex-end;margin-bottom:${p(32)}px;"><span style="font-size:${p(12)}px;font-weight:700;padding:${p(6)}px ${p(16)}px;border-radius:${p(20)}px;background:${sevBg};color:${sevC};letter-spacing:.06em;">${s.aSev}</span></div><div style="font-size:${p(13)}px;font-weight:700;letter-spacing:.1em;color:${mix(sevC,.8)};margin-bottom:${p(10)}px;text-transform:uppercase;">${s.aRef}</div><div style="font-family:${fontStack};font-size:${fs(42)}px;font-weight:600;line-height:1.2;color:${text};margin-bottom:${p(14)}px;">${s.aTitle}</div><div style="width:${p(48)}px;height:${p(4)}px;background:${sevC};border-radius:2px;margin-bottom:${p(18)}px;"></div><div style="font-size:${fs(17)}px;line-height:1.65;color:${sub};margin-bottom:${p(20)}px;max-width:${p(720)}px;">${s.aDesc}</div><div style="display:flex;flex-direction:column;gap:${p(10)}px;flex:1;">${itemsHTML}</div><div style="display:flex;align-items:center;justify-content:space-between;padding-top:${p(24)}px;"><div style="display:flex;align-items:center;gap:${p(8)}px;"><div style="width:${p(8)}px;height:${p(8)}px;border-radius:50%;background:${sevC};"></div><span style="font-size:${p(12)}px;font-weight:600;color:${sevC};">Alerte sécurité</span></div><span style="font-size:${p(11)}px;color:${mix(text,.3)};">${getDate()}</span></div></div></div>`
   }
 
-  const exportPNG = useCallback(async (fmtOverride?: string) => {
-    const f = fmtOverride || s.fmt
-    const S = 1080; const H = f==='portrait' ? Math.round(S*1.25) : S
-    const div = document.createElement('div')
-    div.style.cssText = `position:fixed;left:-9999px;top:0;width:${S}px;height:${H}px;`
-    div.innerHTML = buildViz(S)
-    document.body.appendChild(div)
-    await document.fonts.ready
-    const h2c = (await import('html2canvas')).default
-    const canvas = await h2c(div.firstChild as HTMLElement, {scale:1,useCORS:true,backgroundColor:null,logging:false})
-    const a = document.createElement('a')
-    a.download = `postoria-${s.tpl}-${f==='square'?'1080x1080':'1080x1350'}.png`
-    a.href = canvas.toDataURL('image/png'); a.click()
-    document.body.removeChild(div)
-  }, [s])
+  const exportPNG = useCallback(async(fmtOverride?:string)=>{
+    const f=fmtOverride||s.fmt; const S=1080; const H=f==='portrait'?Math.round(S*1.25):S
+    const div=document.createElement('div'); div.style.cssText=`position:fixed;left:-9999px;top:0;width:${S}px;height:${H}px;`
+    div.innerHTML=buildViz(S); document.body.appendChild(div); await document.fonts.ready
+    const h2c=(await import('html2canvas')).default
+    const canvas=await h2c(div.firstChild as HTMLElement,{scale:1,useCORS:true,backgroundColor:null,logging:false})
+    const a=document.createElement('a'); a.download=`postoria-${s.tpl}-${f==='square'?'1080x1080':'1080x1350'}.png`
+    a.href=canvas.toDataURL('image/png'); a.click(); document.body.removeChild(div)
+  },[s])
 
-  const S_BASE = 1080
-  const H_BASE = s.fmt==='portrait' ? Math.round(S_BASE*1.25) : S_BASE
-  const previewW = Math.round(S_BASE * zoom / 100)
-  const previewH = Math.round(H_BASE * zoom / 100)
-  const QUICK_COLORS = ['#FFFFFF','#232323','#F8F6F2','#ECE6DD','#4F6754','#A8784F','#2563EB','#DC2626','#D97706','#7C3AED']
-  const POS_GRID = [['tl','tc','tr'],['ml','mc','mr'],['bl','bc','br']]
-  const POS_LABELS: Record<string,string> = {tl:'↖',tc:'↑',tr:'↗',ml:'←',mc:'·',mr:'→',bl:'↙',bc:'↓',br:'↘'}
+  const S_BASE=1080; const H_BASE=s.fmt==='portrait'?Math.round(S_BASE*1.25):S_BASE
+  const previewW=Math.round(S_BASE*zoom/100); const previewH=Math.round(H_BASE*zoom/100)
+  const QUICK_COLORS=['#FFFFFF','#232323','#F8F6F2','#ECE6DD','#4F6754','#A8784F','#2563EB','#DC2626','#D97706','#7C3AED']
+  const POS_GRID=[['tl','tc','tr'],['ml','mc','mr'],['bl','bc','br']]
+  const POS_LABELS:Record<string,string>={tl:'↖',tc:'↑',tr:'↗',ml:'←',mc:'·',mr:'→',bl:'↙',bc:'↓',br:'↘'}
 
   return (
     <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',padding:20}} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
       <div style={{background:'var(--ivory)',borderRadius:20,width:'100%',maxWidth:1100,maxHeight:'92vh',display:'flex',flexDirection:'column',boxShadow:'0 24px 80px rgba(0,0,0,0.25)',overflow:'hidden'}}>
         <div style={{padding:'16px 24px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'var(--white)',flexShrink:0}}>
-          <div>
-            <div style={{fontSize:11,fontWeight:600,color:'var(--copper)',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:2}}>Visuel du post</div>
-            <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:500,color:'var(--text1)'}}>Générateur de visuel</div>
-          </div>
-          <div style={{display:'flex',gap:8}}>
-            <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>exportPNG()}>↓ Télécharger PNG</button>
-            <button className="btn btn-ghost" style={{fontSize:12}} onClick={onClose}>✕ Fermer</button>
-          </div>
+          <div><div style={{fontSize:11,fontWeight:600,color:'var(--copper)',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:2}}>Visuel du post</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:500,color:'var(--text1)'}}>Générateur de visuel</div></div>
+          <div style={{display:'flex',gap:8}}><button className="btn btn-primary" style={{fontSize:12}} onClick={()=>exportPNG()}>↓ Télécharger PNG</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={onClose}>✕ Fermer</button></div>
         </div>
         <div style={{display:'flex',flex:1,overflow:'hidden'}}>
           <div style={{width:264,flexShrink:0,overflowY:'auto',padding:16,borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',gap:10,background:'var(--white)'}}>
-            <div className="card-sm" style={{padding:'12px 14px'}}>
-              <div className="section-label">Template</div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:5}}>
-                {[{id:'quote',icon:'❝',label:'Quote'},{id:'stat',icon:'◎',label:'Stat'},{id:'alert',icon:'⚡',label:'Alerte'}].map(t=>(
-                  <button key={t.id} onClick={()=>upd({tpl:t.id})} style={{padding:'7px 4px',borderRadius:8,border:`1px solid ${s.tpl===t.id?'var(--forest)':'var(--border)'}`,background:s.tpl===t.id?'var(--forest)':'var(--ivory)',color:s.tpl===t.id?'white':'var(--text2)',fontSize:10,fontWeight:500,cursor:'pointer',textAlign:'center' as const,fontFamily:'inherit'}}>
-                    <span style={{display:'block',fontSize:14,marginBottom:1}}>{t.icon}</span>{t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{display:'flex',gap:5}}>
-              {(['basic','advanced'] as const).map(id=>(
-                <button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${tab===id?'var(--forest)':'var(--border)'}`,background:tab===id?'var(--forest)':'var(--ivory)',color:tab===id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>
-                  {id==='basic'?'Basique':'Avancé'}
-                </button>
-              ))}
-            </div>
-            {tab==='basic' && <>
-              <div className="card-sm" style={{padding:'12px 14px'}}>
-                <div className="section-label">Couleurs</div>
-                {([['Fond','bg'],['Texte','text'],['Accent','accent']] as [string,string][]).map(([label,key])=>(
-                  <div key={key} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7}}>
-                    <span style={{fontSize:10,color:'var(--text2)',width:40,flexShrink:0}}>{label}</span>
-                    <input type="color" value={(s.colors as any)[key]} onChange={e=>updC(key,e.target.value)} style={{width:26,height:26,borderRadius:6,border:'1px solid var(--border)',cursor:'pointer',padding:2}}/>
-                    <input className="form-input" value={(s.colors as any)[key]} onChange={e=>updC(key,e.target.value)} style={{fontSize:10,fontFamily:'monospace',padding:'3px 7px',flex:1}}/>
-                  </div>
-                ))}
-                <div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>
-                  {QUICK_COLORS.map((c,i)=>(<div key={i} onClick={()=>updC('accent',c)} title={c} style={{width:20,height:20,borderRadius:'50%',background:c,border:`2px solid ${c==='#FFFFFF'?'#e0ddd8':'transparent'}`,cursor:'pointer',boxShadow:'0 1px 3px rgba(0,0,0,.15)'}}/>))}
-                </div>
-                <div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>
-                  {PALETTES.map((p:any,i:number)=>(<div key={i} onClick={()=>upd({colors:{bg:p.bg,text:p.text,accent:p.accent}})} title={p.name} style={{width:20,height:20,borderRadius:5,background:p.bg,border:`2px solid ${p.accent}`,cursor:'pointer'}}/>))}
-                </div>
-              </div>
-              <div className="card-sm" style={{padding:'12px 14px'}}>
-                <div className="section-label">Contenu</div>
-                {s.tpl==='quote' && <>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Citation</label><textarea className="form-input" rows={4} value={s.qText} onChange={(e:any)=>upd({qText:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Auteur</label><input className="form-input" value={s.qAuthor} onChange={(e:any)=>upd({qAuthor:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:0}}><label className="form-label">Tag</label><input className="form-input" value={s.qTag} onChange={(e:any)=>upd({qTag:e.target.value})} style={{fontSize:11}}/></div>
-                </>}
-                {s.tpl==='stat' && <>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
-                    <div className="form-group" style={{marginBottom:10}}><label className="form-label">Chiffre</label><input className="form-input" value={s.sNum} onChange={(e:any)=>upd({sNum:e.target.value})} style={{fontSize:11}}/></div>
-                    <div className="form-group" style={{marginBottom:10}}><label className="form-label">Unité</label><input className="form-input" value={s.sUnit} onChange={(e:any)=>upd({sUnit:e.target.value})} style={{fontSize:11}}/></div>
-                  </div>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Label</label><input className="form-input" value={s.sLabel} onChange={(e:any)=>upd({sLabel:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Contexte</label><textarea className="form-input" rows={3} value={s.sCtx} onChange={(e:any)=>upd({sCtx:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:0}}><label className="form-label">Source</label><input className="form-input" value={s.sSrc} onChange={(e:any)=>upd({sSrc:e.target.value})} style={{fontSize:11}}/></div>
-                </>}
-                {s.tpl==='alert' && <>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Référence</label><input className="form-input" value={s.aRef} onChange={(e:any)=>upd({aRef:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Titre</label><input className="form-input" value={s.aTitle} onChange={(e:any)=>upd({aTitle:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Description</label><textarea className="form-input" rows={2} value={s.aDesc} onChange={(e:any)=>upd({aDesc:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:10}}><label className="form-label">Actions (1/ligne)</label><textarea className="form-input" rows={3} value={s.aItems} onChange={(e:any)=>upd({aItems:e.target.value})} style={{fontSize:11}}/></div>
-                  <div className="form-group" style={{marginBottom:0}}><label className="form-label">Sévérité</label><select className="form-input" value={s.aSev} onChange={(e:any)=>upd({aSev:e.target.value})} style={{fontSize:11}}><option>CRITIQUE</option><option>ÉLEVÉE</option><option>MODÉRÉE</option></select></div>
-                </>}
-              </div>
-            </>}
-            {tab==='advanced' && <>
-              <div className="card-sm" style={{padding:'12px 14px'}}>
-                <div className="section-label">Typographie</div>
-                <div className="form-group" style={{marginBottom:10}}><label className="form-label">Police</label><select className="form-input" value={s.font} onChange={(e:any)=>upd({font:e.target.value})} style={{fontSize:11}}>{FONTS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></div>
-                <div className="form-group" style={{marginBottom:10}}><label className="form-label">Taille</label><div style={{display:'flex',gap:4}}>{['S','M','L','XL'].map(sz=>(<button key={sz} onClick={()=>upd({textSize:sz})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.textSize===sz?'var(--forest)':'var(--border)'}`,background:s.textSize===sz?'var(--forest)':'var(--ivory)',color:s.textSize===sz?'white':'var(--text2)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>{sz}</button>))}</div></div>
-                <div className="form-group" style={{marginBottom:0}}><label className="form-label">Alignement</label><div style={{display:'flex',gap:4}}>{[{id:'left',l:'Gauche'},{id:'center',l:'Centré'}].map(a=>(<button key={a.id} onClick={()=>upd({align:a.id})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.align===a.id?'var(--forest)':'var(--border)'}`,background:s.align===a.id?'var(--forest)':'var(--ivory)',color:s.align===a.id?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{a.l}</button>))}</div></div>
-              </div>
-              <div className="card-sm" style={{padding:'12px 14px'}}>
-                <div className="section-label">Décoration</div>
-                <div className="form-group" style={{marginBottom:10}}><label className="form-label">Accent</label><select className="form-input" value={s.accentStyle} onChange={(e:any)=>upd({accentStyle:e.target.value})} style={{fontSize:11}}><option value="bar">Barre verticale gauche</option><option value="top">Barre horizontale haut</option><option value="gradient">Gradient latéral</option><option value="none">Aucun</option></select></div>
-                <div className="form-group" style={{marginBottom:0}}><label className="form-label">Motif de fond</label><select className="form-input" value={s.bgPattern} onChange={(e:any)=>upd({bgPattern:e.target.value})} style={{fontSize:11}}><option value="none">Aucun</option><option value="dots">Points</option><option value="grid">Grille</option><option value="diag">Diagonales</option><option value="circles">Cercles</option></select></div>
-              </div>
-              <div className="card-sm" style={{padding:'12px 14px'}}>
-                <div className="section-label">Logo & icône</div>
-                <input ref={fileRef} type="file" accept="image/*" onChange={(e:any)=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>upd({logoUrl:ev.target?.result});r.readAsDataURL(f)}} style={{display:'none'}}/>
-                <div style={{display:'flex',gap:6,marginBottom:10}}><button onClick={()=>fileRef.current?.click()} className="btn btn-ghost" style={{fontSize:11,flex:1,justifyContent:'center'}}>{s.logoUrl?'✓ Logo chargé':'↑ Choisir'}</button>{s.logoUrl&&<button onClick={()=>upd({logoUrl:null})} className="btn btn-ghost" style={{fontSize:10,color:'#c0392b',borderColor:'transparent'}}>✕</button>}</div>
-                {!s.logoUrl && <div className="form-group" style={{marginBottom:10}}><label className="form-label">Icône sectorielle</label><select className="form-input" value={s.sectorIcon} onChange={(e:any)=>upd({sectorIcon:e.target.value})} style={{fontSize:11}}><option value="cyber">🔒 Cybersécurité</option><option value="finance">💳 Finance</option><option value="tech">💻 Tech</option><option value="marketing">📣 Marketing</option><option value="rh">👥 RH</option><option value="sante">❤️ Santé</option><option value="conseil">📋 Conseil</option><option value="none">Aucune</option></select></div>}
-                <div className="form-group" style={{marginBottom:8}}><label className="form-label">Position</label><div style={{display:'inline-grid',gridTemplateColumns:'repeat(3,26px)',gap:3}}>{POS_GRID.map(row=>row.map(pos=>(<button key={pos} onClick={()=>upd({logoPos:pos})} style={{width:26,height:26,borderRadius:5,border:`1px solid ${s.logoPos===pos?'var(--forest)':'var(--border)'}`,background:s.logoPos===pos?'var(--forest)':'var(--ivory)',color:s.logoPos===pos?'white':'var(--text2)',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>{POS_LABELS[pos]}</button>)))}</div></div>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span style={{fontSize:11,color:'var(--text2)'}}>Watermark</span><div className={`toggle ${s.showWatermark?'on':''}`} onClick={()=>upd({showWatermark:!s.showWatermark})}><div className="toggle-dot"/></div></div>
-              </div>
-            </>}
-            <div className="card-sm" style={{padding:'12px 14px'}}>
-              <div className="section-label">Format</div>
-              <div style={{display:'flex',gap:5,marginBottom:10}}>{['square','portrait'].map(f=>(<button key={f} onClick={()=>upd({fmt:f})} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${s.fmt===f?'var(--forest)':'var(--border)'}`,background:s.fmt===f?'var(--forest)':'var(--ivory)',color:s.fmt===f?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{f==='square'?'1080×1080':'1080×1350'}</button>))}</div>
-              <div style={{marginBottom:10}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><label style={{fontSize:10,color:'var(--text2)',fontWeight:500}}>Zoom</label><span style={{fontSize:10,color:'var(--text3)',fontFamily:'monospace'}}>{zoom}%</span></div><input type="range" min={30} max={100} value={zoom} onChange={(e:any)=>setZoom(parseInt(e.target.value))} style={{width:'100%',accentColor:'var(--forest)'}}/></div>
-              <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',fontSize:12,marginBottom:5}} onClick={()=>exportPNG()}>↓ PNG</button>
-              <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11}} onClick={async()=>{await exportPNG('square');await new Promise(r=>setTimeout(r,400));await exportPNG('portrait')}}>↓ Les 2 formats</button>
-            </div>
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Template</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:5}}>{[{id:'quote',icon:'❝',label:'Quote'},{id:'stat',icon:'◎',label:'Stat'},{id:'alert',icon:'⚡',label:'Alerte'}].map(t=>(<button key={t.id} onClick={()=>upd({tpl:t.id})} style={{padding:'7px 4px',borderRadius:8,border:`1px solid ${s.tpl===t.id?'var(--forest)':'var(--border)'}`,background:s.tpl===t.id?'var(--forest)':'var(--ivory)',color:s.tpl===t.id?'white':'var(--text2)',fontSize:10,fontWeight:500,cursor:'pointer',textAlign:'center' as const,fontFamily:'inherit'}}><span style={{display:'block',fontSize:14,marginBottom:1}}>{t.icon}</span>{t.label}</button>))}</div></div>
+            <div style={{display:'flex',gap:5}}>{(['basic','advanced'] as const).map(id=>(<button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${tab===id?'var(--forest)':'var(--border)'}`,background:tab===id?'var(--forest)':'var(--ivory)',color:tab===id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>{id==='basic'?'Basique':'Avancé'}</button>))}</div>
+            {tab==='basic'&&<><div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Couleurs</div>{([['Fond','bg'],['Texte','text'],['Accent','accent']] as [string,string][]).map(([label,key])=>(<div key={key} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7}}><span style={{fontSize:10,color:'var(--text2)',width:40,flexShrink:0}}>{label}</span><input type="color" value={(s.colors as any)[key]} onChange={e=>updC(key,e.target.value)} style={{width:26,height:26,borderRadius:6,border:'1px solid var(--border)',cursor:'pointer',padding:2}}/><input className="form-input" value={(s.colors as any)[key]} onChange={e=>updC(key,e.target.value)} style={{fontSize:10,fontFamily:'monospace',padding:'3px 7px',flex:1}}/></div>))}<div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>{QUICK_COLORS.map((c,i)=>(<div key={i} onClick={()=>updC('accent',c)} style={{width:20,height:20,borderRadius:'50%',background:c,border:`2px solid ${c==='#FFFFFF'?'#e0ddd8':'transparent'}`,cursor:'pointer',boxShadow:'0 1px 3px rgba(0,0,0,.15)'}}/>))}</div><div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>{PALETTES.map((p:any,i:number)=>(<div key={i} onClick={()=>upd({colors:{bg:p.bg,text:p.text,accent:p.accent}})} title={p.name} style={{width:20,height:20,borderRadius:5,background:p.bg,border:`2px solid ${p.accent}`,cursor:'pointer'}}/>))}</div></div>
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Contenu</div>
+              {s.tpl==='quote'&&<><div className="form-group" style={{marginBottom:10}}><label className="form-label">Citation</label><textarea className="form-input" rows={4} value={s.qText} onChange={(e:any)=>upd({qText:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Auteur</label><input className="form-input" value={s.qAuthor} onChange={(e:any)=>upd({qAuthor:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Tag</label><input className="form-input" value={s.qTag} onChange={(e:any)=>upd({qTag:e.target.value})} style={{fontSize:11}}/></div></>}
+              {s.tpl==='stat'&&<><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div className="form-group" style={{marginBottom:10}}><label className="form-label">Chiffre</label><input className="form-input" value={s.sNum} onChange={(e:any)=>upd({sNum:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Unité</label><input className="form-input" value={s.sUnit} onChange={(e:any)=>upd({sUnit:e.target.value})} style={{fontSize:11}}/></div></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Label</label><input className="form-input" value={s.sLabel} onChange={(e:any)=>upd({sLabel:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Contexte</label><textarea className="form-input" rows={3} value={s.sCtx} onChange={(e:any)=>upd({sCtx:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Source</label><input className="form-input" value={s.sSrc} onChange={(e:any)=>upd({sSrc:e.target.value})} style={{fontSize:11}}/></div></>}
+              {s.tpl==='alert'&&<><div className="form-group" style={{marginBottom:10}}><label className="form-label">Référence</label><input className="form-input" value={s.aRef} onChange={(e:any)=>upd({aRef:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Titre</label><input className="form-input" value={s.aTitle} onChange={(e:any)=>upd({aTitle:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Description</label><textarea className="form-input" rows={2} value={s.aDesc} onChange={(e:any)=>upd({aDesc:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Actions (1/ligne)</label><textarea className="form-input" rows={3} value={s.aItems} onChange={(e:any)=>upd({aItems:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Sévérité</label><select className="form-input" value={s.aSev} onChange={(e:any)=>upd({aSev:e.target.value})} style={{fontSize:11}}><option>CRITIQUE</option><option>ÉLEVÉE</option><option>MODÉRÉE</option></select></div></>}
+            </div></>}
+            {tab==='advanced'&&<><div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Typographie</div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Police</label><select className="form-input" value={s.font} onChange={(e:any)=>upd({font:e.target.value})} style={{fontSize:11}}>{FONTS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Taille</label><div style={{display:'flex',gap:4}}>{['S','M','L','XL'].map(sz=>(<button key={sz} onClick={()=>upd({textSize:sz})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.textSize===sz?'var(--forest)':'var(--border)'}`,background:s.textSize===sz?'var(--forest)':'var(--ivory)',color:s.textSize===sz?'white':'var(--text2)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>{sz}</button>))}</div></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Alignement</label><div style={{display:'flex',gap:4}}>{[{id:'left',l:'Gauche'},{id:'center',l:'Centré'}].map(a=>(<button key={a.id} onClick={()=>upd({align:a.id})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.align===a.id?'var(--forest)':'var(--border)'}`,background:s.align===a.id?'var(--forest)':'var(--ivory)',color:s.align===a.id?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{a.l}</button>))}</div></div></div>
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Décoration</div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Accent</label><select className="form-input" value={s.accentStyle} onChange={(e:any)=>upd({accentStyle:e.target.value})} style={{fontSize:11}}><option value="bar">Barre verticale gauche</option><option value="top">Barre horizontale haut</option><option value="gradient">Gradient latéral</option><option value="none">Aucun</option></select></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Motif de fond</label><select className="form-input" value={s.bgPattern} onChange={(e:any)=>upd({bgPattern:e.target.value})} style={{fontSize:11}}><option value="none">Aucun</option><option value="dots">Points</option><option value="grid">Grille</option><option value="diag">Diagonales</option><option value="circles">Cercles</option></select></div></div>
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Logo & icône</div><input ref={fileRef} type="file" accept="image/*" onChange={(e:any)=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>upd({logoUrl:ev.target?.result});r.readAsDataURL(f)}} style={{display:'none'}}/><div style={{display:'flex',gap:6,marginBottom:10}}><button onClick={()=>fileRef.current?.click()} className="btn btn-ghost" style={{fontSize:11,flex:1,justifyContent:'center'}}>{s.logoUrl?'✓ Logo chargé':'↑ Choisir'}</button>{s.logoUrl&&<button onClick={()=>upd({logoUrl:null})} className="btn btn-ghost" style={{fontSize:10,color:'#c0392b',borderColor:'transparent'}}>✕</button>}</div>{!s.logoUrl&&<div className="form-group" style={{marginBottom:10}}><label className="form-label">Icône sectorielle</label><select className="form-input" value={s.sectorIcon} onChange={(e:any)=>upd({sectorIcon:e.target.value})} style={{fontSize:11}}><option value="cyber">🔒 Cybersécurité</option><option value="finance">💳 Finance</option><option value="tech">💻 Tech</option><option value="marketing">📣 Marketing</option><option value="rh">👥 RH</option><option value="sante">❤️ Santé</option><option value="conseil">📋 Conseil</option><option value="none">Aucune</option></select></div>}<div className="form-group" style={{marginBottom:8}}><label className="form-label">Position</label><div style={{display:'inline-grid',gridTemplateColumns:'repeat(3,26px)',gap:3}}>{POS_GRID.map(row=>row.map(pos=>(<button key={pos} onClick={()=>upd({logoPos:pos})} style={{width:26,height:26,borderRadius:5,border:`1px solid ${s.logoPos===pos?'var(--forest)':'var(--border)'}`,background:s.logoPos===pos?'var(--forest)':'var(--ivory)',color:s.logoPos===pos?'white':'var(--text2)',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>{POS_LABELS[pos]}</button>)))}</div></div><div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span style={{fontSize:11,color:'var(--text2)'}}>Watermark</span><div className={`toggle ${s.showWatermark?'on':''}`} onClick={()=>upd({showWatermark:!s.showWatermark})}><div className="toggle-dot"/></div></div></div></>}
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Format</div><div style={{display:'flex',gap:5,marginBottom:10}}>{['square','portrait'].map(f=>(<button key={f} onClick={()=>upd({fmt:f})} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${s.fmt===f?'var(--forest)':'var(--border)'}`,background:s.fmt===f?'var(--forest)':'var(--ivory)',color:s.fmt===f?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{f==='square'?'1080×1080':'1080×1350'}</button>))}</div><div style={{marginBottom:10}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><label style={{fontSize:10,color:'var(--text2)',fontWeight:500}}>Zoom</label><span style={{fontSize:10,color:'var(--text3)',fontFamily:'monospace'}}>{zoom}%</span></div><input type="range" min={30} max={100} value={zoom} onChange={(e:any)=>setZoom(parseInt(e.target.value))} style={{width:'100%',accentColor:'var(--forest)'}}/></div><button className="btn btn-primary" style={{width:'100%',justifyContent:'center',fontSize:12,marginBottom:5}} onClick={()=>exportPNG()}>↓ PNG</button><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11}} onClick={async()=>{await exportPNG('square');await new Promise(r=>setTimeout(r,400));await exportPNG('portrait')}}>↓ Les 2 formats</button></div>
           </div>
           <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--sand)',overflow:'auto',padding:24}}>
             <div style={{fontSize:10,color:'var(--text3)',marginBottom:12,fontWeight:500,textTransform:'uppercase' as const,letterSpacing:'.08em'}}>Aperçu {zoom}% — {s.fmt==='square'?'1080 × 1080':'1080 × 1350'}</div>
@@ -355,13 +173,15 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
 
 // ─── MAIN ──────────────────────────────────────────────────────────────────────
 export default function Home() {
-  const { profile, setProfile, saveProfile, signOut, loading } = useProfile()
+  const { profile, setProfile, saveProfile, signOut, loading, userId } = useProfile()
   const [page, setPage] = useState('apercu')
   const [dark, setDark] = useState(false)
   const [ideas, setIdeas] = useState<Idea[]>([])
+  const [ideasGeneratedAt, setIdeasGeneratedAt] = useState<Date | null>(null)
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
   const [generatedCount, setGeneratedCount] = useState(0)
   const [loadingIdeas, setLoadingIdeas] = useState(false)
+  const [loadingPosts, setLoadingPosts] = useState(false)
   const [loadingPost, setLoadingPost] = useState(false)
   const [postTopic, setPostTopic] = useState('')
   const [postFormat, setPostFormat] = useState('educational')
@@ -378,15 +198,61 @@ export default function Home() {
   const ideasLastRefresh = useRef<number | null>(null)
   const IDEAS_REFRESH_MS = 2 * 60 * 60 * 1000
 
-  // Load localStorage data (posts + count + theme)
+  // Load theme
   useEffect(() => {
-    const saved = localStorage.getItem('postoria_posts')
-    const count = localStorage.getItem('postoria_count')
     const theme = localStorage.getItem('postoria_dark')
-    if (saved) setSavedPosts(JSON.parse(saved))
-    if (count) setGeneratedCount(parseInt(count))
     if (theme === '1') { setDark(true); document.documentElement.dataset.theme = 'dark' }
   }, [])
+
+  // Load Supabase data once userId is available
+  useEffect(() => {
+    if (!userId) return
+    loadPosts()
+    loadIdeas()
+    loadCount()
+  }, [userId])
+
+  // ── Supabase: load posts ──
+  const loadPosts = async () => {
+    setLoadingPosts(true)
+    const { data } = await supabase.from('saved_posts').select('*').order('created_at', { ascending: false })
+    if (data) {
+      setSavedPosts(data.map((p: any) => ({
+        id: p.id, topic: p.topic, content: p.content, format: p.format,
+        created_at: p.created_at_display || new Date(p.created_at).toLocaleDateString('fr-FR'),
+      })))
+    }
+    setLoadingPosts(false)
+  }
+
+  // ── Supabase: load ideas ──
+  const loadIdeas = async () => {
+    const { data } = await supabase
+      .from('daily_ideas').select('*')
+      .order('created_at', { ascending: false })
+      .limit(10)
+    if (data && data.length > 0) {
+      // Group by generated_at date — take the latest batch
+      const latest = data[0]
+      const latestDate = latest.created_at
+      const batch = data.filter((d: any) => {
+        const diff = new Date(latestDate).getTime() - new Date(d.created_at).getTime()
+        return Math.abs(diff) < 60000 * 5 // within 5 min = same batch
+      })
+      setIdeas(batch.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook, recommended: d.recommended })))
+      const generatedAt = new Date(latestDate)
+      setIdeasGeneratedAt(generatedAt)
+      ideasLastRefresh.current = generatedAt.getTime()
+      const remaining = IDEAS_REFRESH_MS - (Date.now() - generatedAt.getTime())
+      setIdeasRefreshCountdown(remaining > 0 ? remaining : 0)
+    }
+  }
+
+  // ── Supabase: load generated count ──
+  const loadCount = async () => {
+    const { count } = await supabase.from('saved_posts').select('*', { count: 'exact', head: true })
+    if (count !== null) setGeneratedCount(count)
+  }
 
   // Auto-refresh ideas every 2h
   useEffect(() => {
@@ -396,7 +262,14 @@ export default function Home() {
         const remaining = IDEAS_REFRESH_MS - elapsed
         if (remaining <= 0) {
           fetch('/api/ideas', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({profile}) })
-            .then(r=>r.json()).then(data=>{if(data.ideas){setIdeas(data.ideas);ideasLastRefresh.current=Date.now();setIdeasRefreshCountdown(IDEAS_REFRESH_MS)}}).catch(()=>{})
+            .then(r=>r.json()).then(async data=>{
+              if (data.ideas) {
+                setIdeas(data.ideas)
+                ideasLastRefresh.current = Date.now()
+                setIdeasRefreshCountdown(IDEAS_REFRESH_MS)
+                await saveIdeasToSupabase(data.ideas)
+              }
+            }).catch(()=>{})
         } else {
           setIdeasRefreshCountdown(remaining)
         }
@@ -405,9 +278,28 @@ export default function Home() {
     return () => clearInterval(interval)
   }, [profile])
 
+  const saveIdeasToSupabase = async (ideasToSave: Idea[]) => {
+    if (!userId) return
+    // Delete old ideas for this user
+    await supabase.from('daily_ideas').delete().eq('user_id', userId)
+    // Insert new batch
+    const now = new Date().toISOString()
+    await supabase.from('daily_ideas').insert(
+      ideasToSave.map(idea => ({
+        user_id: userId, topic: idea.topic, title: idea.title,
+        hook: idea.hook, recommended: idea.recommended || false,
+        created_at: now,
+      }))
+    )
+  }
+
   const formatCountdown = (ms: number) => {
     const m = Math.floor(ms / 60000); const h = Math.floor(m / 60)
     return h > 0 ? `${h}h${String(m % 60).padStart(2,'0')}` : `${m}m`
+  }
+
+  const formatIdeasDate = (date: Date) => {
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ' à ' + date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
   }
 
   const showToast = (msg: string) => { setToast(msg); setToastVisible(true); setTimeout(()=>setToastVisible(false), 2600) }
@@ -418,8 +310,14 @@ export default function Home() {
     try {
       const res = await fetch('/api/ideas', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({profile}) })
       const data = await res.json()
-      if (data.ideas) { setIdeas(data.ideas); ideasLastRefresh.current=Date.now(); setIdeasRefreshCountdown(IDEAS_REFRESH_MS) }
-      else showToast('Erreur : '+(data.error||'inconnue'))
+      if (data.ideas) {
+        setIdeas(data.ideas)
+        const now = new Date()
+        setIdeasGeneratedAt(now)
+        ideasLastRefresh.current = now.getTime()
+        setIdeasRefreshCountdown(IDEAS_REFRESH_MS)
+        await saveIdeasToSupabase(data.ideas)
+      } else showToast('Erreur : '+(data.error||'inconnue'))
     } catch { showToast('Erreur réseau') }
     setLoadingIdeas(false)
   }
@@ -432,18 +330,38 @@ export default function Home() {
     try {
       const res = await fetch('/api/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile}) })
       const data = await res.json()
-      if (data.content) { setPostOutput(data.content); const c=generatedCount+1; setGeneratedCount(c); localStorage.setItem('postoria_count',String(c)) }
+      if (data.content) { setPostOutput(data.content); setGeneratedCount(c => c + 1) }
       else showToast('Erreur : '+(data.error||'inconnue'))
     } catch { showToast('Erreur réseau') }
     setLoadingPost(false)
-  }, [postTopic,postFormat,postLength,postTone,profile,generatedCount])
+  }, [postTopic,postFormat,postLength,postTone,profile])
 
-  const savePost = () => {
-    if (!postOutput.trim()) return
-    const post:Post = { id:Date.now().toString(), topic:postTopic||'Sans titre', content:postOutput, format:postFormat, created_at:new Date().toLocaleDateString('fr-FR') }
-    const updated=[post,...savedPosts]; setSavedPosts(updated); localStorage.setItem('postoria_posts',JSON.stringify(updated)); showToast('Post sauvegardé ✓')
+  // ── Supabase: save post ──
+  const savePost = async () => {
+    if (!postOutput.trim() || !userId) return
+    const displayDate = new Date().toLocaleDateString('fr-FR')
+    const { data, error } = await supabase.from('saved_posts').insert({
+      user_id: userId, topic: postTopic||'Sans titre',
+      content: postOutput, format: postFormat, created_at_display: displayDate,
+    }).select().single()
+    if (!error && data) {
+      const post: Post = { id: data.id, topic: data.topic, content: data.content, format: data.format, created_at: displayDate }
+      setSavedPosts(prev => [post, ...prev])
+      showToast('Post sauvegardé ✓')
+    } else {
+      showToast('Erreur lors de la sauvegarde')
+    }
   }
-  const deletePost = (id:string) => { const u=savedPosts.filter(p=>p.id!==id); setSavedPosts(u); localStorage.setItem('postoria_posts',JSON.stringify(u)); showToast('Post supprimé') }
+
+  // ── Supabase: delete post ──
+  const deletePost = async (id: string) => {
+    const { error } = await supabase.from('saved_posts').delete().eq('id', id)
+    if (!error) {
+      setSavedPosts(prev => prev.filter(p => p.id !== id))
+      showToast('Post supprimé')
+    }
+  }
+
   const copyText = (text:string) => { navigator.clipboard.writeText(text); showToast('Copié ✓') }
 
   const handleSaveProfile = async () => {
@@ -467,7 +385,6 @@ export default function Home() {
   }
 
   const fmtLabels: Record<string,string> = {educational:'Conseil',alert:'Alerte',opinion:'Opinion',story:'Story',list:'Liste'}
-
   const navItems = [
     { id:'apercu', label:'Aperçu', icon:<GridIcon/> },
     { id:'idees', label:'Idées du jour', icon:<BulbIcon/> },
@@ -477,44 +394,67 @@ export default function Home() {
     { id:'profil', label:'Mon profil', icon:<UserIcon/> },
   ]
 
-  // Loading screen while checking auth
-  if (loading) {
-    return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#F8F6F2',fontFamily:"'Inter',sans-serif"}}>
-        <div style={{textAlign:'center' as const}}>
-          <div style={{width:36,height:36,background:'#4F6754',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg>
-          </div>
-          <div style={{fontSize:13,color:'#727272'}}>Chargement…</div>
-        </div>
+  if (loading) return (
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#F8F6F2',fontFamily:"'Inter',sans-serif"}}>
+      <div style={{textAlign:'center' as const}}>
+        <div style={{width:36,height:36,background:'#4F6754',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
+        <div style={{fontSize:13,color:'#727272'}}>Chargement…</div>
       </div>
-    )
-  }
+    </div>
+  )
+
+  const ideasSection = (
+    <>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+        <div>
+          <div className="section-label" style={{marginBottom:2}}>Idées du jour</div>
+          {ideasGeneratedAt && (
+            <div style={{fontSize:11,color:'var(--text3)'}}>
+              Générées le {formatIdeasDate(ideasGeneratedAt)}
+              {ideasRefreshCountdown !== null && ideasRefreshCountdown > 0 && (
+                <span style={{marginLeft:8,color:'var(--copper)'}}>· Refresh dans {formatCountdown(ideasRefreshCountdown)}</span>
+              )}
+            </div>
+          )}
+        </div>
+        <button className="btn btn-primary" onClick={generateIdeas} disabled={loadingIdeas}>
+          {loadingIdeas ? <><span className="spinner"/> Génération…</> : '✦ Générer les idées'}
+        </button>
+      </div>
+      {loadingIdeas && <div style={{marginBottom:12}}><div className="strip"/></div>}
+      {ideas.length === 0 && !loadingIdeas ? (
+        <div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Vos idées du jour vous attendent</div><div className="empty-body">Cliquez sur "Générer les idées" pour recevoir 10 sujets personnalisés.</div></div>
+      ) : ideas.map((idea, i) => (
+        <div key={i} className="idea-card fade" style={{animationDelay:`${i*.06}s`,border:idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined,background:idea.recommended?'rgba(168,120,79,0.04)':undefined}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+            <span className="idea-tag">{idea.topic}</span>
+            {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--copper)',border:'1px solid rgba(168,120,79,0.25)'}}>★ Recommandé</span>}
+          </div>
+          <div className="idea-title">{idea.title}</div>
+          <div className="idea-hook">{idea.hook}</div>
+          <div className="idea-actions">
+            <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button>
+            <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button>
+          </div>
+        </div>
+      ))}
+    </>
+  )
 
   return (
     <>
       <Head><title>Postoria</title></Head>
       <div className="app">
         <aside className="sidebar">
-          <div className="sidebar-logo">
-            <div className="logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
-            <span className="logo-name">POSTORIA</span>
-          </div>
-          <nav className="sidebar-nav">
-            {navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>{item.icon}{item.label}</button>))}
-          </nav>
+          <div className="sidebar-logo"><div className="logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div><span className="logo-name">POSTORIA</span></div>
+          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>{item.icon}{item.label}</button>))}</nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
-              <div className="user-avatar">{profile.name ? profile.name.slice(0,2).toUpperCase() : '??'}</div>
-              <div><div className="user-name">{profile.name || 'Mon compte'}</div><div className="user-role">{profile.role ? `${profile.role.split(' ')[0]} · ${profile.company}` : 'Compléter le profil'}</div></div>
+              <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
+              <div><div className="user-name">{profile.name||'Mon compte'}</div><div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:'Compléter le profil'}</div></div>
             </div>
-            <div className="theme-row">
-              <span>Mode sombre</span>
-              <div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div>
-            </div>
-            <div style={{padding:'4px 10px'}}>
-              <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11,color:'var(--text3)'}} onClick={signOut}>↩ Se déconnecter</button>
-            </div>
+            <div className="theme-row"><span>Mode sombre</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
+            <div style={{padding:'4px 10px'}}><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11,color:'var(--text3)'}} onClick={signOut}>↩ Se déconnecter</button></div>
           </div>
         </aside>
 
@@ -522,40 +462,22 @@ export default function Home() {
           {/* APERÇU */}
           <div className={`page ${page==='apercu'?'active':''}`}>
             <div className="eyebrow">Tableau de bord</div>
-            <div className="page-title">Bonjour{profile.name ? `, ${profile.name}` : ''}.  </div>
+            <div className="page-title">Bonjour{profile.name?`, ${profile.name}`:''}.</div>
             <div className="copper-rule"/>
             <div className="page-sub">{new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
             <div className="stats-grid">
-              <div className="stat-card"><div className="stat-label">Posts générés</div><div className="stat-value">{generatedCount}</div><div className="stat-note">cette session</div></div>
-              <div className="stat-card"><div className="stat-label">Bibliothèque</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">posts sauvegardés</div></div>
-              <div className="stat-card"><div className="stat-label">Secteur actif</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>{profile.sector?.split(' ')[0] || 'Cyber'}</div><div className="stat-note">{profile.company || 'Mon entreprise'}</div></div>
+              <div className="stat-card"><div className="stat-label">Posts sauvegardés</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">dans votre bibliothèque</div></div>
+              <div className="stat-card"><div className="stat-label">Posts générés</div><div className="stat-value">{generatedCount}</div><div className="stat-note">au total</div></div>
+              <div className="stat-card"><div className="stat-label">Secteur actif</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>{profile.sector?.split(' ')[0]||'Cyber'}</div><div className="stat-note">{profile.company||'Mon entreprise'}</div></div>
             </div>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
-              <div className="section-label" style={{marginBottom:0}}>Idées du jour</div>
-              <div style={{display:'flex',alignItems:'center',gap:10}}>
-                {ideasRefreshCountdown !== null && (<div style={{display:'flex',alignItems:'center',gap:6,fontSize:12,color:'var(--text3)'}}><div className="dot"/>Refresh dans {formatCountdown(ideasRefreshCountdown)}</div>)}
-                <button className="btn btn-primary" onClick={generateIdeas} disabled={loadingIdeas}>{loadingIdeas?<><span className="spinner"/> Génération…</>:'✦ Générer les idées'}</button>
-              </div>
-            </div>
-            {loadingIdeas&&<div style={{marginBottom:12}}><div className="strip"/></div>}
-            {ideas.length===0&&!loadingIdeas?(<div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Vos idées du jour vous attendent</div><div className="empty-body">Cliquez sur "Générer les idées" pour recevoir 10 sujets personnalisés.</div></div>)
-            :ideas.map((idea,i)=>(<div key={i} className="idea-card fade" style={{animationDelay:`${i*.06}s`,border:idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined,background:idea.recommended?'rgba(168,120,79,0.04)':undefined}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span className="idea-tag">{idea.topic}</span>{idea.recommended&&<span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--copper)',border:'1px solid rgba(168,120,79,0.25)'}}>★ Recommandé</span>}</div>
-              <div className="idea-title">{idea.title}</div><div className="idea-hook">{idea.hook}</div>
-              <div className="idea-actions"><button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button><button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button></div>
-            </div>))}
+            {ideasSection}
           </div>
 
           {/* IDÉES */}
           <div className={`page ${page==='idees'?'active':''}`}>
             <div className="eyebrow">Inspiration</div><div className="page-title">Idées du jour</div><div className="copper-rule"/>
-            <div className="page-sub">10 sujets calibrés pour votre audience, renouvelés toutes les 2h.</div>
-            {ideas.length===0?(<div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Aucune idée générée</div><div className="empty-body">Retournez sur l'Aperçu et cliquez sur "Générer les idées".</div></div>)
-            :ideas.map((idea,i)=>(<div key={i} className="idea-card fade" style={{border:idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined}}>
-              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}><span className="idea-tag">{idea.topic}</span>{idea.recommended&&<span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--copper)',border:'1px solid rgba(168,120,79,0.25)'}}>★ Recommandé</span>}</div>
-              <div className="idea-title">{idea.title}</div><div className="idea-hook">{idea.hook}</div>
-              <div className="idea-actions"><button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button><button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button></div>
-            </div>))}
+            <div className="page-sub">10 sujets calibrés pour votre audience, sauvegardés automatiquement.</div>
+            {ideasSection}
           </div>
 
           {/* RÉDIGER */}
@@ -574,7 +496,7 @@ export default function Home() {
               <div className="card">
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
                   <div className="section-label" style={{marginBottom:0}}>Résultat</div>
-                  {postOutput&&<div style={{display:'flex',gap:7,flexWrap:'wrap' as const}}><button className="btn btn-ghost" onClick={savePost}>↓ Sauvegarder</button><button className="btn btn-ghost" onClick={()=>copyText(postOutput)}>⎘ Copier</button></div>}
+                  {postOutput&&<div style={{display:'flex',gap:7}}><button className="btn btn-ghost" onClick={savePost}>↓ Sauvegarder</button><button className="btn btn-ghost" onClick={()=>copyText(postOutput)}>⎘ Copier</button></div>}
                 </div>
                 {loadingPost&&<div style={{marginBottom:12}}><div className="strip"/></div>}
                 <textarea className="post-editor" value={postOutput} onChange={e=>setPostOutput(e.target.value)} placeholder="Votre post apparaîtra ici…"/>
@@ -584,7 +506,7 @@ export default function Home() {
                       <div><div style={{fontSize:12,fontWeight:600,color:'var(--forest)',marginBottom:2}}>🖼 Ajouter un visuel</div><div style={{fontSize:11,color:'var(--text2)'}}>Génère une image 1080×1080 à partir de ce post.</div></div>
                       <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={()=>setShowVisualModal(true)}>Créer le visuel →</button>
                     </div>
-                    <div style={{display:'flex',gap:7,flexWrap:'wrap' as const,alignItems:'center'}}>
+                    <div style={{display:'flex',gap:7,alignItems:'center'}}>
                       <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing} style={{background:'#0077B5',flex:1,justifyContent:'center'}}>{publishing?<><span className="spinner"/> Envoi…</>:'🔗 Publier sur LinkedIn'}</button>
                     </div>
                     <div style={{display:'flex',gap:7,alignItems:'center',marginTop:8}}>
@@ -610,19 +532,25 @@ export default function Home() {
           {/* BIBLIOTHÈQUE */}
           <div className={`page ${page==='bibliotheque'?'active':''}`}>
             <div className="eyebrow">Vos contenus</div><div className="page-title">Bibliothèque</div><div className="copper-rule"/>
-            <div className="page-sub">Tous vos posts sauvegardés.</div>
-            {savedPosts.length===0?(<div className="card empty"><div className="empty-icon">◫</div><div className="empty-title">Bibliothèque vide</div><div className="empty-body">Générez des posts et cliquez sur "Sauvegarder".</div></div>)
-            :savedPosts.map(p=>(<div key={p.id} className="saved-card fade"><div className="saved-header"><div><span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span><span style={{fontSize:11,color:'var(--text3)',marginLeft:8}}>{p.created_at}</span></div><button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>Supprimer</button></div><div className="saved-title">{p.topic}</div><div className="saved-preview">{p.content.substring(0,180)}…</div><div style={{display:'flex',gap:7}}><button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>Modifier</button></div></div>))}
+            <div className="page-sub">Tous vos posts sauvegardés — synchronisés sur tous vos appareils.</div>
+            {loadingPosts && <div style={{marginBottom:12}}><div className="strip"/></div>}
+            {!loadingPosts && savedPosts.length===0 ? (
+              <div className="card empty"><div className="empty-icon">◫</div><div className="empty-title">Bibliothèque vide</div><div className="empty-body">Générez des posts et cliquez sur "Sauvegarder".</div></div>
+            ) : savedPosts.map(p=>(
+              <div key={p.id} className="saved-card fade">
+                <div className="saved-header"><div><span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span><span style={{fontSize:11,color:'var(--text3)',marginLeft:8}}>{p.created_at}</span></div><button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>Supprimer</button></div>
+                <div className="saved-title">{p.topic}</div>
+                <div className="saved-preview">{p.content.substring(0,180)}…</div>
+                <div style={{display:'flex',gap:7}}><button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>Modifier</button></div>
+              </div>
+            ))}
           </div>
 
           {/* PROFIL */}
           <div className={`page ${page==='profil'?'active':''}`}>
             <div className="eyebrow">Paramètres</div><div className="page-title">Mon profil</div><div className="copper-rule"/>
             <div className="page-sub">Votre contexte guide chaque génération. Sauvegardé dans Supabase.</div>
-            <div className="profile-hero">
-              <div className="profile-avatar">{profile.name ? profile.name.slice(0,2).toUpperCase() : '??'}</div>
-              <div><div className="profile-name">{profile.name || 'Mon compte'}</div><div className="profile-role">{profile.role} · {profile.company}</div></div>
-            </div>
+            <div className="profile-hero"><div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div><div><div className="profile-name">{profile.name||'Mon compte'}</div><div className="profile-role">{profile.role} · {profile.company}</div></div></div>
             <div className="grid2">
               <div className="card">
                 <div className="section-label">Identité professionnelle</div>
@@ -664,21 +592,7 @@ export default function Home() {
         </div>
       </div>
 
-      {showVisualModal&&(
-        <VisualModal
-          onClose={()=>setShowVisualModal(false)}
-          postContent={postOutput}
-          postTopic={postTopic}
-          profileName={profile.name}
-          profileRole={profile.role}
-          profileCompany={profile.company}
-          profileSector={profile.sector}
-          brandBg={profile.brand_bg}
-          brandText={profile.brand_text}
-          brandAccent={profile.brand_accent}
-        />
-      )}
-
+      {showVisualModal&&(<VisualModal onClose={()=>setShowVisualModal(false)} postContent={postOutput} postTopic={postTopic} profileName={profile.name} profileRole={profile.role} profileCompany={profile.company} profileSector={profile.sector} brandBg={profile.brand_bg} brandText={profile.brand_text} brandAccent={profile.brand_accent}/>)}
       <div className={`toast ${toastVisible?'show':''}`}>{toast}</div>
     </>
   )
