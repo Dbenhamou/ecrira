@@ -27,6 +27,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const audience = profile?.audience || 'Professionnels LinkedIn'
   const techStack = profile?.tech_stack || ''
   const lang = profile?.lang === 'en' ? 'Anglais' : 'Français'
+  const writingStyle = profile?.writing_style || ''
+
+  // Build style section based on whether user provided examples
+  const styleSection = writingStyle.trim()
+    ? `Style de rédaction personnalisé — IMPÉRATIF :
+L'utilisateur a fourni des exemples de ses propres posts LinkedIn ci-dessous.
+Analyse attentivement ces exemples et imite EXACTEMENT :
+- La longueur et structure des phrases
+- L'utilisation des emojis et symboles
+- Le ton et le vocabulaire
+- La façon d'accrocher en début de post
+- La façon de conclure et d'utiliser les hashtags
+- Les formulations caractéristiques
+
+Exemples de posts de l'utilisateur :
+---
+${writingStyle}
+---
+
+Tu DOIS produire un post qui ressemble stylistiquement à ces exemples. Un lecteur habituel de ses posts doit reconnaître son style.`
+    : `Style obligatoire :
+- Phrases courtes et percutantes
+- Structure avec emojis et flèches (→, ↳, ▸)
+- Numéros pour les listes d'actions
+- Hook fort dans les 2 premières lignes
+- 3 à 5 hashtags seulement à la toute fin
+- Adapte le vocabulaire et les exemples au secteur de l'utilisateur`
 
   const systemPrompt = `Tu es un expert en personal branding LinkedIn.
 Utilisateur : ${role}${company ? ` chez ${company}` : ''}.
@@ -35,13 +62,8 @@ Audience : ${audience}.
 ${techStack ? `Stack : ${techStack}.` : ''}
 Langue : ${lang}.
 
-Style obligatoire :
-- Phrases courtes et percutantes
-- Structure avec emojis et flèches (→, ↳, ▸)
-- Numéros pour les listes d'actions
-- Hook fort dans les 2 premières lignes
-- 3 à 5 hashtags seulement à la toute fin
-- Adapte le vocabulaire et les exemples au secteur de l'utilisateur
+${styleSection}
+
 - N'utilise JAMAIS de Markdown : pas de **, pas de __, pas de ##, pas de *
 - Le texte doit être brut, prêt à coller sur LinkedIn tel quel
 

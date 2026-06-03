@@ -842,6 +842,28 @@ export default function Home() {
                   <div className="form-group"><label className="form-label">{T('technologies')}</label><input type="text" className="form-input" value={profile.tech_stack||''} onChange={e=>setProfile(p=>({...p,tech_stack:e.target.value}))}/></div>
                   <div style={{marginTop:8}}><span className="badge badge-forest">Ton expert</span>&nbsp;<span className="badge badge-copper">MSP France</span></div>
                 </div>
+                <div className="card" style={{marginTop:16}}>
+                  <div className="section-label">✍️ Mon style de rédaction</div>
+                  <div style={{fontSize:12,color:'var(--text2)',marginBottom:10,lineHeight:1.5}}>
+                    Colle 2-3 exemples de tes meilleurs posts LinkedIn. Claude analysera ton style et l'imitera à chaque génération.
+                  </div>
+                  <div className="form-group" style={{marginBottom:8}}>
+                    <textarea
+                      className="form-input"
+                      rows={8}
+                      value={(profile as any).writing_style||''}
+                      onChange={e=>setProfile((p:any)=>({...p,writing_style:e.target.value}))}
+                      placeholder={"Colle ici tes anciens posts LinkedIn...\n\nExemple :\n74% des MSP ont ete victimes d'une cyberattaque en 2024.\nPourtant, la majorite n'avait pas de plan de reponse.\nVoici ce que j'ai appris en 3 ans a proteger des PME..."}
+                      style={{fontSize:12,minHeight:160,fontFamily:'inherit'}}
+                    />
+                  </div>
+                  {(profile as any).writing_style && (
+                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'rgba(79,103,84,0.07)',borderRadius:8,fontSize:12,color:'var(--forest)'}}>
+                      <span>✓</span>
+                      <span>Style personnalisé actif — tes prochains posts imiteront ton style</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
