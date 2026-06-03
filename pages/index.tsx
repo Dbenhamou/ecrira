@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 import { useProfile } from '../lib/useProfile'
+import { t, type Lang } from '../lib/i18n'
 
 type Idea = { topic: string; title: string; hook: string; recommended?: boolean }
 type Post = { id: string; topic: string; content: string; format: string; created_at: string }
@@ -402,6 +403,8 @@ export default function Home() {
   }
 
   const [linkedinConnected, setLinkedinConnected] = useState(false)
+  const lang = (profile.lang || 'fr') as Lang
+  const T = (key: Parameters<typeof t>[1]) => t(lang, key)
 
   useEffect(() => {
     // Check LinkedIn connection status from URL param
@@ -452,19 +455,19 @@ export default function Home() {
 
   const fmtLabels: Record<string,string> = {educational:'Conseil',alert:'Alerte',opinion:'Opinion',story:'Story',list:'Liste'}
   const navItems = [
-    { id:'apercu', label:'Aperçu', icon:<GridIcon/> },
-    { id:'idees', label:'Idées du jour', icon:<BulbIcon/> },
-    { id:'rediger', label:'Rédiger', icon:<EditIcon/> },
-    { id:'visuels', label:'Visuels', icon:<ImgIcon/> },
-    { id:'bibliotheque', label:'Bibliothèque', icon:<BookIcon/> },
-    { id:'profil', label:'Mon profil', icon:<UserIcon/> },
+    { id:'apercu', label:T('nav_apercu'), icon:<GridIcon/> },
+    { id:'idees', label:T('nav_idees'), icon:<BulbIcon/> },
+    { id:'rediger', label:T('nav_rediger'), icon:<EditIcon/> },
+    { id:'visuels', label:T('nav_visuels'), icon:<ImgIcon/> },
+    { id:'bibliotheque', label:T('nav_bibliotheque'), icon:<BookIcon/> },
+    { id:'profil', label:T('nav_profil'), icon:<UserIcon/> },
   ]
 
   if (loading) return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#F8F6F2',fontFamily:"'Inter',sans-serif"}}>
       <div style={{textAlign:'center' as const}}>
         <div style={{width:36,height:36,background:'#4F6754',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
-        <div style={{fontSize:13,color:'#727272'}}>Chargement…</div>
+        <div style={{fontSize:13,color:'#727272'}}>{T('loading')}</div>
       </div>
     </div>
   )
@@ -489,7 +492,7 @@ export default function Home() {
       </div>
       {loadingIdeas && <div style={{marginBottom:12}}><div className="strip"/></div>}
       {ideas.length === 0 && !loadingIdeas ? (
-        <div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">Vos idées du jour vous attendent</div><div className="empty-body">Cliquez sur "Générer les idées" pour recevoir 10 sujets personnalisés.</div></div>
+        <div className="card empty"><div className="empty-icon">✦</div><div className="empty-title">{T('ideas_empty_title')}</div><div className="empty-body">Cliquez sur "Générer les idées" pour recevoir 10 sujets personnalisés.</div></div>
       ) : ideas.map((idea, i) => (
         <div key={i} className="idea-card fade" style={{animationDelay:`${i*.06}s`,border:idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined,background:idea.recommended?'rgba(168,120,79,0.04)':undefined}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
@@ -499,8 +502,8 @@ export default function Home() {
           <div className="idea-title">{idea.title}</div>
           <div className="idea-hook">{idea.hook}</div>
           <div className="idea-actions">
-            <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>Développer</button>
-            <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>⎘ Copier</button>
+            <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>generatePost(idea.title)}>{T('develop')}</button>
+            <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>{T('copy')}</button>
           </div>
         </div>
       ))}
@@ -539,9 +542,9 @@ export default function Home() {
               <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
               <div><div className="user-name">{profile.name||'Mon compte'}</div><div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:'Compléter le profil'}</div></div>
             </div>
-            <div className="theme-row"><span>Mode sombre</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
+            <div className="theme-row"><span>{T('dark_mode')}</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 10px 0',fontSize:11,color:'var(--text3)'}}>
-              <span>Langue</span>
+              <span>{T('language')}</span>
               <div style={{display:'flex',gap:4}}>
                 {['fr','en'].map(l=>(
                   <button key={l} onClick={()=>setProfile(p=>({...p,lang:l}))} style={{padding:'2px 8px',borderRadius:6,border:`1px solid ${profile.lang===l?'var(--forest)':'var(--border)'}`,background:profile.lang===l?'var(--forest)':'transparent',color:profile.lang===l?'white':'var(--text3)',fontSize:10,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>
@@ -550,21 +553,21 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            <div style={{padding:'4px 10px'}}><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11,color:'var(--text3)'}} onClick={signOut}>↩ Se déconnecter</button></div>
+            <div style={{padding:'4px 10px'}}><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11,color:'var(--text3)'}} onClick={signOut}>{T('sign_out')}</button></div>
           </div>
         </aside>
 
         <div className="main">
           {/* APERÇU */}
           <div className={`page ${page==='apercu'?'active':''}`}>
-            <div className="eyebrow">Tableau de bord</div>
-            <div className="page-title">Bonjour{profile.name?`, ${profile.name}`:''}.</div>
+            <div className="eyebrow">{T('dashboard')}</div>
+            <div className="page-title">{T('hello')}{profile.name?`, ${profile.name}`:''}.</div>
             <div className="copper-rule"/>
             <div className="page-sub">{new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
             <div className="stats-grid">
-              <div className="stat-card"><div className="stat-label">Posts sauvegardés</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">dans votre bibliothèque</div></div>
-              <div className="stat-card"><div className="stat-label">Posts générés</div><div className="stat-value">{generatedCount}</div><div className="stat-note">au total</div></div>
-              <div className="stat-card"><div className="stat-label">Secteur actif</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>{profile.sector?.split(' ')[0]||'Cyber'}</div><div className="stat-note">{profile.company||'Mon entreprise'}</div></div>
+              <div className="stat-card"><div className="stat-label">{T('saved_posts')}</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">{T('in_library')}</div></div>
+              <div className="stat-card"><div className="stat-label">{T('generated_posts')}</div><div className="stat-value">{generatedCount}</div><div className="stat-note">{T('in_total')}</div></div>
+              <div className="stat-card"><div className="stat-label">{T('active_sector')}</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>{profile.sector?.split(' ')[0]||'Cyber'}</div><div className="stat-note">{profile.company||'Mon entreprise'}</div></div>
             </div>
             {ideasSection}
           </div>
@@ -580,8 +583,8 @@ export default function Home() {
           <div className={`page ${page==='rediger'?'active':''}`} style={{maxWidth:'100%',padding:'20px 24px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16,flexWrap:'wrap' as const,gap:8}}>
               <div>
-                <div className="eyebrow">Création</div>
-                <div className="page-title" style={{fontSize:22,marginBottom:0}}>Rédiger un post</div>
+                <div className="eyebrow">{T('creation')}</div>
+                <div className="page-title" style={{fontSize:22,marginBottom:0}}>{T('write_post')}</div>
               </div>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:16,alignItems:'start'}} className="rediger-grid">
@@ -589,7 +592,7 @@ export default function Home() {
               <div className="card" style={{padding:'16px 18px'}}>
                 <div className="form-group" style={{marginBottom:10}}>
                   <label className="form-label">Sujet</label>
-                  <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopic(e.target.value)} placeholder="Ex : Les MSP face aux ransomwares en 2025…"/>
+                  <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopic(e.target.value)} placeholder={T('subject_placeholder')}/>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
                   <div className="form-group" style={{marginBottom:0}}>
@@ -623,27 +626,27 @@ export default function Home() {
               {/* RIGHT: Résultat */}
               <div className="card" style={{padding:'16px 18px'}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
-                  <div className="section-label" style={{marginBottom:0}}>Résultat</div>
+                  <div className="section-label" style={{marginBottom:0}}>{T('result')}</div>
                   <div style={{display:'flex',gap:6}}>
-                    <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={savePost} disabled={!postOutput}>↓ Sauvegarder</button>
+                    <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={savePost} disabled={!postOutput}>{T('save')}</button>
                     <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={()=>postOutput&&copyText(postOutput)} disabled={!postOutput}>⎘ Copier</button>
                   </div>
                 </div>
                 {loadingPost&&<div style={{marginBottom:10}}><div className="strip"/></div>}
-                <textarea className="post-editor" style={{minHeight:260}} value={postOutput} onChange={e=>setPostOutput(e.target.value)} placeholder="Votre post apparaîtra ici…"/>
+                <textarea className="post-editor" style={{minHeight:260}} value={postOutput} onChange={e=>setPostOutput(e.target.value)} placeholder={T('post_placeholder')}/>
                 {/* Action bar — always visible */}
                 <div style={{marginTop:12,display:'flex',flexDirection:'column' as const,gap:8}}>
                   <div style={{display:'flex',gap:7}}>
                     <button className="btn btn-secondary" style={{fontSize:12,flex:1,justifyContent:'center',opacity:postOutput?1:0.4}} onClick={()=>postOutput&&setShowVisualModal(true)} disabled={!postOutput}>
-                      🖼 Créer le visuel
+                      {T('add_visual')}
                     </button>
                     {linkedinConnected ? (
                       <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing||!postOutput} style={{background:'#0077B5',flex:2,justifyContent:'center',opacity:postOutput?1:0.4}}>
-                        {publishing?<><span className="spinner"/> Publication…</>:'🔗 Publier sur LinkedIn'}
+                        {publishing?<><span className="spinner"/> {T('publishing')}</>:T('publish_linkedin')}
                       </button>
                     ) : (
                       <button className="btn btn-primary" style={{fontSize:12,flex:2,justifyContent:'center',background:'#0077B5'}} onClick={connectLinkedIn}>
-                        🔗 Connecter LinkedIn
+                        {T('connect_linkedin')}
                       </button>
                     )}
                   </div>
@@ -664,29 +667,29 @@ export default function Home() {
 
           {/* BIBLIOTHÈQUE */}
           <div className={`page ${page==='bibliotheque'?'active':''}`}>
-            <div className="eyebrow">Vos contenus</div><div className="page-title">Bibliothèque</div><div className="copper-rule"/>
+            <div className="eyebrow">{T('your_content')}</div><div className="page-title">{T('library')}</div><div className="copper-rule"/>
             <div className="page-sub">Tous vos posts sauvegardés — synchronisés sur tous vos appareils.</div>
             {loadingPosts && <div style={{marginBottom:12}}><div className="strip"/></div>}
             {!loadingPosts && savedPosts.length===0 ? (
-              <div className="card empty"><div className="empty-icon">◫</div><div className="empty-title">Bibliothèque vide</div><div className="empty-body">Générez des posts et cliquez sur "Sauvegarder".</div></div>
+              <div className="card empty"><div className="empty-icon">◫</div><div className="empty-title">{T('library_empty_title')}</div><div className="empty-body">Générez des posts et cliquez sur "Sauvegarder".</div></div>
             ) : savedPosts.map(p=>(
               <div key={p.id} className="saved-card fade">
-                <div className="saved-header"><div><span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span><span style={{fontSize:11,color:'var(--text3)',marginLeft:8}}>{p.created_at}</span></div><button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>Supprimer</button></div>
+                <div className="saved-header"><div><span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span><span style={{fontSize:11,color:'var(--text3)',marginLeft:8}}>{p.created_at}</span></div><button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>{T('delete')}</button></div>
                 <div className="saved-title">{p.topic}</div>
                 <div className="saved-preview">{p.content.substring(0,180)}…</div>
-                <div style={{display:'flex',gap:7}}><button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>Modifier</button></div>
+                <div style={{display:'flex',gap:7}}><button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>⎘ Copier</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>{T('edit')}</button></div>
               </div>
             ))}
           </div>
 
           {/* PROFIL */}
           <div className={`page ${page==='profil'?'active':''}`}>
-            <div className="eyebrow">Paramètres</div><div className="page-title">Mon profil</div><div className="copper-rule"/>
-            <div className="page-sub">Votre contexte guide chaque génération. Sauvegardé dans Supabase.</div>
+            <div className="eyebrow">{T('settings')}</div><div className="page-title">{T('my_profile')}</div><div className="copper-rule"/>
+            <div className="page-sub">{T('profile_sub')}</div>
             <div className="profile-hero"><div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div><div><div className="profile-name">{profile.name||'Mon compte'}</div><div className="profile-role">{profile.role} · {profile.company}</div></div></div>
             <div className="grid2">
               <div className="card">
-                <div className="section-label">Identité professionnelle</div>
+                <div className="section-label">{T('pro_identity')}</div>
                 {([['Prénom','name'],['Rôle','role'],['Entreprise','company'],['Secteur','sector'],['Audience LinkedIn','audience'],['Domaine email','domain']] as [string,keyof typeof profile][]).map(([label,key])=>(
                   <div className="form-group" key={key}>
                     <label className="form-label">{label}</label>
@@ -720,7 +723,7 @@ export default function Home() {
                 ))}
                 <div className="form-group"><label className="form-label">Langue</label><select className="form-input" value={profile.lang} onChange={e=>setProfile(p=>({...p,lang:e.target.value}))}><option value="fr">Français</option><option value="en">English</option></select></div>
                 <div className="form-group">
-                  <label className="form-label">Publication LinkedIn</label>
+                  <label className="form-label">{T('linkedin_pub')}</label>
                   <div style={{background:linkedinConnected?'rgba(79,103,84,0.06)':'rgba(0,119,181,0.05)',border:`1px solid ${linkedinConnected?'rgba(79,103,84,0.2)':'rgba(0,119,181,0.2)'}`,borderRadius:10,padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
                     <div>
                       <div style={{fontSize:12,fontWeight:600,color:linkedinConnected?'var(--forest)':'#0077B5',marginBottom:2}}>{linkedinConnected?'✓ LinkedIn connecté':'LinkedIn non connecté'}</div>
@@ -729,11 +732,11 @@ export default function Home() {
                     <button className="btn btn-primary" style={{fontSize:11,flexShrink:0,background:linkedinConnected?'var(--forest)':'#0077B5'}} onClick={connectLinkedIn}>{linkedinConnected?'Reconnecter':'Connecter →'}</button>
                   </div>
                 </div>
-                <button className="btn btn-primary" onClick={handleSaveProfile} disabled={savingProfile}>{savingProfile?<><span className="spinner"/> Sauvegarde…</>:'Enregistrer'}</button>
+                <button className="btn btn-primary" onClick={handleSaveProfile} disabled={savingProfile}>{savingProfile?<><span className="spinner"/> {T('saving')}</>:T('save_profile')}</button>
               </div>
               <div>
                 <div className="card" style={{marginBottom:16}}>
-                  <div className="section-label">Couleurs de marque</div>
+                  <div className="section-label">{T('brand_colors')}</div>
                   <div style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Utilisées par défaut dans le générateur visuel.</div>
                   {([['Fond','brand_bg'],['Texte','brand_text'],['Accent','brand_accent']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div key={key} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
@@ -744,8 +747,8 @@ export default function Home() {
                   ))}
                 </div>
                 <div className="card">
-                  <div className="section-label">Stack & style</div>
-                  <div className="form-group"><label className="form-label">Technologies</label><input type="text" className="form-input" value={profile.tech_stack||''} onChange={e=>setProfile(p=>({...p,tech_stack:e.target.value}))}/></div>
+                  <div className="section-label">{T('stack_style')}</div>
+                  <div className="form-group"><label className="form-label">{T('technologies')}</label><input type="text" className="form-input" value={profile.tech_stack||''} onChange={e=>setProfile(p=>({...p,tech_stack:e.target.value}))}/></div>
                   <div style={{marginTop:8}}><span className="badge badge-forest">Ton expert</span>&nbsp;<span className="badge badge-copper">MSP France</span></div>
                 </div>
               </div>
@@ -757,11 +760,11 @@ export default function Home() {
       {/* Mobile bottom nav */}
       <nav className="mobile-nav">
         {[
-          {id:'apercu',label:'Accueil',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
-          {id:'idees',label:'Idées',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
-          {id:'rediger',label:'Rédiger',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
-          {id:'bibliotheque',label:'Biblio',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
-          {id:'profil',label:'Profil',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
+          {id:'apercu',label:T('nav_apercu'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
+          {id:'idees',label:T('nav_idees_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
+          {id:'rediger',label:T('nav_rediger'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
+          {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
+          {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
         ].map(item=>(
           <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>
             {item.icon}
@@ -841,7 +844,7 @@ export default function Home() {
                   ))}
                   <div style={{display:'flex',gap:8,marginTop:14}}>
                     <button className="btn btn-ghost" style={{justifyContent:'center',fontSize:12}} onClick={completeOnboarding}>Passer</button>
-                    <button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={async()=>{await handleSaveProfile();completeOnboarding()}}>Enregistrer et commencer</button>
+                    <button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={async()=>{await handleSaveProfile();completeOnboarding()}}>{T('save_and_start')}</button>
                   </div>
                 </div>
               )}
