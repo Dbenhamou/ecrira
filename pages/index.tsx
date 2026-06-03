@@ -296,37 +296,7 @@ function VisualGenerator() {
 
   return (
 
-    {user && (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg)'}}>
-        <div style={{width:360,padding:40,borderRadius:16,background:'var(--card)',boxShadow:'0 4px 24px rgba(0,0,0,0.08)'}}>
-          <div style={{textAlign:'center',marginBottom:32}}>
-            <div style={{fontSize:28,fontWeight:700,color:'var(--text1)'}}>Postoria</div>
-            <div style={{fontSize:14,color:'var(--text2)',marginTop:4}}>{authMode==='login'?'Connexion':'Créer un compte'}</div>
-          </div>
-          <div style={{display:'flex',flexDirection:'column',gap:12}}>
-            <input className="form-input" type="email" placeholder="Email" value={authEmail} onChange={e=>setAuthEmail(e.target.value)}/>
-            <input className="form-input" type="password" placeholder="Mot de passe" value={authPassword} onChange={e=>setAuthPassword(e.target.value)}/>
-            <button className="btn btn-primary" style={{marginTop:8}} disabled={authLoading} onClick={async()=>{
-              setAuthLoading(true)
-              if(authMode==='login'){
-                const {error}=await supabase.auth.signInWithPassword({email:authEmail,password:authPassword})
-                if(error) alert(error.message)
-                else { const {data:{user:u}}=await supabase.auth.getUser(); setUser(u) }
-              } else {
-                const {error}=await supabase.auth.signUp({email:authEmail,password:authPassword})
-                if(error) alert(error.message)
-                else alert('Vérifiez votre email pour confirmer votre compte')
-              }
-              setAuthLoading(false)
-            }}>{authLoading?'...':authMode==='login'?'Se connecter':'Créer le compte'}</button>
-            <button className="btn btn-ghost" style={{fontSize:13}} onClick={()=>setAuthMode(m=>m==='login'?'signup':'login')}>
-              {authMode==='login'?'Pas encore de compte ? S\'inscrire':'Déjà un compte ? Se connecter'}
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
- n  {authChecked && user && (
+ n  (
     <div style={{display:'flex',gap:28,alignItems:'flex-start'}}>
 
       {/* CONTROLS */}
