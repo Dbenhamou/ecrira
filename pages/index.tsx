@@ -548,13 +548,6 @@ export default function Home() {
   const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
   const [authLoading, setAuthLoading] = useState(false)
   const [showVisualInPublish, setShowVisualInPublish] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const [authChecked, setAuthChecked] = useState(false)
-  const [authEmail, setAuthEmail] = useState('')
-  const [authPassword, setAuthPassword] = useState('')
-  const [authMode, setAuthMode] = useState<'login'|'signup'>('login')
-  const [authLoading, setAuthLoading] = useState(false)
-  const [showVisualInPublish, setShowVisualInPublish] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
