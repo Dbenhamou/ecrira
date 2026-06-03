@@ -296,7 +296,7 @@ function VisualGenerator() {
 
   return (
 
- n  (
+ (
     <div style={{display:'flex',gap:28,alignItems:'flex-start'}}>
 
       {/* CONTROLS */}
