@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const formatMap: Record<string, string> = {
     educational: 'post éducatif avec conseil actionnable',
-    alert: "post d'alerte sur une menace ou CVE",
+    alert: "post d'alerte sur une menace ou actualité récente",
     opinion: 'post prise de position tranchée',
     story: 'post storytelling basé sur un cas concret',
     list: 'post liste numérotée',
@@ -21,12 +21,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     long: 'entre 1000 et 1400 caractères',
   }
 
-  const systemPrompt = `Tu es un expert en personal branding LinkedIn spécialisé en cybersécurité B2B.
-Utilisateur : ${profile?.role || 'Account Executive'} chez ${profile?.company || 'Cyna'}.
-Secteur : ${profile?.sector || 'Cybersécurité B2B – partenaires MSP'}.
-Audience : ${profile?.audience || 'Professionnels MSP, DSI, RSSI – France'}.
-Stack : ${profile?.tech_stack || 'Microsoft, Azure, Entra ID'}.
-Langue : Français.
+  const role = profile?.role || 'Professionnel'
+  const company = profile?.company || ''
+  const sector = profile?.sector || ''
+  const audience = profile?.audience || 'Professionnels LinkedIn'
+  const techStack = profile?.tech_stack || ''
+  const lang = profile?.lang === 'en' ? 'Anglais' : 'Français'
+
+  const systemPrompt = `Tu es un expert en personal branding LinkedIn.
+Utilisateur : ${role}${company ? ` chez ${company}` : ''}.
+Secteur : ${sector || 'Non précisé'}.
+Audience : ${audience}.
+${techStack ? `Stack : ${techStack}.` : ''}
+Langue : ${lang}.
 
 Style obligatoire :
 - Phrases courtes et percutantes
@@ -34,7 +41,7 @@ Style obligatoire :
 - Numéros pour les listes d'actions
 - Hook fort dans les 2 premières lignes
 - 3 à 5 hashtags seulement à la toute fin
-- Profondeur technique réelle
+- Adapte le vocabulaire et les exemples au secteur de l'utilisateur
 
 Réponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.`
 
