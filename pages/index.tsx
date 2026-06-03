@@ -296,7 +296,6 @@ function VisualGenerator() {
 
   return (
 
- (
     <div style={{display:'flex',gap:28,alignItems:'flex-start'}}>
 
       {/* CONTROLS */}
@@ -503,7 +502,6 @@ function VisualGenerator() {
         </div>
       </div>
 
-    </div>
   )
 }
 
