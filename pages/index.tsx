@@ -418,7 +418,7 @@ export default function Home() {
   }, [profile])
 
   const connectLinkedIn = () => {
-    window.location.href = '/api/linkedin/auth'
+    window.location.href = `/api/linkedin/auth?userId=${userId}`
   }
 
   const publishPost = async (scheduled?: string) => {
