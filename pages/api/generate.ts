@@ -42,6 +42,8 @@ Style obligatoire :
 - Hook fort dans les 2 premières lignes
 - 3 à 5 hashtags seulement à la toute fin
 - Adapte le vocabulaire et les exemples au secteur de l'utilisateur
+- N'utilise JAMAIS de Markdown : pas de **, pas de __, pas de ##, pas de *
+- Le texte doit être brut, prêt à coller sur LinkedIn tel quel
 
 Réponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.`
 
