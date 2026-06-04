@@ -71,20 +71,19 @@ Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant 
       }],
     })
 
-    const svgRaw = (message.content[0] as { text: string }).text.trim()
-    console.log('SVG raw (200 chars):', svgRaw.substring(0, 200))
-    
-    // Nettoyer les backticks markdown si présents
+    const svgRaw = (message.content[0] as { text: string }).text
+
+    // Nettoyer les backticks markdown (```svg, ```xml, ```)
     const svgCleaned = svgRaw
-      .replace(/```svg/g, '')
-      .replace(/```xml/g, '')
-      .replace(/```/g, '')
+      .replace(/^```(?:svg|xml)?\s*/m, '')
+      .replace(/\s*```\s*$/m, '')
       .trim()
 
-    const svgMatch = svgCleaned.match(/<svg[\s\S]*<\/svg>/)
+    // Extraire le SVG
+    const svgMatch = svgCleaned.match(/<svg[\s\S]*<\/svg>/i)
     if (!svgMatch) {
-      console.error('Pas de SVG trouvé. Contenu:', svgCleaned.substring(0, 300))
-      return res.status(500).json({ error: 'Génération SVG invalide', debug: svgCleaned.substring(0, 300) })
+      console.error('Pas de SVG trouvé après nettoyage:', svgCleaned.substring(0, 200))
+      return res.status(500).json({ error: 'Génération SVG invalide' })
     }
     const svgClean = svgMatch[0]
 
