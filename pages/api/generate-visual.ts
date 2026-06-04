@@ -54,11 +54,11 @@ Réponds UNIQUEMENT avec le prompt DALL-E en anglais, sans introduction ni comme
         'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'dall-e-3',
+        model: 'gpt-image-1',
         prompt: dallePrompt,
         n: 1,
-        size: '1024x1792', // closest to 1080x1350 portrait
-        quality: 'hd',
+        size: '1024x1792',
+        quality: 'high',
       }),
     })
 
