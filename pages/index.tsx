@@ -198,10 +198,8 @@ export default function Home() {
   const [scheduleDate, setScheduleDate] = useState('')
   const [showVisualModal, setShowVisualModal] = useState(false)
   const [aiVisualUrl, setAiVisualUrl] = useState('')
+  const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingStep, setOnboardingStep] = useState(0)
-  const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
-  const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(0)
   const [newRefPost, setNewRefPost] = useState('')
   const [showAddRef, setShowAddRef] = useState(false)
@@ -489,27 +487,6 @@ export default function Home() {
         body: JSON.stringify({ postContent: postOutput, postTopic, profile }),
       })
       const data = await res.json()
-      if (data.imageUrl) {
-        setAiVisualUrl(data.imageUrl)
-        showToast('Visuel IA généré ✓')
-      } else {
-        showToast('Erreur : ' + (data.error || 'inconnue'))
-      }
-    } catch { showToast('Erreur réseau') }
-    setGeneratingAiVisual(false)
-  }
-
-  const generateAiVisual = async () => {
-    if (!postOutput.trim()) { showToast('Génère un post d\'abord'); return }
-    setGeneratingAiVisual(true)
-    setAiVisualUrl('')
-    try {
-      const res = await fetch('/api/generate-visual', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ postContent: postOutput, postTopic, profile }),
-      })
-      const data = await res.json()
       if (data.imageUrl) { setAiVisualUrl(data.imageUrl); showToast('Visuel IA généré ✓') }
       else showToast('Erreur : ' + (data.error || 'inconnue'))
     } catch { showToast('Erreur réseau') }
@@ -526,6 +503,7 @@ export default function Home() {
     setProfile(p => ({ ...p, lang: l }))
     if (userId) await supabase.from('profiles').update({ lang: l }).eq('id', userId)
   }
+
 
   const connectLinkedIn = () => {
     window.location.href = `/api/linkedin/auth?userId=${userId}`
