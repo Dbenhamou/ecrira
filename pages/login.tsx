@@ -75,8 +75,8 @@ export default function Login() {
         }}>
 
           {/* Logo */}
-          <div style={{ marginBottom: 32 }}>
-            <img src="/logo-ecrira.png" alt="Ecrira" style={{ height: 32, width: 'auto' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 36 }}>
+            <img src="/logo-ecrira.png" alt="Ecrira" style={{ height: 48, width: 'auto' }} />
           </div>
 
           <div style={{ marginBottom: 24 }}>
