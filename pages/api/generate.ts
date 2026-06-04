@@ -1,10 +1,14 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
+import { requireAuth } from '../../lib/auth-helper'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
+
+  const userId = await requireAuth(req, res)
+  if (!userId) return
 
   const { topic, format, length, tone, profile, seed } = req.body
 
@@ -72,10 +76,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     + 'Langue : ' + lang + '. ' + langInstruction + '\n\n'
     + styleSection + '\n\n'
     + "- N'utilise JAMAIS de Markdown : pas de **, pas de __, pas de ##, pas de *\n"
-    + "- N'utilise JAMAIS de tirets longs (—, –) ni doubles tirets (--)\n"
-    + "- N'utilise pas de caracteres Unicode gras (𝐚, 𝐛, 𝐜...) — c'est l'utilisateur qui les applique lui-meme\n"
-    + "- Verifie les accords grammaticaux francais : genre (ton/ta, son/sa) et nombre\n"
-    + "- Relis le post avant de repondre et corrige toute faute d'orthographe ou de frappe\n"
     + '- Le texte doit etre brut, pret a coller sur LinkedIn tel quel\n\n'
     + (seed ? 'Seed de variation : ' + seed + ' — utilise cet angle unique, different des posts habituels sur ce sujet.\n' : '')
     + 'Reponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'

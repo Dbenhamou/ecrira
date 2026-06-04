@@ -1,44 +1,65 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '../../lib/auth-helper'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { content, webhookUrl, scheduledAt } = req.body
+  const userId = await requireAuth(req, res)
+  if (!userId) return
 
-  if (!webhookUrl) return res.status(400).json({ error: 'URL webhook manquante' })
-  if (!content) return res.status(400).json({ error: 'Contenu manquant' })
+  const { content } = req.body
+  if (!content) return res.status(400).json({ error: 'Paramètres manquants' })
 
-  // Si une date est fournie → on planifie dans Supabase
-  if (scheduledAt) {
-    const { error } = await supabase
-      .from('scheduled_posts')
-      .insert([{ content, webhook_url: webhookUrl, scheduled_at: scheduledAt, status: 'pending' }])
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('linkedin_token, linkedin_token_expiry, linkedin_id')
+    .eq('id', userId)
+    .single()
 
-    if (error) return res.status(500).json({ error: error.message })
-    return res.status(200).json({ success: true, message: 'Post planifié ✓', scheduled: true })
+  if (!profile?.linkedin_token) {
+    return res.status(401).json({ error: 'LinkedIn non connecté. Va dans Mon profil pour connecter ton compte.' })
   }
 
-  // Sinon → publication immédiate
+  if (new Date(profile.linkedin_token_expiry) < new Date()) {
+    return res.status(401).json({ error: 'Token LinkedIn expiré. Reconnecte ton compte LinkedIn dans Mon profil.' })
+  }
+
   try {
-    const zapRes = await fetch(webhookUrl, {
+    const postRes = await fetch('https://api.linkedin.com/v2/ugcPosts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${profile.linkedin_token}`,
+        'Content-Type': 'application/json',
+        'X-Restli-Protocol-Version': '2.0.0',
+      },
       body: JSON.stringify({
-        content,
-        published_at: new Date().toISOString(),
-        source: 'Postoria',
+        author: `urn:li:person:${profile.linkedin_id}`,
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+          'com.linkedin.ugc.ShareContent': {
+            shareCommentary: { text: content },
+            shareMediaCategory: 'NONE',
+          },
+        },
+        visibility: { 'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC' },
       }),
     })
 
-    if (!zapRes.ok) throw new Error(`Zapier a répondu ${zapRes.status}`)
-    res.status(200).json({ success: true, message: 'Post publié sur LinkedIn ✓' })
+    if (postRes.ok) {
+      res.status(200).json({ success: true })
+    } else {
+      const err = await postRes.json()
+      console.error('LinkedIn API error:', err)
+      res.status(500).json({ error: 'Erreur LinkedIn : ' + (err.message || JSON.stringify(err)) })
+    }
   } catch (err) {
-    res.status(500).json({ error: String(err) })
+    console.error(err)
+    res.status(500).json({ error: 'Erreur réseau' })
   }
 }

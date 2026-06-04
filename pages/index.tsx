@@ -175,6 +175,19 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
 // ─── MAIN ──────────────────────────────────────────────────────────────────────
 export default function Home() {
   const { profile, setProfile, saveProfile, signOut, loading, userId } = useProfile()
+
+  // Helper — injecte le token Supabase dans les appels API
+  const authFetch = async (url: string, options: RequestInit = {}) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    return fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        ...(options.headers || {}),
+      },
+    })
+  }
   const [page, setPage] = useState('apercu')
   const [dark, setDark] = useState(false)
   const [ideas, setIdeas] = useState<Idea[]>([])
@@ -284,7 +297,7 @@ export default function Home() {
         const elapsed = Date.now() - ideasLastRefresh.current
         const remaining = IDEAS_REFRESH_MS - elapsed
         if (remaining <= 0) {
-          fetch('/api/ideas', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({profile}) })
+          authFetch('/api/ideas', { method:'POST', body:JSON.stringify({profile}) })
             .then(r=>r.json()).then(async data=>{
               if (data.ideas) {
                 setIdeas(data.ideas)
@@ -331,7 +344,7 @@ export default function Home() {
   const generateIdeas = async () => {
     setLoadingIdeas(true)
     try {
-      const res = await fetch('/api/ideas', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({profile}) })
+      const res = await authFetch('/api/ideas', { method:'POST', body:JSON.stringify({profile}) })
       const data = await res.json()
       if (data.ideas) {
         setIdeas(data.ideas)
@@ -351,7 +364,7 @@ export default function Home() {
     if (topic) setPostTopic(topic)
     setPage('rediger'); setLoadingPost(true); setPostOutput('')
     try {
-      const res = await fetch('/api/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile}) })
+      const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile}) })
       const data = await res.json()
       if (data.content) { setPostOutput(data.content); setGeneratedCount(c => c + 1) }
       else showToast('Erreur : '+(data.error||'inconnue'))
