@@ -87,9 +87,9 @@ Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant 
     }
     const svgClean = svgMatch[0]
 
-    // Convertir en data URL base64
-    const base64 = Buffer.from(svgClean).toString('base64')
-    const imageUrl = `data:image/svg+xml;base64,${base64}`
+    // Encoder en data URL SVG directe
+    const encoded = encodeURIComponent(svgClean)
+    const imageUrl = `data:image/svg+xml,${encoded}`
 
     res.status(200).json({ imageUrl, svgContent: svgClean })
 
