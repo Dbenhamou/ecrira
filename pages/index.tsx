@@ -494,9 +494,8 @@ export default function Home() {
     setGeneratingAiVisual(true)
     setAiVisualUrl('')
     try {
-      const res = await fetch('/api/generate-visual', {
+      const res = await authFetch('/api/generate-visual', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ postContent: postOutput, postTopic, profile }),
       })
       const data = await res.json()
@@ -758,11 +757,8 @@ export default function Home() {
                 <div style={{marginTop:12,display:'flex',flexDirection:'column' as const,gap:8}}>
                   <div style={{display:'flex',gap:7}}>
                     <div style={{display:'flex',flexDirection:'column' as const,gap:6,flex:1}}>
-                      <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg, #302082, #8000ff)',opacity:postOutput?1:0.4}} onClick={generateAiVisual} disabled={!postOutput||generatingAiVisual}>
-                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA (~30s)…</>:'✨ Visuel IA (DALL-E 3)'}
-                      </button>
-                      <button className="btn btn-secondary" style={{fontSize:11,justifyContent:'center',opacity:postOutput?1:0.4}} onClick={()=>postOutput&&setShowVisualModal(true)} disabled={!postOutput}>
-                        {T('add_visual')} (SVG)
+                      <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4}} onClick={generateAiVisual} disabled={!postOutput||generatingAiVisual}>
+                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération visuel…</>:'🖼 Créer le visuel'}
                       </button>
                     </div>
                     {linkedinConnected ? (

@@ -1,97 +1,92 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
+import { requireAuth } from '../../lib/auth-helper'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { postContent, postTopic, profile } = req.body
+  const userId = await requireAuth(req, res)
+  if (!userId) return
 
+  const { postContent, postTopic, profile } = req.body
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
 
-  const sector = profile?.sector || 'Cybersécurité B2B'
+  const sector = profile?.sector || 'B2B'
   const company = profile?.company || ''
   const name = profile?.name || ''
   const role = profile?.role || ''
+  const brandBg = profile?.brand_bg || '#FAF9F7'
+  const brandAccent = profile?.brand_accent || '#516756'
+
+  // Extraire les points clés du post (max 3)
+  const lines = postContent
+    .split('\n')
+    .map((l: string) => l.trim())
+    .filter((l: string) => l.length > 20 && l.length < 120)
+    .slice(0, 3)
+
+  const keyPoints = lines.length > 0 ? lines : [postContent.substring(0, 100)]
 
   try {
-    // Step 1: Use Claude to build an optimized DALL-E prompt from the post
-    const promptMessage = await anthropic.messages.create({
+    const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 600,
+      max_tokens: 4000,
       messages: [{
         role: 'user',
-        content: `Tu es un expert en design LinkedIn B2B premium. 
-        
-Génère un prompt DALL-E 3 en anglais pour créer un visuel LinkedIn 1080x1350px basé sur ce post :
+        content: `Tu es un expert en design SVG premium pour LinkedIn B2B.
+
+Génère un SVG LinkedIn portrait (1080x1350px) de haute qualité pour ce post :
 
 SUJET : ${postTopic || 'Post LinkedIn'}
+AUTEUR : ${name}${role ? ' — ' + role : ''}${company ? ' @ ' + company : ''}
 SECTEUR : ${sector}
-CONTENU : ${postContent.substring(0, 300)}
+POINTS CLÉS :
+${keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n')}
 
-CONTRAINTES STRICTES pour le prompt DALL-E :
-- Style : premium B2B, modern, clean, professional — inspired by Gartner, Palo Alto, CrowdStrike
-- Palette : deep navy blue #302082, electric blue #0078c7, bright blue #0099ff, purple accent #8000ff
-- Typography style : bold, geometric, ultra-readable on mobile
-- Layout : strong visual hierarchy, lots of white space, minimal text
-- NO: hackers, hoodies, green matrix code, padlocks, skulls, dark web clichés
-- YES: business people in modern office, clean data visualizations, abstract network graphs, professional infographic style
-- Format : portrait 1080x1350, LinkedIn post visual
-- Must convey the key message of the post emotionally and professionally
+CHARTE GRAPHIQUE OBLIGATOIRE :
+- Fond principal : ${brandBg}
+- Couleur accent : ${brandAccent} (Forest Sage)
+- Couleur secondaire : #B7C0B8 (Soft Sage)
+- Champagne : #D9C8A3
+- Charcoal : #1F2421
+- Ivory : #FAF9F7
+- Polices : system-ui, sans-serif (Inter style)
 
-Réponds UNIQUEMENT avec le prompt DALL-E en anglais, sans introduction ni commentaire. Maximum 400 mots.`
-      }]
+STRUCTURE DU VISUEL (dans l'ordre vertical) :
+1. Header (hauteur 180px) — fond ${brandAccent}, logo "E" + "ECRIRA" en blanc à gauche, secteur en badge à droite
+2. Zone titre (hauteur 280px) — fond ${brandBg}, grand titre du sujet en ${brandAccent} (font-size 52px, font-weight 700, max 2 lignes)
+3. Séparateur décoratif — ligne champagne + accent géométrique
+4. Zone points clés (hauteur 580px) — fond blanc, 3 blocs avec numéro cerclé en ${brandAccent} + texte en #1F2421
+5. Footer (hauteur 160px) — fond #1F2421, nom auteur en blanc + rôle en #B7C0B8 + site "ecrira.com" à droite
+6. Bordure décorative gauche — bande verticale de 8px en ${brandAccent}
+
+RÈGLES DESIGN :
+- Padding horizontal : 64px partout
+- Coins arrondis sur les blocs internes : rx="16"
+- Ombres légères sur les blocs points clés
+- Numéros cerclés : cercle ${brandAccent} 44px, chiffre blanc bold
+- Texte points clés : 28px, line-height 1.5, couleur #1F2421
+- Le titre doit tenir en 2 lignes max — tronque si nécessaire
+- Style épuré, beaucoup d'espace blanc, premium B2B
+
+Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.`,
+      }],
     })
 
-    const dallePrompt = (promptMessage.content[0] as { text: string }).text.trim()
+    const svgContent = (message.content[0] as { text: string }).text.trim()
 
-    // Step 2: Call DALL-E 3
-    const openaiRes = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: dallePrompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'hd',
-      }),
-    })
-
-    const openaiData = await openaiRes.json()
-
-    console.log('OpenAI response status:', openaiRes.status)
-    console.log('OpenAI response:', JSON.stringify(openaiData).substring(0, 500))
-
-    if (!openaiRes.ok) {
-      return res.status(500).json({ 
-        error: openaiData.error?.message || 'Erreur génération image',
-        code: openaiData.error?.code,
-        details: openaiData
-      })
+    // Vérifier que c'est bien un SVG
+    if (!svgContent.startsWith('<svg')) {
+      return res.status(500).json({ error: 'Génération SVG invalide' })
     }
 
-    // gpt-image-1 returns base64, dall-e-3 returns URL
-    let imageUrl = ''
-    if (openaiData.data?.[0]?.url) {
-      imageUrl = openaiData.data[0].url
-    } else if (openaiData.data?.[0]?.b64_json) {
-      imageUrl = `data:image/png;base64,${openaiData.data[0].b64_json}`
-    } else {
-      console.error('No image in response:', openaiData)
-      return res.status(500).json({ error: 'Pas d\'image dans la réponse', details: openaiData })
-    }
-    const revisedPrompt = openaiData.data[0].revised_prompt
+    // Convertir en data URL base64
+    const base64 = Buffer.from(svgContent).toString('base64')
+    const imageUrl = `data:image/svg+xml;base64,${base64}`
 
-    res.status(200).json({ 
-      imageUrl,
-      prompt: dallePrompt,
-      revisedPrompt,
-    })
+    res.status(200).json({ imageUrl, svgContent })
 
   } catch (err: any) {
     console.error('Generate visual error:', err)
