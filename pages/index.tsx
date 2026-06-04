@@ -197,6 +197,10 @@ export default function Home() {
   const [publishing, setPublishing] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [showVisualModal, setShowVisualModal] = useState(false)
+  const [aiVisualUrl, setAiVisualUrl] = useState('')
+  const [aiVisualUrl, setAiVisualUrl] = useState('')
+  const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
+  const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(0)
   const [newRefPost, setNewRefPost] = useState('')
@@ -474,6 +478,44 @@ export default function Home() {
     }
   }
 
+  const generateAiVisual = async () => {
+    if (!postOutput.trim()) { showToast('Génère un post d\'abord'); return }
+    setGeneratingAiVisual(true)
+    setAiVisualUrl('')
+    try {
+      const res = await fetch('/api/generate-visual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postContent: postOutput, postTopic, profile }),
+      })
+      const data = await res.json()
+      if (data.imageUrl) {
+        setAiVisualUrl(data.imageUrl)
+        showToast('Visuel IA généré ✓')
+      } else {
+        showToast('Erreur : ' + (data.error || 'inconnue'))
+      }
+    } catch { showToast('Erreur réseau') }
+    setGeneratingAiVisual(false)
+  }
+
+  const generateAiVisual = async () => {
+    if (!postOutput.trim()) { showToast('Génère un post d\'abord'); return }
+    setGeneratingAiVisual(true)
+    setAiVisualUrl('')
+    try {
+      const res = await fetch('/api/generate-visual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postContent: postOutput, postTopic, profile }),
+      })
+      const data = await res.json()
+      if (data.imageUrl) { setAiVisualUrl(data.imageUrl); showToast('Visuel IA généré ✓') }
+      else showToast('Erreur : ' + (data.error || 'inconnue'))
+    } catch { showToast('Erreur réseau') }
+    setGeneratingAiVisual(false)
+  }
+
   const completeOnboarding = async () => {
     if (userId) await supabase.from('profiles').update({ onboarding_done: true } as any).eq('id', userId)
     setShowOnboarding(false)
@@ -725,9 +767,14 @@ export default function Home() {
                 {/* Action bar — always visible */}
                 <div style={{marginTop:12,display:'flex',flexDirection:'column' as const,gap:8}}>
                   <div style={{display:'flex',gap:7}}>
-                    <button className="btn btn-secondary" style={{fontSize:12,flex:1,justifyContent:'center',opacity:postOutput?1:0.4}} onClick={()=>postOutput&&setShowVisualModal(true)} disabled={!postOutput}>
-                      {T('add_visual')}
-                    </button>
+                    <div style={{display:'flex',flexDirection:'column' as const,gap:6,flex:1}}>
+                      <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg, #302082, #8000ff)',opacity:postOutput?1:0.4}} onClick={generateAiVisual} disabled={!postOutput||generatingAiVisual}>
+                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA (~30s)…</>:'✨ Visuel IA (DALL-E 3)'}
+                      </button>
+                      <button className="btn btn-secondary" style={{fontSize:11,justifyContent:'center',opacity:postOutput?1:0.4}} onClick={()=>postOutput&&setShowVisualModal(true)} disabled={!postOutput}>
+                        {T('add_visual')} (SVG)
+                      </button>
+                    </div>
                     {linkedinConnected ? (
                       <button className="btn btn-primary" onClick={()=>publishPost()} disabled={publishing||!postOutput} style={{background:'#0077B5',flex:2,justifyContent:'center',opacity:postOutput?1:0.4}}>
                         {publishing?<><span className="spinner"/> {T('publishing')}</>:T('publish_linkedin')}
