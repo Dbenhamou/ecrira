@@ -1,6 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
+import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '../../lib/auth-helper'
+
+const DAILY_LIMIT = 20
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -39,6 +46,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (writingStyle.trim()) {
     try { refPosts = JSON.parse(writingStyle) } catch { refPosts = [writingStyle] }
   }
+  // Optimisation coûts : max 2 posts référents, tronqués à 400 chars chacun
+  refPosts = refPosts.slice(0, 2).map(p => p.slice(0, 400))
 
   // Build style section
   let styleSection: string
@@ -80,10 +89,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     + (seed ? 'Seed de variation : ' + seed + ' — utilise cet angle unique, different des posts habituels sur ce sujet.\n' : '')
     + 'Reponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
 
+  // Rate limit : max 20 générations/jour
+  const today = new Date().toISOString().split('T')[0]
+  const { count } = await supabaseAdmin
+    .from('saved_posts')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('created_at', today)
+  if ((count || 0) >= DAILY_LIMIT) {
+    return res.status(429).json({ error: 'Limite journalière de 20 générations atteinte.' })
+  }
+
   try {
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
+      max_tokens: 800,
       system: systemPrompt,
       messages: [{
         role: 'user',
