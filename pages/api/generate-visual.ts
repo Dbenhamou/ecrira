@@ -76,6 +76,8 @@ Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant 
     })
 
     const svgContent = (message.content[0] as { text: string }).text.trim()
+    console.log('SVG reçu (100 premiers chars):', svgContent.substring(0, 100))
+    console.log('SVG contient <svg:', svgContent.includes('<svg'))
 
     // Extraire le SVG même s'il y a du texte avant/après
     const svgMatch = svgContent.match(/<svg[\s\S]*<\/svg>/)
