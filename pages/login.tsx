@@ -54,7 +54,7 @@ export default function Login() {
 
   return (
     <>
-      <Head><title>Postoria · Connexion</title></Head>
+      <Head><title>Ecrira · Connexion</title></Head>
       <div style={{
         minHeight: '100vh',
         background: '#F8F6F2',
@@ -91,7 +91,7 @@ export default function Login() {
               fontFamily: "'Playfair Display', serif",
               fontSize: 16, fontWeight: 600,
               letterSpacing: '0.06em', color: '#232323',
-            }}>POSTORIA</span>
+            }}>ECRIRA</span>
           </div>
 
           <div style={{ marginBottom: 24 }}>
@@ -104,8 +104,8 @@ export default function Login() {
             </h1>
             <p style={{ fontSize: 13, color: '#727272', lineHeight: 1.5 }}>
               {mode === 'login'
-                ? 'Accède à ton espace Postoria.'
-                : 'Rejoins Postoria pour créer tes posts LinkedIn.'}
+                ? 'Accède à ton espace Ecrira.'
+                : 'Rejoins Ecrira pour créer tes posts LinkedIn.'}
             </p>
           </div>
 

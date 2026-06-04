@@ -136,7 +136,7 @@ export const translations = {
 
     // Onboarding
     welcome: 'Bienvenue',
-    onb_welcome_sub: 'Postoria génère tes posts LinkedIn en quelques secondes.',
+    onb_welcome_sub: 'Ecrira génère tes posts LinkedIn en quelques secondes.',
     onb_linkedin_title: 'Connecte LinkedIn',
     onb_linkedin_sub: 'LinkedIn pré-remplit ton nom et enrichit ton profil.',
     onb_profile_title: 'Ton profil',
@@ -157,7 +157,7 @@ export const translations = {
     toast_published: '✓ Post publié sur LinkedIn !',
     toast_error: 'Erreur : ',
     toast_network: 'Erreur réseau',
-    toast_welcome: 'Bienvenue sur Postoria !',
+    toast_welcome: 'Bienvenue sur Ecrira !',
     toast_ideas_error: 'Erreur : ',
     toast_domain_missing: 'Renseigne d\'abord ton domaine',
     toast_site_error: 'Impossible d\'analyser le site. Vérifie le domaine ou remplis le profil manuellement.',
@@ -303,7 +303,7 @@ export const translations = {
 
     // Onboarding
     welcome: 'Welcome',
-    onb_welcome_sub: 'Postoria generates your LinkedIn posts in seconds.',
+    onb_welcome_sub: 'Ecrira generates your LinkedIn posts in seconds.',
     onb_linkedin_title: 'Connect LinkedIn',
     onb_linkedin_sub: 'LinkedIn pre-fills your name and enriches your profile.',
     onb_profile_title: 'Your profile',
@@ -324,7 +324,7 @@ export const translations = {
     toast_published: '✓ Post published on LinkedIn!',
     toast_error: 'Error: ',
     toast_network: 'Network error',
-    toast_welcome: 'Welcome to Postoria!',
+    toast_welcome: 'Welcome to Ecrira!',
     toast_ideas_error: 'Error: ',
     toast_domain_missing: 'Please enter your domain first',
     toast_site_error: 'Unable to analyse the site. Check the domain or fill in the profile manually.',

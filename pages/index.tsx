@@ -8,11 +8,11 @@ type Idea = { topic: string; title: string; hook: string; recommended?: boolean 
 type Post = { id: string; topic: string; content: string; format: string; created_at: string }
 
 const PALETTES = [
-  { name:'Postoria Ivory', bg:'#F8F6F2', text:'#232323', accent:'#4F6754' },
-  { name:'Postoria Forest', bg:'#4F6754', text:'#F8F6F2', accent:'#A8784F' },
-  { name:'Postoria Dark', bg:'#232323', text:'#F8F6F2', accent:'#A8784F' },
-  { name:'Postoria Copper', bg:'#A8784F', text:'#F8F6F2', accent:'#F8F6F2' },
-  { name:'Postoria Sand', bg:'#ECE6DD', text:'#232323', accent:'#4F6754' },
+  { name:'Ecrira Ivory', bg:'#F8F6F2', text:'#232323', accent:'#4F6754' },
+  { name:'Ecrira Forest', bg:'#4F6754', text:'#F8F6F2', accent:'#A8784F' },
+  { name:'Ecrira Dark', bg:'#232323', text:'#F8F6F2', accent:'#A8784F' },
+  { name:'Ecrira Copper', bg:'#A8784F', text:'#F8F6F2', accent:'#F8F6F2' },
+  { name:'Ecrira Sand', bg:'#ECE6DD', text:'#232323', accent:'#4F6754' },
   { name:'Blue Pro', bg:'#1B2A4A', text:'#F0F4FF', accent:'#4A90E2' },
   { name:'Slate', bg:'#F4F6F8', text:'#1A1A2E', accent:'#6C5CE7' },
   { name:'Warm Noir', bg:'#1C1410', text:'#F5ECD7', accent:'#D4A853' },
@@ -105,7 +105,7 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
     if(s.logoUrl) inner=`<img src="${s.logoUrl}" style="width:${sz}px;height:${sz}px;object-fit:contain;border-radius:${p(6)}px;" />`
     else if(s.sectorIcon&&SECTOR_ICONS_SVG[s.sectorIcon]) inner=`<div style="width:${sz}px;height:${sz}px;background:${accentCol};border-radius:${p(8)}px;display:flex;align-items:center;justify-content:center;padding:${Math.round(sz*0.18)}px;color:${bgCol};">${SECTOR_ICONS_SVG[s.sectorIcon].replace(/currentColor/g,bgCol)}</div>`
     else inner=`<div style="width:${sz}px;height:${sz}px;background:${accentCol};border-radius:${p(8)}px;display:flex;align-items:center;justify-content:center;">${logoSVGfn(bgCol,Math.round(sz*0.55))}</div>`
-    const wm=s.showWatermark?`<span style="font-family:'Inter',sans-serif;font-size:${p(13)}px;font-weight:600;letter-spacing:.06em;color:${s.colors.text};margin-left:${p(8)}px;">POSTORIA</span>`:''
+    const wm=s.showWatermark?`<span style="font-family:'Inter',sans-serif;font-size:${p(13)}px;font-weight:600;letter-spacing:.06em;color:${s.colors.text};margin-left:${p(8)}px;">ECRIRA</span>`:''
     return `<div style="position:absolute;inset:${p(44)}px;display:flex;align-items:${ai};justify-content:${jc};pointer-events:none;z-index:2;"><div style="display:flex;align-items:center;">${inner}${wm}</div></div>`
   }
 
@@ -128,7 +128,7 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
     div.innerHTML=buildViz(S); document.body.appendChild(div); await document.fonts.ready
     const h2c=(await import('html2canvas')).default
     const canvas=await h2c(div.firstChild as HTMLElement,{scale:1,useCORS:true,backgroundColor:null,logging:false})
-    const a=document.createElement('a'); a.download=`postoria-${s.tpl}-${f==='square'?'1080x1080':'1080x1350'}.png`
+    const a=document.createElement('a'); a.download=`ecrira-${s.tpl}-${f==='square'?'1080x1080':'1080x1350'}.png`
     a.href=canvas.toDataURL('image/png'); a.click(); document.body.removeChild(div)
   },[s])
 
@@ -210,7 +210,7 @@ export default function Home() {
 
   // Load theme
   useEffect(() => {
-    const theme = localStorage.getItem('postoria_dark')
+    const theme = localStorage.getItem('ecrira_dark')
     if (theme === '1') { setDark(true); document.documentElement.dataset.theme = 'dark' }
   }, [])
 
@@ -326,7 +326,7 @@ export default function Home() {
   }
 
   const showToast = (msg: string) => { setToast(msg); setToastVisible(true); setTimeout(()=>setToastVisible(false), 2600) }
-  const toggleDark = () => { const n=!dark; setDark(n); document.documentElement.dataset.theme=n?'dark':''; localStorage.setItem('postoria_dark',n?'1':'0') }
+  const toggleDark = () => { const n=!dark; setDark(n); document.documentElement.dataset.theme=n?'dark':''; localStorage.setItem('ecrira_dark',n?'1':'0') }
 
   const generateIdeas = async () => {
     setLoadingIdeas(true)
@@ -496,7 +496,7 @@ export default function Home() {
   const completeOnboarding = async () => {
     if (userId) await supabase.from('profiles').update({ onboarding_done: true } as any).eq('id', userId)
     setShowOnboarding(false)
-    showToast('Bienvenue sur Postoria !')
+    showToast('Bienvenue sur Ecrira !')
   }
 
   const saveLang = async (l: string) => {
@@ -615,13 +615,13 @@ export default function Home() {
 
   return (
     <>
-      <Head><title>Postoria</title></Head>
+      <Head><title>Ecrira</title></Head>
       <div className="app">
         {/* Mobile header */}
         <div className="mobile-header">
           <div className="mobile-header-logo">
             <div className="logo-icon" style={{width:26,height:26,borderRadius:7}}><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
-            <span style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:600,color:'var(--text1)',letterSpacing:'.05em'}}>POSTORIA</span>
+            <span style={{fontFamily:"'Playfair Display',serif",fontSize:13,fontWeight:600,color:'var(--text1)',letterSpacing:'.05em'}}>ECRIRA</span>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <div style={{display:'flex',gap:3}}>
@@ -638,7 +638,7 @@ export default function Home() {
         </div>
 
         <aside className="sidebar">
-          <div className="sidebar-logo"><div className="logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div><span className="logo-name">POSTORIA</span></div>
+          <div className="sidebar-logo"><div className="logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div><span className="logo-name">ECRIRA</span></div>
           <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>{item.icon}{item.label}</button>))}</nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
@@ -1003,13 +1003,13 @@ export default function Home() {
             <div style={{background:'var(--forest)',padding:'28px 32px 24px'}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
                 <div style={{width:32,height:32,background:'rgba(255,255,255,0.15)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
-                <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:500,color:'rgba(255,255,255,0.9)',letterSpacing:'.06em'}}>POSTORIA</span>
+                <span style={{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:500,color:'rgba(255,255,255,0.9)',letterSpacing:'.06em'}}>ECRIRA</span>
               </div>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:500,color:'white',marginBottom:4}}>
                 {onboardingStep===0&&'Bienvenue'}{onboardingStep===1&&'Connecte LinkedIn'}{onboardingStep===2&&'Ton profil'}
               </div>
               <div style={{fontSize:13,color:'rgba(255,255,255,0.7)'}}>
-                {onboardingStep===0&&'Postoria génère tes posts LinkedIn en quelques secondes.'}
+                {onboardingStep===0&&'Ecrira génère tes posts LinkedIn en quelques secondes.'}
                 {onboardingStep===1&&'LinkedIn pré-remplit ton nom et enrichit ton profil.'}
                 {onboardingStep===2&&'Vérifiez et complétez les infos détectées.'}
               </div>
