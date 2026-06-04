@@ -199,7 +199,6 @@ export default function Home() {
   const [showVisualModal, setShowVisualModal] = useState(false)
   const [aiVisualUrl, setAiVisualUrl] = useState('')
   const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
-  const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(0)
   const [newRefPost, setNewRefPost] = useState('')
   const [showAddRef, setShowAddRef] = useState(false)
