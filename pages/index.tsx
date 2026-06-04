@@ -620,8 +620,7 @@ export default function Home() {
         {/* Mobile header */}
         <div className="mobile-header">
           <div className="mobile-header-logo">
-            <div className="logo-icon" style={{width:26,height:26,borderRadius:7}}><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
-            <span style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:13,fontWeight:600,color:'var(--text1)',letterSpacing:'.05em'}}>ECRIRA</span>
+            <img src="/logo-ecrira.png" alt="Ecrira" style={{height:24,width:'auto'}} />
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <div style={{display:'flex',gap:3}}>
@@ -638,7 +637,7 @@ export default function Home() {
         </div>
 
         <aside className="sidebar">
-          <div className="sidebar-logo"><div className="logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div><span className="logo-name">ECRIRA</span></div>
+          <div className="sidebar-logo"><img src="/logo-ecrira.png" alt="Ecrira" style={{height:26,width:'auto'}} /></div>
           <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>{item.icon}{item.label}</button>))}</nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
@@ -1001,9 +1000,8 @@ export default function Home() {
         <div style={{position:'fixed',inset:0,zIndex:600,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(6px)',padding:20}}>
           <div style={{background:'var(--white)',borderRadius:24,width:'100%',maxWidth:520,boxShadow:'0 32px 80px rgba(0,0,0,0.2)',overflow:'hidden'}}>
             <div style={{background:'var(--forest)',padding:'28px 32px 24px'}}>
-              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:8}}>
-                <div style={{width:32,height:32,background:'rgba(255,255,255,0.15)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center'}}><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
-                <span style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:14,fontWeight:500,color:'rgba(255,255,255,0.9)',letterSpacing:'.06em'}}>ECRIRA</span>
+              <div style={{marginBottom:8}}>
+                <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:36,width:'auto'}} />
               </div>
               <div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:22,fontWeight:500,color:'white',marginBottom:4}}>
                 {onboardingStep===0&&'Bienvenue'}{onboardingStep===1&&'Connecte LinkedIn'}{onboardingStep===2&&'Ton profil'}

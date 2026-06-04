@@ -75,23 +75,8 @@ export default function Login() {
         }}>
 
           {/* Logo */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32 }}>
-            <div style={{
-              width: 34, height: 34,
-              background: '#516756',
-              borderRadius: 9,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/>
-                <path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/>
-              </svg>
-            </div>
-            <span style={{
-              fontFamily: "'Clash Display', 'Inter', sans-serif",
-              fontSize: 16, fontWeight: 600,
-              letterSpacing: '0.06em', color: '#1F2421',
-            }}>ECRIRA</span>
+          <div style={{ marginBottom: 32 }}>
+            <img src="/logo-ecrira.png" alt="Ecrira" style={{ height: 32, width: 'auto' }} />
           </div>
 
           <div style={{ marginBottom: 24 }}>
