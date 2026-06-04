@@ -141,7 +141,7 @@ export default function Login() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="david@cyna.fr"
+              placeholder="vous@exemple.com"
               style={{
                 width: '100%',
                 background: '#FAF9F7',
