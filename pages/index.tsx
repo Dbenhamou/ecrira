@@ -200,6 +200,8 @@ export default function Home() {
   const [selectedCalPost, setSelectedCalPost] = useState<any>(null)
   const [scheduling, setScheduling] = useState(false)
   const [scheduleDateTime, setScheduleDateTime] = useState('')
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [pickerMonth, setPickerMonth] = useState(new Date())
   const [loadingIdeas, setLoadingIdeas] = useState(false)
   const [loadingPosts, setLoadingPosts] = useState(false)
   const [loadingPost, setLoadingPost] = useState(false)
@@ -893,14 +895,62 @@ export default function Home() {
                       </button>
                     )}
                   </div>
-                  <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap' as const}}>
-                    <input type="date" className="form-input" value={scheduleDateTime.split('T')[0]||''} onChange={e=>setScheduleDateTime(e.target.value+'T'+(scheduleDateTime.split('T')[1]||'09:00'))} style={{fontSize:12,flex:1,minWidth:130}}/>
-                    <select className="form-input" value={scheduleDateTime.split('T')[1]||'09:00'} onChange={e=>setScheduleDateTime((scheduleDateTime.split('T')[0]||new Date().toISOString().split('T')[0])+'T'+e.target.value)} style={{fontSize:12,width:100}}>
+                  <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap' as const,position:'relative' as const}}>
+                    {/* Bouton date custom */}
+                    <button className="btn btn-ghost" onClick={()=>setShowDatePicker(v=>!v)} style={{fontSize:12,flex:1,justifyContent:'flex-start',minWidth:130,color:scheduleDateTime?'var(--text1)':'var(--text3)'}}>
+                      📅 {scheduleDateTime ? new Date(scheduleDateTime).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : 'Choisir une date'}
+                    </button>
+                    {/* Sélecteur heure */}
+                    <select className="form-input" value={scheduleDateTime.split('T')[1]||'09:00'} onChange={e=>setScheduleDateTime((scheduleDateTime.split('T')[0]||new Date().toISOString().split('T')[0])+'T'+e.target.value)} style={{fontSize:12,width:90}}>
                       {Array.from({length:24*4},(_,i)=>{const h=Math.floor(i/4).toString().padStart(2,'0');const m=(i%4*15).toString().padStart(2,'0');return `${h}:${m}`}).map(t=><option key={t} value={t}>{t}</option>)}
                     </select>
-                    <button className="btn btn-secondary" onClick={schedulePost} disabled={scheduling||!postOutput||!scheduleDateTime} style={{fontSize:12,whiteSpace:'nowrap' as const,flexShrink:0}}>
-                      {scheduling?<><span className="spinner" style={{borderTopColor:'var(--forest)'}}/>…</>:'📅 Planifier'}
+                    <button className="btn btn-primary" style={{background:'var(--forest)'}} onClick={schedulePost} disabled={scheduling||!postOutput||!scheduleDateTime}>
+                      {scheduling?<><span className="spinner" style={{borderTopColor:'white'}}/>…</>:'📅 Planifier'}
                     </button>
+
+                    {/* Calendar picker dropdown */}
+                    {showDatePicker && (
+                      <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:6,background:'var(--white)',border:'1px solid var(--border)',borderRadius:16,padding:16,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:150,width:280}} onClick={e=>e.stopPropagation()}>
+                        {/* Header mois */}
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                          <button className="btn btn-ghost" style={{padding:'4px 8px',fontSize:13}} onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()-1);setPickerMonth(d)}}>←</button>
+                          <span style={{fontSize:13,fontWeight:600,color:'var(--text1)',textTransform:'capitalize' as const}}>
+                            {pickerMonth.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}
+                          </span>
+                          <button className="btn btn-ghost" style={{padding:'4px 8px',fontSize:13}} onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()+1);setPickerMonth(d)}}>→</button>
+                        </div>
+                        {/* Jours de la semaine */}
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',marginBottom:4}}>
+                          {['L','M','M','J','V','S','D'].map((d,i)=>(
+                            <div key={i} style={{textAlign:'center' as const,fontSize:10,fontWeight:600,color:'var(--text3)',padding:'2px 0'}}>{d}</div>
+                          ))}
+                        </div>
+                        {/* Grille jours */}
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2}}>
+                          {(()=>{
+                            const year=pickerMonth.getFullYear(),month=pickerMonth.getMonth()
+                            const firstDay=new Date(year,month,1)
+                            const lastDay=new Date(year,month+1,0)
+                            const startDay=firstDay.getDay()===0?6:firstDay.getDay()-1
+                            const cells=[]
+                            for(let i=0;i<startDay;i++) cells.push(<div key={`e${i}`}/>)
+                            for(let d=1;d<=lastDay.getDate();d++){
+                              const date=new Date(year,month,d)
+                              const dateStr=date.toISOString().split('T')[0]
+                              const selected=scheduleDateTime.split('T')[0]===dateStr
+                              const isToday=date.toDateString()===new Date().toDateString()
+                              const isPast=date<new Date(new Date().setHours(0,0,0,0))
+                              cells.push(
+                                <button key={d} onClick={()=>{if(!isPast){setScheduleDateTime(dateStr+'T'+(scheduleDateTime.split('T')[1]||'09:00'));setShowDatePicker(false)}}} style={{padding:'5px 0',borderRadius:8,border:'none',cursor:isPast?'not-allowed':'pointer',background:selected?'var(--forest)':isToday?'rgba(81,103,86,0.1)':'transparent',color:isPast?'var(--text3)':selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,opacity:isPast?0.4:1}}>
+                                  {d}
+                                </button>
+                              )
+                            }
+                            return cells
+                          })()}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   {/* Affichage visuel SVG généré */}
                   {aiSvgContent && (
