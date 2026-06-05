@@ -893,8 +893,11 @@ export default function Home() {
                       </button>
                     )}
                   </div>
-                  <div style={{display:'flex',gap:7,alignItems:'center'}}>
-                    <input type="datetime-local" className="form-input" value={scheduleDateTime} onChange={e=>setScheduleDateTime(e.target.value)} style={{fontSize:12,flex:1}}/>
+                  <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap' as const}}>
+                    <input type="date" className="form-input" value={scheduleDateTime.split('T')[0]||''} onChange={e=>setScheduleDateTime(e.target.value+'T'+(scheduleDateTime.split('T')[1]||'09:00'))} style={{fontSize:12,flex:1,minWidth:130}}/>
+                    <select className="form-input" value={scheduleDateTime.split('T')[1]||'09:00'} onChange={e=>setScheduleDateTime((scheduleDateTime.split('T')[0]||new Date().toISOString().split('T')[0])+'T'+e.target.value)} style={{fontSize:12,width:100}}>
+                      {Array.from({length:24*4},(_,i)=>{const h=Math.floor(i/4).toString().padStart(2,'0');const m=(i%4*15).toString().padStart(2,'0');return `${h}:${m}`}).map(t=><option key={t} value={t}>{t}</option>)}
+                    </select>
                     <button className="btn btn-secondary" onClick={schedulePost} disabled={scheduling||!postOutput||!scheduleDateTime} style={{fontSize:12,whiteSpace:'nowrap' as const,flexShrink:0}}>
                       {scheduling?<><span className="spinner" style={{borderTopColor:'var(--forest)'}}/>…</>:'📅 Planifier'}
                     </button>
