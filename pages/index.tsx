@@ -807,11 +807,8 @@ export default function Home() {
                     {linkedinConnected ? (
                       <div style={{position:'relative' as const, flex:2}}>
                         <div style={{display:'flex',borderRadius:11,overflow:'hidden',border:'1px solid #0077B5'}}>
-                          <button className="btn" onClick={()=>publishPost(false)} disabled={publishing||!postOutput} style={{background:'#0077B5',color:'white',flex:1,justifyContent:'center',fontSize:12,borderRadius:0,padding:'9px 12px'}}>
-                            {publishing?<><span className="spinner" style={{borderTopColor:'white'}}/>Publication…</>:'🔗 Publier sur LinkedIn'}
-                          </button>
-                          <button className="btn" onClick={()=>setShowPublishMenu(m=>!m)} disabled={publishing||!postOutput} style={{background:'#005e8f',color:'white',padding:'9px 10px',borderRadius:0,borderLeft:'1px solid rgba(255,255,255,0.2)'}}>
-                            ▾
+                          <button className="btn" onClick={()=>setShowPublishMenu(m=>!m)} disabled={publishing||!postOutput} style={{background:'#0077B5',color:'white',flex:1,justifyContent:'center',fontSize:12,borderRadius:0,padding:'9px 12px'}}>
+                            {publishing?<><span className="spinner" style={{borderTopColor:'white'}}/>Publication…</>:'🔗 Publier sur LinkedIn ▾'}
                           </button>
                         </div>
                         {showPublishMenu && (
