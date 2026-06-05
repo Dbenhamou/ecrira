@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { usePlan } from '../lib/usePlan'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 import { useProfile } from '../lib/useProfile'
@@ -173,8 +174,26 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
 }
 
 // ─── MAIN ──────────────────────────────────────────────────────────────────────
+// Modal upgrade Pro
+function UpgradeModal({ onClose }: { onClose: () => void }) {
+  const router = useRouter()
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={onClose}>
+      <div style={{background:"#FAF9F7",borderRadius:20,padding:"40px 32px",maxWidth:400,width:"90%",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
+        <div style={{fontSize:32,marginBottom:12}}>⚡</div>
+        <h2 style={{fontFamily:"Clash Display,sans-serif",fontSize:22,fontWeight:700,color:"#1F2421",marginBottom:8}}>Fonctionnalité Pro</h2>
+        <p style={{color:"#516756",fontSize:14,marginBottom:24,lineHeight:1.6}}>Cette fonctionnalité est réservée au plan Pro. Passez au Pro pour accéder aux visuels, au calendrier éditorial et aux posts illimités.</p>
+        <button onClick={()=>router.push("/pricing")} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"#1F2421",color:"#FAF9F7",fontFamily:"Clash Display,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:8}}>Voir les offres</button>
+        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #B7C0B8",background:"transparent",color:"#516756",fontSize:14,cursor:"pointer"}}>Annuler</button>
+      </div>
+    </div>
+  )
+}
+
 export default function Home() {
   const { profile, setProfile, saveProfile, signOut, loading, userId } = useProfile()
+  const { isPro, postsThisMonth, canGenerate } = usePlan(userId ?? null)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   // Helper — injecte le token Supabase dans les appels API
   const authFetch = async (url: string, options: RequestInit = {}) => {
@@ -778,7 +797,7 @@ export default function Home() {
 
         <aside className="sidebar">
           <div className="sidebar-logo" style={{justifyContent:'center',cursor:'pointer'}} onClick={()=>setPage('apercu')}><img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:60,width:'auto',display:'block'}} /></div>
-          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>{item.icon}{item.label}</button>))}</nav>
+          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
               <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
@@ -867,7 +886,7 @@ export default function Home() {
                     {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>generatePost()} disabled={loadingPost}>{loadingPost?<><span className="spinner"/> Génération…</>:'✦ Générer le post'}</button>
+                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:'✦ Générer le post'}</button>
               </div>
 
               {/* RIGHT: Résultat */}
@@ -885,7 +904,7 @@ export default function Home() {
                 <div style={{marginTop:12,display:'flex',flexDirection:'column' as const,gap:8}}>
                   <div style={{display:'flex',gap:7}}>
                     <div style={{display:'flex',flexDirection:'column' as const,gap:6,flex:1}}>
-                      <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4}} onClick={generateAiVisual} disabled={!postOutput||generatingAiVisual}>
+                      <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||generatingAiVisual}>
                         {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération visuel…</>:'🖼 Créer le visuel'}
                       </button>
                     </div>
@@ -1320,7 +1339,7 @@ export default function Home() {
           {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
           {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
         ].map(item=>(
-          <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} onClick={()=>setPage(item.id)}>
+          <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>
             {item.icon}
             <span>{item.label}</span>
           </button>
