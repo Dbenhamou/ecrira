@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
-import { requireAuth } from '../../lib/auth-helper'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,11 +9,8 @@ const supabase = createClient(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const userId = await requireAuth(req, res)
-  if (!userId) return
-
-  const { content } = req.body
-  if (!content) return res.status(400).json({ error: 'Paramètres manquants' })
+  const { userId, content } = req.body
+  if (!userId || !content) return res.status(400).json({ error: 'Paramètres manquants' })
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -26,7 +22,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(401).json({ error: 'LinkedIn non connecté. Va dans Mon profil pour connecter ton compte.' })
   }
 
-  if (new Date(profile.linkedin_token_expiry) < new Date()) {
+  // Marge de 5 minutes pour éviter les faux positifs
+  const expiryWithMargin = new Date(new Date(profile.linkedin_token_expiry).getTime() - 5 * 60 * 1000)
+  console.log('Token expiry:', profile.linkedin_token_expiry, '| Now:', new Date().toISOString())
+  if (expiryWithMargin < new Date()) {
     return res.status(401).json({ error: 'Token LinkedIn expiré. Reconnecte ton compte LinkedIn dans Mon profil.' })
   }
 
