@@ -835,13 +835,13 @@ export default function Home() {
                     </button>
                   </div>
                   {/* Affichage visuel SVG généré */}
-                  {aiVisualUrl && (
+                  {aiSvgContent && (
                     <div style={{marginTop:16,borderRadius:16,overflow:'hidden',border:'1px solid var(--border)',background:'var(--sand)'}}>
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',borderBottom:'1px solid var(--border)'}}>
                         <span style={{fontSize:12,fontWeight:500,color:'var(--text2)'}}>Visuel généré</span>
                         <a href={aiVisualUrl} download="visuel-ecrira.svg" style={{fontSize:12,color:'var(--forest)',textDecoration:'none',fontWeight:500}}>⬇ Télécharger</a>
                       </div>
-                      <img src={aiVisualUrl} alt="Visuel LinkedIn" style={{width:'100%',display:'block',maxHeight:480,objectFit:'contain'}}/>
+                      <div style={{width:'100%',maxHeight:480,overflow:'hidden'}} dangerouslySetInnerHTML={{__html: aiSvgContent.replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}}/>
                     </div>
                   )}
                 </div>
