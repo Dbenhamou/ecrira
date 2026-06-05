@@ -812,11 +812,11 @@ export default function Home() {
                           </button>
                         </div>
                         {showPublishMenu && (
-                          <div style={{position:'absolute' as const,bottom:'100%',right:0,marginBottom:4,background:'white',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.1)',zIndex:100,minWidth:240,overflow:'hidden'}}>
-                            <button className="btn" onClick={()=>{publishPost(false);setShowPublishMenu(false)}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)'}}>
+                          <div style={{position:'absolute' as const,bottom:'100%',right:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:240,overflow:'hidden'}}>
+                            <button className="btn" onClick={()=>{publishPost(false);setShowPublishMenu(false)}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
                               📝 Publier le texte uniquement
                             </button>
-                            <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false)}} disabled={!aiSvgContent} style={{width:'100%',padding:'10px 14px',fontSize:12,color:aiSvgContent?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,cursor:aiSvgContent?'pointer':'not-allowed'}}>
+                            <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false)}} disabled={!aiSvgContent} style={{width:'100%',padding:'10px 14px',fontSize:12,color:aiSvgContent?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,cursor:aiSvgContent?'pointer':'not-allowed',background:'transparent'}}>
                               🖼 Publier texte + visuel{!aiSvgContent?" (générez d'abord un visuel)":''}
                             </button>
                           </div>
@@ -841,7 +841,7 @@ export default function Home() {
                         <span style={{fontSize:12,fontWeight:500,color:'var(--text2)'}}>Visuel généré</span>
                         <a href={aiVisualUrl} download="visuel-ecrira.svg" style={{fontSize:12,color:'var(--forest)',textDecoration:'none',fontWeight:500}}>⬇ Télécharger</a>
                       </div>
-                      <div style={{width:'100%',maxHeight:480,overflow:'hidden'}} dangerouslySetInnerHTML={{__html: aiSvgContent.replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}}/>
+                      <div style={{width:'100%',overflow:'hidden'}} dangerouslySetInnerHTML={{__html: aiSvgContent.replace(/<svg/, '<svg style="width:100%;height:auto;display:block;max-height:600px"')}}/>
                     </div>
                   )}
                 </div>
