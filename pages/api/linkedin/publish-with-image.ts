@@ -102,7 +102,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         Authorization: `Bearer ${token}`,
         'Content-Type': 'image/png',
       },
-      body: pngBuffer,
+      body: pngBuffer as unknown as BodyInit,
     })
 
     if (!uploadRes.ok) {
