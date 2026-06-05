@@ -890,7 +890,7 @@ export default function Home() {
                 {([['Prénom','name'],['Rôle','role'],['Entreprise','company'],['Secteur','sector'],['Audience LinkedIn','audience'],['Domaine email','domain']] as [string,keyof typeof profile][]).map(([label,key])=>(
                   <div className="form-group" key={key}>
                     <label className="form-label">{label}</label>
-                    <input type="text" className="form-input" value={profile[key]||''} placeholder={key==='domain'?'ex: cyna.fr':undefined} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))}/>
+                    <input type="text" className="form-input" value={profile[key]||''} placeholder={key==='domain'?'ex: entreprise.fr':undefined} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))}/>
                     {key==='domain'&&<>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginTop:6}}>
                         <div style={{fontSize:11,color:'var(--text3)',flex:1}}>Utilisé pour personnaliser les idées selon votre domaine.</div>
@@ -1083,7 +1083,7 @@ export default function Home() {
                     <div style={{fontSize:13,fontWeight:600,color:'var(--forest)',marginBottom:4}}>✦ Enrichir depuis ton site</div>
                     <div style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>Analyse ton site pour pré-remplir secteur, audience, stack.</div>
                     <div style={{display:'flex',gap:8}}>
-                      <input className="form-input" placeholder="ex: cyna.fr" value={profile.domain||''} onChange={(e:any)=>setProfile((p:any)=>({...p,domain:e.target.value}))} style={{flex:1,fontSize:12}}/>
+                      <input className="form-input" placeholder="ex: entreprise.fr" value={profile.domain||''} onChange={(e:any)=>setProfile((p:any)=>({...p,domain:e.target.value}))} style={{flex:1,fontSize:12}}/>
                       <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={enrichProfile} disabled={enriching}>{enriching?<><span className="spinner"/>...</>:'Analyser'}</button>
                     </div>
                     {enrichSuggestions&&(

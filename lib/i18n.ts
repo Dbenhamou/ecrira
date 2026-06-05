@@ -149,7 +149,7 @@ export const translations = {
     linkedin_connected_btn: '✓ LinkedIn connecté',
     enrich_from_site: '✦ Enrichir depuis ton site',
     enrich_from_site_desc: 'Analyse ton site pour pré-remplir secteur, audience, stack.',
-    domain_placeholder: 'ex: cyna.fr',
+    domain_placeholder: 'ex: entreprise.fr',
 
     // Toasts
     toast_no_post: 'Aucun post à publier',
