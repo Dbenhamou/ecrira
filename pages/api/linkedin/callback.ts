@@ -37,9 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }),
     })
     const tokenData = await tokenRes.json()
-    console.log('LinkedIn tokenRes status:', tokenRes.status)
-    console.log('LinkedIn tokenData:', JSON.stringify(tokenData).substring(0, 300))
-    console.log('LinkedIn token expires_in:', tokenData.expires_in, '| expires_at:', new Date(Date.now() + tokenData.expires_in * 1000).toISOString())
     if (!tokenData.access_token) return res.redirect('/?linkedin=error')
 
     // Get LinkedIn profile info
