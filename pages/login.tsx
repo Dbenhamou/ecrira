@@ -11,6 +11,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [isWebview, setIsWebview] = useState(false)
+
+  useEffect(() => {
+    const ua = navigator.userAgent
+    const webview = /Instagram|FBAN|FBAV|LinkedIn|Twitter|WebView|wv|FB_IAB/.test(ua)
+      || /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(ua)
+    setIsWebview(webview)
+  }, [])
 
   useEffect(() => {
     // Redirect if already logged in
@@ -95,9 +103,20 @@ export default function Login() {
           </div>
 
           {/* Google */}
+          {isWebview && (
+            <div style={{
+              background: 'rgba(217,200,163,0.2)',
+              border: '1px solid rgba(217,200,163,0.6)',
+              borderRadius: 11, padding: '10px 14px',
+              fontSize: 12, color: '#8a7040',
+              marginBottom: 14, lineHeight: 1.5,
+            }}>
+              ⚠️ Pour te connecter avec Google, ouvre <strong>ecrira.com</strong> directement dans <strong>Safari</strong> ou <strong>Chrome</strong>.
+            </div>
+          )}
           <button
             onClick={handleGoogle}
-            disabled={loading}
+            disabled={loading || isWebview}
             style={{
               width: '100%',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,

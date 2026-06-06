@@ -68,7 +68,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { domain } = req.body
   if (!domain) return res.status(400).json({ error: 'Domaine manquant' })
 
+  // Validation : bloquer IPs privées/locales (SSRF protection)
+  const BLOCKED = /^https?:\/\/(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|0\.0\.0\.0|169\.254\.)/i
   const base = domain.startsWith('http') ? domain : `https://${domain}`
+  if (BLOCKED.test(base)) return res.status(400).json({ error: 'Domaine non autorisé' })
+  // Valider que c'est bien une URL
+  try { new URL(base) } catch { return res.status(400).json({ error: 'Domaine invalide' }) }
 
   const [homeText, aboutText, colors] = await Promise.all([
     scrapePage(base),

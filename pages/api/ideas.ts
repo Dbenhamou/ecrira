@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!userId) return
 
   const { profile } = req.body
+  if (profile?.role && profile.role.length > 200) return res.status(400).json({ error: 'Profil invalide' })
 
   const role = profile?.role || 'Professionnel'
   const company = profile?.company || ''

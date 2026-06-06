@@ -18,6 +18,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!userId) return
 
   const { topic, format, length, tone, profile, seed } = req.body
+  if (topic && topic.length > 500) return res.status(400).json({ error: 'Sujet trop long (max 500 car.)' })
 
   const formatMap: Record<string, string> = {
     educational: 'post éducatif avec conseil actionnable',

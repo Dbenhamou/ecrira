@@ -614,7 +614,7 @@ export default function Home() {
     try {
       // Convertir SVG en PNG base64 si visuel disponible
       let svgBase64: string | null = null
-      if (aiSvgContent) {
+      if (scheduleWithVisual && aiSvgContent) {
         svgBase64 = await new Promise<string>((resolve, reject) => {
           const canvas = document.createElement('canvas')
           canvas.width = 1080; canvas.height = 1350
@@ -643,6 +643,9 @@ export default function Home() {
         setScheduledPosts(prev => [...prev, data.post].sort((a,b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()))
         showToast('Post planifié ✓')
         setScheduleDateTime('')
+        setShowDatePicker(false)
+        setPostOutput('')
+        setPage('apercu')
       } else showToast(data.error || 'Erreur planification')
     } catch { showToast('Erreur réseau') }
     setScheduling(false)

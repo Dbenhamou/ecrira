@@ -89,7 +89,14 @@ Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant 
     // Ajouter </svg> si manquant
     if (!svgClean.includes('</svg>')) svgClean += '</svg>'
 
-    res.status(200).json({ svgContent: svgClean })
+    // Sanitisation SVG : supprimer scripts, event handlers, liens javascript
+    const svgSafe = svgClean
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/data:text\/html/gi, '')
+
+    res.status(200).json({ svgContent: svgSafe })
 
   } catch (err: any) {
     console.error('Generate visual error:', err)

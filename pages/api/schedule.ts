@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Modifier un post planifié
   if (req.method === 'PUT') {
     const { id, content, scheduled_at, topic, svg_content } = req.body
+    if (content && content.length > 3000) return res.status(400).json({ error: 'Contenu trop long (max 3000 car.)' })
     const { error } = await supabase
       .from('scheduled_posts')
       .update({ content, scheduled_at, topic, svg_content, status: 'pending' })
@@ -40,6 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Créer un post planifié
   const { content, scheduled_at, topic, svg_content } = req.body
   if (!content || !scheduled_at) return res.status(400).json({ error: 'Contenu et date requis' })
+  if (content.length > 3000) return res.status(400).json({ error: 'Contenu trop long (max 3000 car.)' })
+  if (topic && topic.length > 200) return res.status(400).json({ error: 'Sujet trop long (max 200 car.)' })
 
   const { data, error } = await supabase
     .from('scheduled_posts')

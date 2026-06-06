@@ -10,6 +10,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== 'POST') return res.status(405).end()
 
   const { userId, content } = req.body
+  if (!content?.trim()) return res.status(400).json({ error: 'Contenu manquant' })
+  if (content.length > 3000) return res.status(400).json({ error: 'Contenu trop long (max 3000 car.)' })
   if (!userId || !content) return res.status(400).json({ error: 'Paramètres manquants' })
 
   const { data: profile } = await supabase
