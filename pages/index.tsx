@@ -1426,6 +1426,7 @@ export default function Home() {
         </div>
       )}
       {showVisualModal&&(<VisualModal onClose={()=>setShowVisualModal(false)} postContent={postOutput} postTopic={postTopic} profileName={profile.name} profileRole={profile.role} profileCompany={profile.company} profileSector={profile.sector} brandBg={profile.brand_bg} brandText={profile.brand_text} brandAccent={profile.brand_accent}/>)}
+      {showUpgradeModal&&<UpgradeModal onClose={()=>setShowUpgradeModal(false)}/>}
       <div className={`toast ${toastVisible?'show':''}`}>{toast}</div>
     </>
   )
