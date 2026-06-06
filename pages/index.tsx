@@ -473,7 +473,7 @@ export default function Home() {
     if (!profile.domain) { showToast('Renseigne d\'abord ton domaine'); return }
     setEnriching(true)
     try {
-      const res = await fetch('/api/enrich-profile', {
+      const res = await authFetch('/api/enrich-profile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain: profile.domain }),
