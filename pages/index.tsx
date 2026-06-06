@@ -516,10 +516,10 @@ export default function Home() {
 
   // Fermer les pickers au clic extérieur
   useEffect(() => {
-    const handler = () => { setShowDatePicker(false); setShowTimePicker(false); setShowPublishMenu(false); setShowScheduleMenu(false); }
-    if (showDatePicker || showTimePicker || showPublishMenu || showScheduleMenu) document.addEventListener('click', handler)
+    const handler = () => { setShowPublishMenu(false); setShowScheduleMenu(false); setShowTimePicker(false); }
+    if (showPublishMenu || showScheduleMenu || showTimePicker) document.addEventListener('click', handler)
     return () => document.removeEventListener('click', handler)
-  }, [showDatePicker, showTimePicker, showPublishMenu, showScheduleMenu])
+  }, [showPublishMenu, showScheduleMenu, showTimePicker])
 
   // Heure actuelle arrondie aux 15min suivantes
   const getNextQuarterHour = () => {
