@@ -823,7 +823,7 @@ export default function Home() {
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
               <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
-              <div><div className="user-name">{profile.name||'Mon compte'}</div><div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:'Compléter le profil'}</div></div><div style={{marginLeft:"auto"}}><span style={{fontSize:10,fontWeight:700,padding:"3px 8px",borderRadius:20,background:isPro?"var(--forest)":"rgba(0,0,0,0.08)",color:isPro?"white":"var(--text2)",letterSpacing:"0.5px",textTransform:"uppercase",cursor:"pointer"}} onClick={(e)=>{e.stopPropagation();window.location.href="/pricing"}}>{isPro?"Pro":"Free"}</span></div>
+              <div><div className="user-name">{profile.name||'Mon compte'}</div><div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:'Compléter le profil'}<span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:20,background:isPro?"var(--forest)":"rgba(0,0,0,0.08)",color:isPro?"white":"var(--text2)",letterSpacing:"0.5px",textTransform:"uppercase",cursor:"pointer",display:"inline-block",marginTop:3}} onClick={(e)=>{e.stopPropagation();window.location.href="/pricing"}}>{isPro?"Pro":"Free"}</span></div></div>
             </div>
             <div className="theme-row"><span>{T('dark_mode')}</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 10px 0',fontSize:11,color:'var(--text3)'}}>
