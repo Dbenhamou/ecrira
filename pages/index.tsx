@@ -586,6 +586,10 @@ export default function Home() {
 
   const completeOnboarding = async () => {
     if (userId) await supabase.from('profiles').update({ onboarding_done: true } as any).eq('id', userId)
+    setOnboardingStep(3)
+  }
+
+  const finishOnboarding = () => {
     setShowOnboarding(false)
     showToast('Bienvenue sur Ecrira !')
   }
@@ -1424,7 +1428,34 @@ export default function Home() {
                   </div>
                 </div>
               )}
-              {onboardingStep===2&&(
+              {onboardingStep===3&&(
+  <div style={{display:'flex',flexDirection:'column',gap:16}}>
+    <div style={{textAlign:'center',marginBottom:8}}>
+      <div style={{fontFamily:"'Clash Display',sans-serif",fontSize:20,fontWeight:700,color:'var(--text1)',marginBottom:6}}>Choisissez votre plan</div>
+      <div style={{fontSize:13,color:'var(--text2)'}}>Commencez gratuitement ou passez au Pro dès maintenant.</div>
+    </div>
+    <div style={{display:'flex',flexDirection:'column',gap:12}}>
+      <div style={{border:'1.5px solid var(--border)',borderRadius:14,padding:'16px 20px',cursor:'pointer'}} onClick={finishOnboarding}>
+        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,color:'var(--text1)',marginBottom:4}}>Free — 0€/mois</div>
+        <div style={{fontSize:12,color:'var(--text2)'}}>3 posts/mois · Génération IA basique</div>
+      </div>
+      <div style={{border:'2px solid var(--forest)',borderRadius:14,padding:'16px 20px',cursor:'pointer',background:'var(--forest)',color:'white'}} onClick={async()=>{
+        if(!userId) return;
+        const res = await fetch('/api/stripe/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,email:profile?.email})});
+        const {url} = await res.json();
+        window.location.href = url;
+      }}>
+        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,marginBottom:4}}>Pro — 12,99€/mois</div>
+        <div style={{fontSize:12,opacity:0.85}}>Posts illimités · Visuels · Calendrier</div>
+      </div>
+      <div style={{border:'1.5px dashed var(--border)',borderRadius:14,padding:'16px 20px',opacity:0.5}}>
+        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,color:'var(--text2)',marginBottom:4}}>Team — Bientôt disponible</div>
+        <div style={{fontSize:12,color:'var(--text3)'}}>Multi-comptes & collaboration</div>
+      </div>
+    </div>
+  </div>
+)}
+{onboardingStep===2&&(
                 <div>
                   {([['Prenom','name'],['Role','role'],['Entreprise','company'],['Secteur','sector'],['Audience LinkedIn','audience']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div className="form-group" key={key} style={{marginBottom:8}}>
