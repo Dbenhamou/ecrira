@@ -34,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       max_tokens: 8000,
       messages: [{
         role: 'user',
-        content: `Tu es un expert en design SVG premium pour LinkedIn B2B.
+        content: `Tu es un expert en design graphique premium pour LinkedIn B2B. Tu crées des visuels SVG modernes, percutants et professionnels.
 
 Génère un SVG LinkedIn portrait (1080x1350px) de haute qualité pour ce post :
 
@@ -44,33 +44,38 @@ SECTEUR : ${sector}
 POINTS CLÉS :
 ${keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n')}
 
-CHARTE GRAPHIQUE OBLIGATOIRE :
+CHARTE GRAPHIQUE :
 - Fond principal : ${brandBg}
 - Couleur accent : ${brandAccent}
-- Couleur secondaire : #B7C0B8
+- Secondaire : #B7C0B8
 - Champagne : #D9C8A3
 - Charcoal : #1F2421
-- IMPORTANT : utilise UNIQUEMENT font-family="Arial, Helvetica, sans-serif" — pas de system-ui ni polices custom
+- Font : Arial, Helvetica, sans-serif uniquement
 
-STRUCTURE DU VISUEL (dans l'ordre vertical) :
-1. Header (hauteur 180px) — fond ${brandAccent}, nom entreprise "${company || 'Content Studio'}" en blanc à gauche, secteur en badge à droite. PAS de mention Ecrira.
-2. Zone titre (hauteur 280px) — fond ${brandBg}, grand titre du sujet en ${brandAccent} (font-size 52px, font-weight bold, max 2 lignes)
-3. Séparateur décoratif — ligne simple
-4. Zone points clés (hauteur 580px) — fond blanc, 3 blocs avec numéro cerclé en ${brandAccent} + texte en #1F2421
-5. Footer (hauteur 160px) — fond #1F2421, nom auteur en blanc + rôle en #B7C0B8. PAS de mention Ecrira.
-6. Bordure décorative gauche — bande verticale de 8px en ${brandAccent}
+STRUCTURE (dans l'ordre vertical) :
+1. HEADER (0-200px) — Dégradé de ${brandAccent} vers une version légèrement plus sombre. Nom entreprise "${company || 'Content Studio'}" bold blanc 54px à gauche (x=72, y=90). Sous-titre rôle/secteur en blanc 60% opacité 22px (x=72, y=135). Badge secteur arrondi à droite (rx=24, fill blanc 20% opacité, texte blanc bold 19px centré).
 
-RÈGLES DESIGN :
-- Padding horizontal : 64px
-- Coins arrondis sur les blocs : rx="12"
-- Numéros cerclés : cercle ${brandAccent} 44px, chiffre blanc bold
-- Texte points clés : 26px, fill="#1F2421"
-- Titre max 2 lignes — tronque si nécessaire
-- PAS de filtres CSS complexes, PAS de backdrop-filter, PAS de foreignObject
-- Utilise uniquement des éléments SVG basiques : rect, text, circle, line, path
+2. TITRE (200-500px) — Fond ${brandBg}. Accent bar : rect 72px large, 6px haut, rx=3, fill=${brandAccent}, y=220. Titre du sujet en ${brandAccent} bold 54px, max 2 lignes, x=72, y=300 et y=368. Sous-titre italic 24px charcoal à y=435.
 
-Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.`,
-      }],
+3. SÉPARATEUR — Ligne décorative avec 3 cercles centrés.
+
+4. POINTS CLÉS (520-1080px) — Fond blanc. Label "POINTS CLÉS" gris clair letter-spacing=4. 3 blocs cards avec rx=14, fond ${brandBg}, border ${brandAccent} 15% opacité. Chaque bloc : numéro cerclé ${brandAccent} à gauche, titre bold 26px #1F2421, sous-titre 20px ${brandAccent} 80% opacité. Décoration géométrique discrète dans le dernier bloc (cercles concentriques stroke only).
+
+5. STAT HIGHLIGHT (1080-1200px) — Fond ${brandAccent} 10% opacité. Chiffre/stat clé du post en ${brandAccent} bold 52px centré, label 20px #1F2421 centré.
+
+6. FOOTER (1200-1350px) — Fond #1F2421. Ligne décorative ${brandAccent} 3px en haut. Cercle avatar ${brandAccent} 25% opacité + initiales bold blanc. Nom "${name}" bold blanc 28px, rôle gris clair 21px. Badge LinkedIn arrondi ${brandAccent} à droite avec handle.
+
+RÈGLES TECHNIQUES ABSOLUES :
+- Padding horizontal partout : 72px minimum
+- PAS de foreignObject, PAS de CSS, PAS de filter, PAS de backdrop-filter
+- PAS de polices custom (pas de @import, pas de Google Fonts via SVG)
+- Uniquement rect, text, circle, line, path, defs, linearGradient, stop
+- Les dégradés via <defs><linearGradient>
+- Texte long : découpe en plusieurs <text> avec tspan ou balises text séparées
+- Tous les textes doivent être dans les limites 72px ↔ 1008px
+- PAS de mention Ecrira nulle part
+
+Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.\`,      }],
     })
 
     const svgRaw = (message.content[0] as { text: string }).text

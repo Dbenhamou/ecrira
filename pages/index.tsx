@@ -238,6 +238,10 @@ export default function Home() {
   const [showVisualModal, setShowVisualModal] = useState(false)
   const [aiVisualUrl, setAiVisualUrl] = useState('')
   const [aiSvgContent, setAiSvgContent] = useState('')
+  const [svgEditTitle, setSvgEditTitle] = useState('')
+  const [svgEditPoints, setSvgEditPoints] = useState<string[]>([])
+  const [svgEditAccent, setSvgEditAccent] = useState('')
+  const [showSvgEditor, setShowSvgEditor] = useState(false)
   const [showPublishMenu, setShowPublishMenu] = useState(false)
   const [showNotifPanel, setShowNotifPanel] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
@@ -599,6 +603,13 @@ export default function Home() {
         const url = URL.createObjectURL(blob)
         setAiVisualUrl(url)
         setAiSvgContent(data.svgContent)
+        // Init editor
+        const titleMatch = data.svgContent.match(/font-size="5[24]" font-weight="bold" fill="[^"]+">([^<]+)<\/text>/)
+        if (titleMatch) setSvgEditTitle(titleMatch[1])
+        const pts = [...(data.svgContent.matchAll(/font-size="26" font-weight="bold" fill="#1F2421">([^<]+)<\/text>/g))].map((m:any)=>m[1]).slice(0,3)
+        if (pts.length) setSvgEditPoints(pts)
+        setSvgEditAccent(profile?.brand_accent||'#516756')
+        setShowSvgEditor(false)
         showToast('Visuel généré ✓')
       } else showToast('Erreur : ' + (data.error || 'inconnue'))
     } catch { showToast('Erreur réseau') }
@@ -1104,10 +1115,67 @@ export default function Home() {
                   {/* Affichage visuel SVG généré */}
                   {aiSvgContent && (
                     <div style={{marginTop:16,borderRadius:16,overflow:'hidden',border:'1px solid var(--border)',background:'var(--sand)'}}>
-                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',borderBottom:'1px solid var(--border)'}}>
+                      {/* Toolbar */}
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',borderBottom:'1px solid var(--border)',flexWrap:'wrap' as const,gap:6}}>
                         <span style={{fontSize:12,fontWeight:500,color:'var(--text2)'}}>Visuel généré</span>
-                        <a href={aiVisualUrl} download="visuel-ecrira.svg" style={{fontSize:12,color:'var(--forest)',textDecoration:'none',fontWeight:500}}>⬇ Télécharger</a>
+                        <div style={{display:'flex',gap:6}}>
+                          <button className="btn btn-ghost" style={{fontSize:11,padding:'4px 10px'}} onClick={()=>setShowSvgEditor(v=>!v)}>
+                            {showSvgEditor ? 'Fermer ✕' : '✏️ Modifier'}
+                          </button>
+                          <a href={aiVisualUrl} download="visuel-ecrira.svg" style={{fontSize:11,color:'var(--forest)',textDecoration:'none',fontWeight:500,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:8,background:'white'}}>⬇ Télécharger</a>
+                        </div>
                       </div>
+
+                      {/* Panel d'édition */}
+                      {showSvgEditor && (
+                        <div style={{padding:14,borderBottom:'1px solid var(--border)',background:'white',display:'flex',flexDirection:'column' as const,gap:10}}>
+                          <div style={{fontSize:11,fontWeight:600,color:'var(--text2)',textTransform:'uppercase' as const,letterSpacing:'.05em'}}>Personnaliser le visuel</div>
+
+                          {/* Titre */}
+                          <div>
+                            <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>Titre principal</div>
+                            <input value={svgEditTitle} onChange={e=>{
+                              const v=e.target.value; setSvgEditTitle(v);
+                              setAiSvgContent(prev=>prev.replace(
+                                /(<text[^>]+font-size="5[24]"[^>]+>)[^<]*/,
+                                `$1${v}`
+                              ))
+                            }} style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg)',color:'var(--text1)',outline:'none',boxSizing:'border-box' as const}}/>
+                          </div>
+
+                          {/* Points clés */}
+                          {svgEditPoints.map((pt,i)=>(
+                            <div key={i}>
+                              <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>Point {i+1}</div>
+                              <input value={pt} onChange={e=>{
+                                const v=e.target.value
+                                const newPts=[...svgEditPoints]; newPts[i]=v; setSvgEditPoints(newPts)
+                              }} style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',background:'var(--bg)',color:'var(--text1)',outline:'none',boxSizing:'border-box' as const}}/>
+                            </div>
+                          ))}
+
+                          {/* Couleur accent */}
+                          <div style={{display:'flex',alignItems:'center',gap:10}}>
+                            <div style={{fontSize:10,color:'var(--text3)'}}>Couleur accent</div>
+                            <div style={{display:'flex',gap:6}}>
+                              {['#516756','#0077B5','#1F2421','#8B4513','#2C3E50'].map(c=>(
+                                <button key={c} onClick={()=>{
+                                  setSvgEditAccent(c)
+                                  setAiSvgContent(prev=>prev.replace(new RegExp(svgEditAccent.replace('#','\\#'),'g'),c))
+                                  setSvgEditAccent(c)
+                                }} style={{width:22,height:22,borderRadius:'50%',border:c===svgEditAccent?'3px solid #1F2421':'2px solid transparent',background:c,cursor:'pointer',padding:0}}/>
+                              ))}
+                              <input type="color" value={svgEditAccent} onChange={e=>{
+                                const c=e.target.value
+                                setAiSvgContent(prev=>prev.replace(new RegExp(svgEditAccent.replace('#','\\#'),'g'),c))
+                                setSvgEditAccent(c)
+                              }} style={{width:22,height:22,borderRadius:'50%',border:'none',cursor:'pointer',padding:0,background:'transparent'}}/>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Aperçu SVG */}
                       <div style={{width:'100%',overflow:'hidden'}} dangerouslySetInnerHTML={{__html: aiSvgContent.replace(/<svg/, '<svg style="width:100%;height:auto;display:block;max-height:600px"')}}/>
                     </div>
                   )}
