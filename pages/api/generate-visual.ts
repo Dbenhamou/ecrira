@@ -75,7 +75,7 @@ RÈGLES TECHNIQUES ABSOLUES :
 - Tous les textes doivent être dans les limites 72px ↔ 1008px
 - PAS de mention Ecrira nulle part
 
-Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.\`,      }],
+Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.`,      }],
     })
 
     const svgRaw = (message.content[0] as { text: string }).text
