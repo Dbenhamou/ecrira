@@ -743,6 +743,7 @@ export default function Home() {
     { id:'rediger', label:T('nav_rediger'), icon:<EditIcon/> },
     { id:'visuels', label:T('nav_visuels'), icon:<ImgIcon/> },
     { id:'calendrier', label:'Calendrier', icon:<CalIcon/> },
+    { id:'analytics', label:'Analytics', icon:<BarIcon/> },
     { id:'bibliotheque', label:T('nav_bibliotheque'), icon:<BookIcon/> },
     { id:'profil', label:T('nav_profil'), icon:<UserIcon/> },
   ]
@@ -819,7 +820,7 @@ export default function Home() {
 
         <aside className="sidebar">
           <div className="sidebar-logo" style={{justifyContent:'center',cursor:'pointer'}} onClick={()=>setPage('apercu')}><img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:60,width:'auto',display:'block'}} /></div>
-          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
+          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels"||item.id==="analytics")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
               <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
@@ -1193,6 +1194,104 @@ export default function Home() {
             <div style={{background:'var(--sand)',borderRadius:16,padding:'40px 24px',textAlign:'center' as const}}><div style={{fontSize:28,marginBottom:12,opacity:.3}}>◫</div><div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:16,fontStyle:'italic',color:'var(--text2)',marginBottom:6}}>Générateur intégré au flow publication</div><div style={{fontSize:13,color:'var(--text3)'}}>Rendez-vous dans Rédiger → générez un post → cliquez sur "Créer le visuel".</div></div>
           </div>
 
+          {/* ANALYTICS */}
+          <div className={`page ${page==='analytics'?'active':''}`}>
+            <div className="eyebrow">Tableau de bord</div>
+            <div className="page-title">Analytics</div>
+            <div className="copper-rule"/>
+            <div className="page-sub">Votre activité sur les 30 derniers jours.</div>
+
+            {/* KPI Cards */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:24}}>
+              {[
+                {
+                  label:'Posts générés',
+                  value: (() => {
+                    const d30 = new Date(); d30.setDate(d30.getDate()-30);
+                    return savedPosts.filter(p=>new Date(p.created_at)>=d30).length;
+                  })(),
+                  icon:'✦',
+                  note:'en bibliothèque'
+                },
+                {
+                  label:'Posts publiés',
+                  value: (() => {
+                    const d30 = new Date(); d30.setDate(d30.getDate()-30);
+                    return scheduledPosts.filter(p=>p.status==='published'&&new Date(p.scheduled_at)>=d30).length;
+                  })(),
+                  icon:'📤',
+                  note:'sur LinkedIn'
+                },
+                {
+                  label:'Posts planifiés',
+                  value: (() => {
+                    const d30 = new Date(); d30.setDate(d30.getDate()-30);
+                    return scheduledPosts.filter(p=>p.status==='scheduled'&&new Date(p.scheduled_at)>=d30).length;
+                  })(),
+                  icon:'📅',
+                  note:'à venir'
+                },
+              ].map((kpi,i)=>(
+                <div key={i} style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:14,padding:'16px 14px',textAlign:'center' as const}}>
+                  <div style={{fontSize:22,marginBottom:4}}>{kpi.icon}</div>
+                  <div style={{fontSize:28,fontWeight:700,color:'var(--forest)',fontFamily:'Clash Display,sans-serif',lineHeight:1}}>{kpi.value}</div>
+                  <div style={{fontSize:11,fontWeight:600,color:'var(--text1)',marginTop:4}}>{kpi.label}</div>
+                  <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{kpi.note}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Graphique activité par semaine */}
+            <div style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:14,padding:'18px 16px',marginBottom:20}}>
+              <div style={{fontSize:12,fontWeight:600,color:'var(--text1)',marginBottom:16}}>Activité — 4 dernières semaines</div>
+              {(() => {
+                const weeks = Array.from({length:4},(_,i)=>{
+                  const end = new Date(); end.setDate(end.getDate()-i*7);
+                  const start = new Date(end); start.setDate(start.getDate()-6);
+                  const label = `S${4-i}`;
+                  const generated = savedPosts.filter(p=>{const d=new Date(p.created_at);return d>=start&&d<=end}).length;
+                  const published = scheduledPosts.filter(p=>{const d=new Date(p.scheduled_at);return p.status==='published'&&d>=start&&d<=end}).length;
+                  return {label,generated,published};
+                }).reverse();
+                const maxVal = Math.max(...weeks.flatMap(w=>[w.generated,w.published]),1);
+                return (
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,alignItems:'flex-end'}}>
+                    {weeks.map((w,i)=>(
+                      <div key={i} style={{textAlign:'center' as const}}>
+                        <div style={{display:'flex',gap:3,justifyContent:'center',alignItems:'flex-end',height:80,marginBottom:6}}>
+                          <div title={`${w.generated} générés`} style={{width:14,background:'var(--forest)',borderRadius:'4px 4px 0 0',height:`${Math.max((w.generated/maxVal)*80,2)}px`,opacity:0.8}}/>
+                          <div title={`${w.published} publiés`} style={{width:14,background:'#D9C8A3',borderRadius:'4px 4px 0 0',height:`${Math.max((w.published/maxVal)*80,2)}px`,opacity:0.9}}/>
+                        </div>
+                        <div style={{fontSize:10,color:'var(--text3)',fontWeight:500}}>{w.label}</div>
+                        <div style={{fontSize:9,color:'var(--text3)',marginTop:2}}>{w.generated}g · {w.published}p</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+              <div style={{display:'flex',gap:14,marginTop:14,justifyContent:'center'}}>
+                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'var(--text2)'}}>
+                  <div style={{width:10,height:10,borderRadius:2,background:'var(--forest)',opacity:0.8}}/> Générés
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'var(--text2)'}}>
+                  <div style={{width:10,height:10,borderRadius:2,background:'#D9C8A3',opacity:0.9}}/> Publiés
+                </div>
+              </div>
+            </div>
+
+            {/* Lien LinkedIn Analytics */}
+            <div style={{background:'linear-gradient(135deg,#0077B5,#005885)',borderRadius:14,padding:'16px 18px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:600,color:'white',marginBottom:3}}>Stats LinkedIn natives</div>
+                <div style={{fontSize:11,color:'rgba(255,255,255,0.75)'}}>Impressions, likes, commentaires et portée de vos posts.</div>
+              </div>
+              <a href="https://www.linkedin.com/analytics/creator/content/" target="_blank" rel="noopener noreferrer"
+                style={{background:'white',color:'#0077B5',border:'none',borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:600,cursor:'pointer',textDecoration:'none',whiteSpace:'nowrap' as const,flexShrink:0}}>
+                Voir →
+              </a>
+            </div>
+          </div>
+
           {/* BIBLIOTHÈQUE */}
           <div className={`page ${page==='bibliotheque'?'active':''}`}>
             <div className="eyebrow">{T('your_content')}</div><div className="page-title">{T('library')}</div><div className="copper-rule"/>
@@ -1362,10 +1461,11 @@ export default function Home() {
           {id:'idees',label:T('nav_idees_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
           {id:'rediger',label:T('nav_rediger'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
 {id:'calendrier',label:'Agenda',icon:<CalIcon/>},
+          {id:'analytics',label:'Stats',icon:<BarIcon/>},
           {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
           {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
         ].map(item=>(
-          <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>
+          <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels"||item.id==="analytics")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>
             {item.icon}
             <span>{item.label}</span>
           </button>
@@ -1485,6 +1585,7 @@ export default function Home() {
   )
 }
 
+const BarIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M6 20V14M12 20V10M18 20V6"/></svg>
 const CalIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
 const GridIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
 const BulbIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>
