@@ -255,6 +255,23 @@ export default function Home() {
     if (theme === '1') { setDark(true); document.documentElement.dataset.theme = 'dark' }
   }, [])
 
+
+  // Upgrade success handler
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    if (params.get('upgrade') === 'success' && sessionId && userId) {
+      fetch('/api/stripe/success', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      }).then(() => {
+        window.history.replaceState({}, '', '/');
+        window.location.reload();
+      });
+    }
+  }, [userId]);
+
   // Load Supabase data once userId is available
   useEffect(() => {
     if (!userId) return
