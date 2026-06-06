@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { sendNotification } from '../../lib/notify'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const profile = (post as any).profiles
       if (!profile?.linkedin_token) {
         await supabase.from('scheduled_posts').update({ status: 'error' }).eq('id', post.id)
+        await sendNotification({ userId: post.user_id, type: 'post_error', title: 'LinkedIn non connecté', body: 'Reconnectez votre compte LinkedIn', userEmail: profile?.email }).catch(()=>{})
         failed++
         continue
       }
@@ -89,9 +91,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           if (postRes.ok) {
             await supabase.from('scheduled_posts').update({ status: 'published' }).eq('id', post.id)
             published++
+            await sendNotification({ userId: post.user_id, type: 'post_published', title: 'Post publié sur LinkedIn ✅', body: post.content?.substring(0,80), userEmail: profile.email }).catch(()=>{})
           } else {
             await supabase.from('scheduled_posts').update({ status: 'error' }).eq('id', post.id)
             failed++
+            await sendNotification({ userId: post.user_id, type: 'post_error', title: 'Erreur de publication', body: 'Échec publication avec visuel', userEmail: profile.email }).catch(()=>{})
           }
           continue
         }
@@ -117,9 +121,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (postRes.ok) {
         await supabase.from('scheduled_posts').update({ status: 'published' }).eq('id', post.id)
         published++
+        await sendNotification({ userId: post.user_id, type: 'post_published', title: 'Post publié sur LinkedIn ✅', body: post.content?.substring(0,80), userEmail: profile.email }).catch(()=>{})
       } else {
         await supabase.from('scheduled_posts').update({ status: 'error' }).eq('id', post.id)
         failed++
+        await sendNotification({ userId: post.user_id, type: 'post_error', title: 'Erreur de publication', userEmail: profile.email }).catch(()=>{})
       }
     } catch (err) {
       console.error(`Erreur post ${post.id}:`, err)
