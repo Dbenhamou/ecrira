@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createClient } from '@supabase/supabase-js'
+import { requireAuth } from '../../lib/auth-helper'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -9,6 +10,8 @@ const supabase = createClient(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
+  const authUserId = await requireAuth(req, res)
+  if (!authUserId) return
   const { userId, content } = req.body
   if (!content?.trim()) return res.status(400).json({ error: 'Contenu manquant' })
   if (content.length > 3000) return res.status(400).json({ error: 'Contenu trop long (max 3000 car.)' })
