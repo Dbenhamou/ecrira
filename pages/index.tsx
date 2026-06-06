@@ -282,7 +282,7 @@ export default function Home() {
   }, [userId])
 
   useEffect(() => {
-    if (!loading && userId && !profile.role) setShowOnboarding(true)
+    if (!loading && userId && !profile.role && !isPro) setShowOnboarding(true)
   }, [loading, userId, profile.role])
 
   // ── Supabase: load posts ──
