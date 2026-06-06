@@ -928,38 +928,44 @@ export default function Home() {
                 {loadingPost&&<div style={{marginBottom:10}}><div className="strip"/></div>}
                 <textarea className="post-editor" style={{minHeight:260}} value={postOutput} onChange={e=>setPostOutput(e.target.value)} placeholder={T('post_placeholder')}/>
                 {/* Action bar — always visible */}
-                <div style={{marginTop:12,display:'flex',flexDirection:'column' as const,gap:8}}>
-                  <div style={{display:'flex',gap:7}}>
-                    <div style={{display:'flex',flexDirection:'column' as const,gap:6,flex:1}}>
-                      <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||generatingAiVisual}>
-                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération visuel…</>:'🖼 Créer le visuel'}
+                <div style={{marginTop:16,display:'flex',flexDirection:'column' as const,gap:10}}>
+
+                  {/* Créer le visuel */}
+                  <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||generatingAiVisual}>
+                    {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération visuel…</>:'🖼 Créer le visuel'}
+                  </button>
+
+                  {/* Séparateur Publier maintenant */}
+                  <div style={{display:'flex',alignItems:'center',gap:8,margin:'2px 0'}}>
+                    <div style={{flex:1,height:1,background:'var(--border)'}}/>
+                    <span style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'.06em',textTransform:'uppercase' as const}}>Publier maintenant</span>
+                    <div style={{flex:1,height:1,background:'var(--border)'}}/>
+                  </div>
+
+                  {linkedinConnected ? (
+                    <div style={{display:'flex',gap:7}}>
+                      <button className="btn" onClick={()=>{publishPost(false)}} disabled={publishing||!postOutput} style={{flex:1,background:'#0077B5',color:'white',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',opacity:postOutput?1:0.5}}>
+                        {publishing?<><span className="spinner" style={{borderTopColor:'white'}}/>Publication…</>:'📝 Texte uniquement'}
+                      </button>
+                      <button className="btn" onClick={()=>{publishPost(true)}} disabled={publishing||!postOutput||!aiSvgContent} title={!aiSvgContent?"Générez d'abord un visuel":''} style={{flex:1,background:aiSvgContent?'#0077B5':'var(--border)',color:aiSvgContent?'white':'var(--text3)',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',cursor:aiSvgContent?'pointer':'not-allowed'}}>
+                        {'🖼 Texte + visuel'}
                       </button>
                     </div>
-                    {linkedinConnected ? (
-                      <div style={{position:'relative' as const, flex:2}}>
-                        <div style={{display:'flex',borderRadius:11,overflow:'hidden',border:'1px solid #0077B5'}}>
-                          <button className="btn" onClick={()=>setShowPublishMenu(m=>!m)} disabled={publishing||!postOutput} style={{background:'#0077B5',color:'white',flex:1,justifyContent:'center',fontSize:12,borderRadius:0,padding:'9px 12px'}}>
-                            {publishing?<><span className="spinner" style={{borderTopColor:'white'}}/>Publication…</>:'🔗 Publier sur LinkedIn ▾'}
-                          </button>
-                        </div>
-                        {showPublishMenu && (
-                          <div style={{position:'absolute' as const,bottom:'100%',right:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:240,overflow:'hidden'}}>
-                            <button className="btn" onClick={()=>{publishPost(false);setShowPublishMenu(false)}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
-                              📝 Publier le texte uniquement
-                            </button>
-                            <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false)}} disabled={!aiSvgContent} style={{width:'100%',padding:'10px 14px',fontSize:12,color:aiSvgContent?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,cursor:aiSvgContent?'pointer':'not-allowed',background:'transparent'}}>
-                              🖼 Publier texte + visuel{!aiSvgContent?" (générez d'abord un visuel)":''}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <button className="btn btn-primary" style={{fontSize:12,flex:2,justifyContent:'center',background:'#0077B5'}} onClick={connectLinkedIn}>
-                        🔗 Connecter LinkedIn
-                      </button>
-                    )}
+                  ) : (
+                    <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'#0077B5',borderRadius:10}} onClick={connectLinkedIn}>
+                      🔗 Connecter LinkedIn
+                    </button>
+                  )}
+
+                  {/* Séparateur Planifier */}
+                  <div style={{display:'flex',alignItems:'center',gap:8,margin:'2px 0'}}>
+                    <div style={{flex:1,height:1,background:'var(--border)'}}/>
+                    <span style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'.06em',textTransform:'uppercase' as const}}>Planifier</span>
+                    <div style={{flex:1,height:1,background:'var(--border)'}}/>
                   </div>
+
                   <div style={{display:'flex',gap:7,alignItems:'center',flexWrap:'wrap' as const,position:'relative' as const}}>
+                    {/* Bouton date custom */}
                     {/* Bouton date custom */}
                     <button className="btn btn-ghost" onClick={(e)=>{e.stopPropagation();if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())};setShowDatePicker(v=>!v);setShowTimePicker(false)}} style={{fontSize:12,flex:1,justifyContent:'flex-start',minWidth:130,color:scheduleDateTime?'var(--text1)':'var(--text3)'}}>
                       📅 {scheduleDateTime ? new Date(scheduleDateTime).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : 'Choisir une date'}
