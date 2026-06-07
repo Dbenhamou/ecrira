@@ -633,11 +633,9 @@ export default function Home() {
         const url = URL.createObjectURL(blob)
         setAiVisualUrl(url)
         setAiSvgContent(data.svgContent)
-        // Init editor
-        const titleMatch = data.svgContent.match(/font-size="5[24]" font-weight="bold" fill="[^"]+">([^<]+)<\/text>/)
-        if (titleMatch) setSvgEditTitle(titleMatch[1])
-        const pts = [...(data.svgContent.matchAll(/font-size="26" font-weight="bold" fill="#1F2421">([^<]+)<\/text>/g))].map((m:any)=>m[1]).slice(0,3)
-        if (pts.length) setSvgEditPoints(pts)
+        // Init editor with known values
+        setSvgEditTitle(visualCustomTitle || postTopic || '')
+        setSvgEditPoints(visualCustomPoints ? visualCustomPoints.split('\n').filter((p:string)=>p.trim()).slice(0,3) : [])
         setSvgEditAccent(profile?.brand_accent||'#516756')
         setShowSvgEditor(false)
         showToast('Visuel généré ✓')

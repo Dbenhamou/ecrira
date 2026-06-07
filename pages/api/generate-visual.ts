@@ -43,12 +43,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ? '   text "ecrira.com" fill=#9EA39C font-size=14 x=980 y=1338 text-anchor=end opacity=0.6'
     : ''
   const footerClassique = hideUserInfo
-    ? ''
+    ? ' PAS de footer. La zone 1200-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
     : ` Cercle ${brandAccent}40 r=32 + initiales blanches bold. Nom blanc bold 27px + role #B7C0B8 20px. Badge LinkedIn ${brandAccent} droite rx=20.`
-  const footerSimple = hideUserInfo ? '' : ` Nom blanc bold 26px + role #B7C0B8 19px.`
-  const footerSimple2 = hideUserInfo ? '' : ` Nom blanc 26px + role #B7C0B8 18px.`
+  const footerSimple = hideUserInfo
+    ? ' PAS de footer. La zone 1210-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
+    : ` Nom blanc bold 26px + role #B7C0B8 19px.`
+  const footerSimple2 = hideUserInfo
+    ? ' PAS de footer. La zone 1220-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
+    : ` Nom blanc 26px + role #B7C0B8 18px.`
   const footerCitation = hideUserInfo
-    ? ''
+    ? ' PAS de footer. La zone 1160-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
     : ` Cercle initiales + nom blanc 26px + role #B7C0B8 19px.`
   const authorLine = hideUserInfo ? '' : `${name}${role ? ' - ' + role + (company ? ' · ' + company : '') : ''}`
   const titleLine = visualCustomTitle || postTopic || 'Post LinkedIn'
