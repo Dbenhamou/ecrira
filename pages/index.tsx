@@ -238,6 +238,8 @@ export default function Home() {
   const [showVisualModal, setShowVisualModal] = useState(false)
   const [aiVisualUrl, setAiVisualUrl] = useState('')
   const [aiSvgContent, setAiSvgContent] = useState('')
+  const [improvementNote, setImprovementNote] = useState('')
+  const [improving, setImproving] = useState(false)
   const [visualType, setVisualType] = useState('classique')
   const [hideWatermark, setHideWatermark] = useState(false)
   const [visualCustomTitle, setVisualCustomTitle] = useState('')
@@ -648,6 +650,36 @@ export default function Home() {
     window.location.href = `/api/linkedin/auth?userId=${userId}`
   }
 
+  const improvePost = async () => {
+    if (!improvementNote.trim() || !postOutput) return
+    setImproving(true)
+    try {
+      const res = await authFetch('/api/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+          topic: postTopic,
+          format: postFormat,
+          length: postLength,
+          tone: postTone,
+          profile,
+          improvement: improvementNote,
+          previousPost: postOutput,
+          seed: Math.random().toString(36).substring(2),
+        }),
+      })
+      const data = await res.json()
+      if (data.content) {
+        setPostOutput(data.content)
+        setImprovementNote('')
+        showToast('Post amélioré ✓')
+      }
+    } catch(e) {
+      showToast('Erreur lors de l\'amélioration')
+    } finally {
+      setImproving(false)
+    }
+  }
+
   const schedulePost = async () => {
     if (!postOutput.trim()) { showToast('Aucun post à planifier'); return }
     if (!scheduleDateTime) { showToast('Choisis une date et heure'); return }
@@ -998,6 +1030,32 @@ export default function Home() {
                 </div>
                 {loadingPost&&<div style={{marginBottom:10}}><div className="strip"/></div>}
                 <textarea className="post-editor" style={{minHeight:260}} value={postOutput} onChange={e=>setPostOutput(e.target.value)} placeholder={T('post_placeholder')}/>
+                {/* Zone amélioration post */}
+                {postOutput && (
+                  <div style={{marginTop:8,border:'1px solid var(--border)',borderRadius:12,overflow:'hidden',background:'white'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderBottom:'1px solid var(--border)',background:'rgba(81,103,86,0.04)'}}>
+                      <span style={{fontSize:11,fontWeight:600,color:'var(--forest)'}}>✨ Améliorer ce post</span>
+                    </div>
+                    <div style={{padding:'10px 12px',display:'flex',gap:8,alignItems:'flex-end'}}>
+                      <textarea
+                        value={improvementNote}
+                        onChange={e=>setImprovementNote(e.target.value)}
+                        placeholder="Ex: Rends-le plus percutant, ajoute un chiffre, raccourcis-le, change le hook..."
+                        rows={2}
+                        style={{flex:1,fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',resize:'none' as const,fontFamily:'inherit',color:'var(--text1)',background:'var(--bg)',lineHeight:1.4}}
+                      />
+                      <button
+                        className="btn btn-primary"
+                        onClick={improvePost}
+                        disabled={improving||!improvementNote.trim()}
+                        style={{fontSize:11,padding:'7px 12px',background:'var(--forest)',flexShrink:0,borderRadius:8}}
+                      >
+                        {improving?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:'Appliquer →'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Action bar — always visible */}
                 <div style={{marginTop:16,display:'flex',flexDirection:'column' as const,gap:10}}>
 

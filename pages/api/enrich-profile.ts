@@ -99,17 +99,20 @@ Tu analyses le contenu d'un site web et tu en extrais des informations pour enri
 Réponds UNIQUEMENT avec un JSON valide, sans markdown ni commentaire.`,
       messages: [{
         role: 'user',
-        content: `Analyse ce contenu de site web et extrais les informations suivantes :
+        content: `Analyse ce contenu de site web et extrais les informations suivantes pour créer des posts LinkedIn ultra-pertinents :
 
 ${content}
 
-Réponds avec ce JSON exact :
+Réponds avec ce JSON exact (tous les champs en français) :
 {
-  "company": "nom de l'entreprise",
-  "sector": "secteur d'activité en 5-8 mots",
-  "audience": "cible client principale en 8-12 mots",
-  "tech_stack": "technologies/outils mentionnés si pertinent, sinon vide",
-  "summary": "résumé du positionnement en 1 phrase max 20 mots"
+  "company": "nom exact de l'entreprise/organisation",
+  "sector": "secteur d'activité précis en 4-6 mots (ex: Presse événementielle B2B, Cybersécurité MSP, Conseil RH PME)",
+  "audience": "cible client principale en 8-15 mots (ex: Directeurs communication grands groupes, MSP et revendeurs IT en France)",
+  "summary": "positionnement différenciant en 1 phrase max 25 mots",
+  "keywords": "5-8 mots-clés métier séparés par des virgules (termes du secteur, problématiques clients)",
+  "tone": "ton éditorial recommandé: expert/inspirant/pédagogique/provocateur/storytelling",
+  "content_themes": "3-5 thèmes de posts recommandés séparés par | (ex: Tendances presse|Coulisses événements|Chiffres clés secteur)",
+  "pain_points": "2-3 problèmes clients principaux séparés par | que cette entreprise résout"
 }`,
       }],
     })

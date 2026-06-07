@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
-  const { topic, format, length, tone, profile, seed } = req.body
+  const { topic, format, length, tone, profile, seed, improvement, previousPost } = req.body
   if (topic && topic.length > 500) return res.status(400).json({ error: 'Sujet trop long (max 500 car.)' })
 
   const formatMap: Record<string, string> = {
@@ -37,6 +37,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const company = profile?.company || ''
   const sector = profile?.sector || ''
   const audience = profile?.audience || 'Professionnels LinkedIn'
+  const summary = profile?.summary || ''
+  const keywords = profile?.keywords || ''
+  const profileTone = profile?.tone || ''
+  const contentThemes = profile?.content_themes || ''
+  const painPoints = profile?.pain_points || ''
   const techStack = profile?.tech_stack || ''
   const lang = (profile?.lang || 'fr') === 'en' ? 'English' : 'Français'
   const langInstruction = (profile?.lang || 'fr') === 'en' ? 'Write the post in English.' : 'Rédige le post en français.'
@@ -78,11 +83,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       + "- Adapte le vocabulaire et les exemples au secteur de l'utilisateur"
   }
 
-  const systemPrompt = 'Tu es un expert en personal branding LinkedIn.\n'
+  const systemPrompt = 'Tu es un expert en personal branding LinkedIn spécialisé dans le secteur de l\'utilisateur.\n'
     + 'Utilisateur : ' + role + (company ? ' chez ' + company : '') + '.\n'
-    + 'Secteur : ' + (sector || 'Non precise') + '.\n'
-    + 'Audience : ' + audience + '.\n'
-    + (techStack ? 'Stack : ' + techStack + '.\n' : '')
+    + 'Secteur : ' + (sector || 'Non précisé') + '.\n'
+    + 'Audience cible : ' + audience + '.\n'
+    + (summary ? 'Positionnement : ' + summary + '.\n' : '')
+    + (keywords ? 'Mots-clés secteur : ' + keywords + '.\n' : '')
+    + (painPoints ? 'Problèmes clients résolus : ' + painPoints + '.\n' : '')
+    + (contentThemes ? 'Thèmes éditoriaux recommandés : ' + contentThemes + '.\n' : '')
+    + (profileTone ? 'Ton éditorial : ' + profileTone + '.\n' : '')
+    + (techStack ? 'Outils/Stack : ' + techStack + '.\n' : '')
+    + 'IMPORTANT : Utilise le vocabulaire exact du secteur, des références concrètes au métier, et adresse-toi directement à l\'audience cible.\n'
     + 'Langue : ' + lang + '. ' + langInstruction + '\n\n'
     + styleSection + '\n\n'
     + "- N'utilise JAMAIS de Markdown : pas de **, pas de __, pas de ##, pas de *\n"
