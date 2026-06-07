@@ -42,18 +42,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const watermarkLine = showWatermark
     ? '   text "ecrira.com" fill=#9EA39C font-size=14 x=980 y=1338 text-anchor=end opacity=0.6'
     : ''
-  const footerClassique = hideUserInfo
-    ? ' PAS de footer. La zone 1200-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
-    : ` Cercle ${brandAccent}40 r=32 + initiales blanches bold. Nom blanc bold 27px + role #B7C0B8 20px. Badge LinkedIn ${brandAccent} droite rx=20.`
-  const footerSimple = hideUserInfo
-    ? ' PAS de footer. La zone 1210-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
-    : ` Nom blanc bold 26px + role #B7C0B8 19px.`
-  const footerSimple2 = hideUserInfo
-    ? ' PAS de footer. La zone 1220-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
-    : ` Nom blanc 26px + role #B7C0B8 18px.`
-  const footerCitation = hideUserInfo
-    ? ' PAS de footer. La zone 1160-1350px reste dans le fond general du visuel sans aucun rect supplementaire.'
-    : ` Cercle initiales + nom blanc 26px + role #B7C0B8 19px.`
+  const footerClassique = hideUserInfo ? '' : ` Cercle ${brandAccent}40 r=32 + initiales blanches bold. Nom blanc bold 27px + role #B7C0B8 20px. Badge LinkedIn ${brandAccent} droite rx=20.`
+  const footerSimple = hideUserInfo ? '' : ` Nom blanc bold 26px + role #B7C0B8 19px.`
+  const footerSimple2 = hideUserInfo ? '' : ` Nom blanc 26px + role #B7C0B8 18px.`
+  const footerCitation = hideUserInfo ? '' : ` Cercle initiales + nom blanc 26px + role #B7C0B8 19px.`
   const authorLine = hideUserInfo ? '' : `${name}${role ? ' - ' + role + (company ? ' · ' + company : '') : ''}`
   const titleLine = visualCustomTitle || postTopic || 'Post LinkedIn'
   const pointsLine = customPoints
@@ -61,6 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     : keyPoints.slice(0, 3).join(' | ')
 
   const prompt = `Tu es un expert en design graphique SVG pour LinkedIn. Tu crées des visuels IMPACTANTS, EPURES et PROFESSIONNELS.
+
+${hideUserInfo ? 'IMPORTANT : NE PAS ajouter de footer sombre (#1F2421). La zone en bas du visuel doit continuer le fond general du design sans rect supplementaire.' : ''}
 
 REGLES ABSOLUES :
 - SVG 1080x1350px viewBox="0 0 1080 1350"

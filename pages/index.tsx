@@ -1129,6 +1129,16 @@ export default function Home() {
                           <input type="checkbox" id="hideUserInfo" checked={hideUserInfo} onChange={e=>setHideUserInfo(e.target.checked)} style={{accentColor:'var(--forest)',width:14,height:14}}/>
                           <label htmlFor="hideUserInfo" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer mes informations (nom, rôle, entreprise)</label>
                         </div>
+
+                        {/* Bouton Régénérer */}
+                        <button
+                          className="btn btn-primary"
+                          onClick={()=>{ setShowSvgEditor(false); generateAiVisual(); }}
+                          disabled={generatingAiVisual}
+                          style={{fontSize:12,justifyContent:'center',background:'var(--forest)',borderRadius:8,marginTop:4}}
+                        >
+                          {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération...</>:'🔄 Régénérer avec ces paramètres'}
+                        </button>
                       </div>
                     )}
                   </div>
