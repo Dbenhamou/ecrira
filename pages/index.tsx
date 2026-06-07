@@ -245,6 +245,7 @@ export default function Home() {
   const [visualCustomTitle, setVisualCustomTitle] = useState('')
   const [visualCustomPoints, setVisualCustomPoints] = useState('')
   const [showVisualConfig, setShowVisualConfig] = useState(false)
+  const [hideUserInfo, setHideUserInfo] = useState(false)
   const [svgEditTitle, setSvgEditTitle] = useState('')
   const [svgEditPoints, setSvgEditPoints] = useState<string[]>([])
   const [svgEditAccent, setSvgEditAccent] = useState('')
@@ -622,6 +623,7 @@ export default function Home() {
           profile,
           visualType,
           hideWatermark,
+          hideUserInfo,
           customPoints: visualCustomPoints,
         }),
       })
@@ -1123,6 +1125,12 @@ export default function Home() {
                         {!isPro && (
                           <div style={{fontSize:10,color:'var(--text3)',fontStyle:'italic' as const}}>✦ Passez en Pro pour masquer la mention ecrira.com</div>
                         )}
+
+                        {/* Masquer infos user */}
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <input type="checkbox" id="hideUserInfo" checked={hideUserInfo} onChange={e=>setHideUserInfo(e.target.checked)} style={{accentColor:'var(--forest)',width:14,height:14}}/>
+                          <label htmlFor="hideUserInfo" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer mes informations (nom, rôle, entreprise)</label>
+                        </div>
                       </div>
                     )}
                   </div>

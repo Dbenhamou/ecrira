@@ -9,7 +9,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
-  const { postContent, postTopic, profile, visualType = 'classique', hideWatermark = false } = req.body
+  const { postContent, postTopic, profile, visualType = 'classique', hideWatermark = false, hideUserInfo = false, customPoints = '' } = req.body
   const isPro = profile?.plan === 'pro'
   const showWatermark = !isPro || !hideWatermark
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
@@ -36,56 +36,78 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       max_tokens: 8000,
       messages: [{
         role: 'user',
-        content: `Tu es un expert en design graphique premium pour LinkedIn B2B. Tu crées des visuels SVG modernes, percutants et professionnels.
+        content: `Tu es un expert en design graphique SVG pour LinkedIn. Tu crées des visuels IMPACTANTS, ÉPURÉS et PROFESSIONNELS.
 
-Génère un SVG LinkedIn portrait (1080x1350px) de haute qualité pour ce post :
+RÈGLES ABSOLUES :
+- SVG 1080x1350px viewBox="0 0 1080 1350"
+- font-family="Arial, Helvetica, sans-serif" UNIQUEMENT
+- Éléments : rect, text, circle, line, path, defs, linearGradient, stop, polygon
+- PAS de foreignObject, PAS @import, PAS filter complexe
+- Texte long = plusieurs balises text séparées
+- Tous textes entre x=72 et x=1008
 
-SUJET : ${postTopic || 'Post LinkedIn'}
-AUTEUR : ${name}${role ? ' — ' + role : ''}${company ? ' @ ' + company : ''}
-SECTEUR : ${sector}
-POINTS CLÉS :
-${keyPoints.map((p: string, i: number) => `${i + 1}. ${p}`).join('\n')}
+DONNÉES :
+- Titre : ${visualCustomTitle || postTopic || 'Post LinkedIn'}
+- Points : ${customPoints ? customPoints.split('\n').filter((p: string) => p.trim()).slice(0, 4).join(' | ') : keyPoints.slice(0, 3).join(' | ')}
+- Accent : ${brandAccent}
+- Fond : ${brandBg}
+- Auteur : ${hideUserInfo ? '' : name}
+- Rôle : ${hideUserInfo ? '' : (role + (company ? ' · ' + company : ''))}
+- Type demandé : ${visualType.toUpperCase()}
 
-CHARTE GRAPHIQUE :
-- Fond principal : ${brandBg}
-- Couleur accent : ${brandAccent}
-- Secondaire : #B7C0B8
-- Champagne : #D9C8A3
-- Charcoal : #1F2421
-- Font : Arial, Helvetica, sans-serif uniquement
+---
+SI CLASSIQUE :
+1. HEADER (0-160px) : rect fond ${brandAccent} pleine largeur. Entreprise/auteur bold blanc 48px x=72 y=100. Badge secteur droite rx=20 fond blanc 20% texte blanc 19px.
+2. TITRE (160-480px) : fond ${brandBg}. Rect ${brandAccent} 80px large 6px rx=3 y=176. Titre ${brandAccent} bold 56px y=275 et y=345 (2 lignes max). Sous-titre italic #666 24px y=415.
+3. SÉPARATEUR : ligne #ddd + 3 cercles centrés y=470.
+4. POINTS CLÉS (480-1090px) : fond blanc. Label "POINTS CLÉS" #aaa 13px letter-spacing=4 centré y=520. 3 cards rx=14 fond ${brandBg} (x=56 w=968). Cercle ${brandAccent} r=26 + numéro blanc bold 22px. Titre bold 27px #1F2421. Sous-titre ${brandAccent} 19px 75% opacité.
+5. STAT (1090-1200px) : fond ${brandAccent}18. Chiffre clé ${brandAccent} bold 64px centré + label #1F2421 22px.
+6. FOOTER (1200-1350px) : fond #1F2421.${hideUserInfo ? '' : ` Cercle ${brandAccent}40 r=32 + initiales blanches bold. Nom blanc bold 27px + rôle #B7C0B8 20px. Badge LinkedIn ${brandAccent} droite rx=20.`}
+${showWatermark ? '   text "ecrira.com" fill=#9EA39C font-size=14 x=980 y=1338 text-anchor=end opacity=0.6' : ''}
 
-STRUCTURE (dans l'ordre vertical) :
-1. HEADER (0-200px) — Dégradé de ${brandAccent} vers une version légèrement plus sombre. Nom entreprise "${company || 'Content Studio'}" bold blanc 54px à gauche (x=72, y=90). Sous-titre rôle/secteur en blanc 60% opacité 22px (x=72, y=135). Badge secteur arrondi à droite (rx=24, fill blanc 20% opacité, texte blanc bold 19px centré).
+---
+SI TIMELINE :
+1. HEADER (0-150px) : fond ${brandAccent}. Titre bold blanc 50px centré y=90. Sous-titre blanc 70% 22px centré y=130.
+2. FRISE (150-1100px) : fond blanc. Ligne verticale centrale stroke=${brandAccent} strokeWidth=5 x1=540 x2=540 y1=180 y2=1060.
+   4 ÉTAPES : cercle ${brandAccent} r=36 fill=${brandAccent} + numéro blanc bold 24px. Cards alternées gauche (x=72 w=400 rx=14) / droite (x=608 w=400). Ligne horizontale connectrice ${brandAccent} strokeWidth=3. Titre card bold 26px #1F2421. Description 19px #666.
+3. CONCLUSION (1100-1210px) : fond ${brandAccent}15. Texte clé centré bold ${brandAccent} 28px.
+4. FOOTER (1210-1350px) : fond #1F2421.${hideUserInfo ? '' : ` Nom blanc bold 26px + rôle #B7C0B8 19px.`}
+${showWatermark ? '   text "ecrira.com" fill=#9EA39C font-size=14 x=980 y=1338 text-anchor=end opacity=0.6' : ''}
 
-2. TITRE (200-500px) — Fond ${brandBg}. Accent bar : rect 72px large, 6px haut, rx=3, fill=${brandAccent}, y=220. Titre du sujet en ${brandAccent} bold 54px, max 2 lignes, x=72, y=300 et y=368. Sous-titre italic 24px charcoal à y=435.
+---
+SI STAT :
+1. FOND (0-1350px) : rect ${brandBg}.
+2. BANDE GAUCHE : rect ${brandAccent} x=0 y=0 width=10 height=1350.
+3. CERCLE DÉCO : cercle stroke=${brandAccent} strokeWidth=4 opacity=0.12 r=320 cx=540 cy=580.
+4. LE CHIFFRE (y=450-700px) : 1 stat énorme ${brandAccent} bold font-size=200 centré cx=540. Unité si applicable font-size=90.
+5. LABEL CHIFFRE (y=710px) : label court #1F2421 bold 34px centré.
+6. CONTEXTE (y=780-950px) : 2-3 lignes #555 24px centré (max 44 chars/ligne).
+7. TITRE ENCADRÉ (y=980-1100px) : rect ${brandAccent}12 rx=20 x=72 w=936. Titre italic ${brandAccent} bold 30px centré y=1055.
+8. FOOTER (1200-1350px) : fond #1F2421.${hideUserInfo ? '' : ` Nom blanc bold 26px + rôle #B7C0B8 19px.`}
+${showWatermark ? '   text "ecrira.com" fill=#9EA39C font-size=14 x=980 y=1338 text-anchor=end opacity=0.6' : ''}
 
-3. SÉPARATEUR — Ligne décorative avec 3 cercles centrés.
+---
+SI CITATION :
+1. FOND (0-1350px) : rect ${brandBg}.
+2. GUILLEMETS DÉCO : text « #1F2421 opacity=0.07 font-size=400 x=40 y=400.
+3. CITATION (y=200-720px) : texte de la phrase clé du post en #1F2421 bold font-size=54 centré, max 3 lignes 42px line-height.
+4. TRAIT (y=740px) : rect ${brandAccent} w=100 h=6 rx=3 centré.
+5. CONTEXTE (y=790-920px) : sous-texte italic ${brandAccent} 26px centré max 2 lignes.
+6. ENCADRÉ CTA (y=950-1150px) : rect ${brandAccent} rx=20 x=72 w=936. Texte blanc bold 30px centré + sous-texte blanc 70% 21px.
+7. FOOTER (1160-1350px) : fond #1F2421.${hideUserInfo ? '' : ` Cercle initiales + nom blanc 26px + rôle #B7C0B8 19px.`}
+${showWatermark ? '   text "ecrira.com" fill=#9EA39C font-size=14 x=980 y=1338 text-anchor=end opacity=0.6' : ''}
 
-4. POINTS CLÉS (520-1080px) — Fond blanc. Label "POINTS CLÉS" gris clair letter-spacing=4. 3 blocs cards avec rx=14, fond ${brandBg}, border ${brandAccent} 15% opacité. Chaque bloc : numéro cerclé ${brandAccent} à gauche, titre bold 26px #1F2421, sous-titre 20px ${brandAccent} 80% opacité. Décoration géométrique discrète dans le dernier bloc (cercles concentriques stroke only).
+---
+SI LISTE :
+1. HEADER (0-160px) : fond ${brandAccent}. Titre bold blanc 48px x=72 y=100. Badge contexte droite.
+2. SOUS-TITRE (160-230px) : fond ${brandBg}. Italic #666 24px x=72 y=205.
+3. ITEMS (230-1110px) : fond blanc. 3-4 items :
+   Chaque item (hauteur ~200px) : rect ${brandBg} rx=16 x=56 w=968. Carré arrondi ${brandAccent} 58x58 rx=14 x=80 + numéro blanc bold 30px centré. Titre bold 29px #1F2421 x=162. Description 21px #666 x=162. Ligne séparatrice légère #eee.
+4. CTA (1110-1220px) : rect ${brandAccent} x=0 w=1080. Texte blanc bold 30px centré.
+5. FOOTER (1220-1350px) : fond #1F2421.${hideUserInfo ? '' : ` Nom blanc 26px + rôle #B7C0B8 18px.`}
+${showWatermark ? '   text "ecrira.com" fill=#9EA39C font-size=14 x=980 y=1338 text-anchor=end opacity=0.6' : ''}
 
-5. STAT HIGHLIGHT (1080-1200px) — Fond ${brandAccent} 10% opacité. Chiffre/stat clé du post en ${brandAccent} bold 52px centré, label 20px #1F2421 centré.
-
-6. FOOTER (1200-1350px) — Fond #1F2421. Ligne décorative ${brandAccent} 3px en haut. Cercle avatar ${brandAccent} 25% opacité + initiales bold blanc. Nom "${name}" bold blanc 28px, rôle gris clair 21px. Badge LinkedIn arrondi ${brandAccent} à droite avec handle.
-
-RÈGLES TECHNIQUES ABSOLUES :
-- Padding horizontal partout : 72px minimum
-- PAS de foreignObject, PAS de CSS, PAS de filter, PAS de backdrop-filter
-- PAS de polices custom (pas de @import, pas de Google Fonts via SVG)
-- Uniquement rect, text, circle, line, path, defs, linearGradient, stop
-- Les dégradés via <defs><linearGradient>
-- Texte long : découpe en plusieurs <text> avec tspan ou balises text séparées
-- Tous les textes doivent être dans les limites 72px ↔ 1008px
-TYPE DE VISUEL DEMANDÉ : ${visualType.toUpperCase()}
-- 'classique' : structure header/titre/points clés/stat/footer
-- 'timeline' : frise chronologique verticale avec étapes numérotées et connecteurs
-- 'stat' : visuel centré sur un chiffre/stat impactant avec contexte minimaliste
-- 'citation' : grande citation mise en valeur avec auteur et contexte
-- 'liste' : liste structurée avec icônes/puces visuelles, sans header lourd
-Adapte TOUTE la structure et la composition au type demandé.
-
-${showWatermark ? '- WATERMARK OBLIGATOIRE : texte "ecrira.com" en bas à droite, font-size=16, fill=%239EA39C, opacity=0.7, x=980, y=1330, text-anchor=end' : '- PAS de mention Ecrira'}
-
-Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.`,      }],
+Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.\`,
     })
 
     const svgRaw = (message.content[0] as { text: string }).text
