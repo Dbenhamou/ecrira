@@ -664,6 +664,15 @@ export default function Home() {
     window.location.href = `/api/linkedin/auth?userId=${userId}`
   }
 
+  // Darken a hex color by a percentage
+  const darkenColor = (hex: string, pct: number) => {
+    const h = hex.replace('#','')
+    const r = Math.max(0, parseInt(h.slice(0,2),16) - Math.round(255*pct/100))
+    const g = Math.max(0, parseInt(h.slice(2,4),16) - Math.round(255*pct/100))
+    const b = Math.max(0, parseInt(h.slice(4,6),16) - Math.round(255*pct/100))
+    return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('')
+  }
+
   const improvePost = async () => {
     if (!improvementNote.trim() || !postOutput) return
     setImproving(true)
@@ -1279,14 +1288,25 @@ export default function Home() {
                           ].map(c=>(
                             <button key={c} onClick={()=>{
                               const prev = svgEditAccent || profile?.brand_accent || '#516756'
-                              setAiSvgContent(svg=>svg.replace(new RegExp(prev.replace('#','\\#'),'g'),c))
+                              const dark = darkenColor(c, 18)
+                              setAiSvgContent(svg=>{
+                                let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
+                                // Update gradient stop darker shade
+                                s = s.replace(new RegExp(darkenColor(prev,18).replace('#','\\#'),'gi'),dark)
+                                return s
+                              })
                               setSvgEditAccent(c)
                             }} style={{width:20,height:20,borderRadius:'50%',border:c===svgEditAccent?'3px solid #1F2421':'2px solid transparent',background:c,cursor:'pointer',padding:0,flexShrink:0}}/>
                           ))}
                           <input type="color" value={svgEditAccent||'#516756'} onChange={e=>{
                             const c=e.target.value
                             const prev = svgEditAccent || profile?.brand_accent || '#516756'
-                            setAiSvgContent(svg=>svg.replace(new RegExp(prev.replace('#','\\#'),'g'),c))
+                            const dark = darkenColor(c, 18)
+                            setAiSvgContent(svg=>{
+                              let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
+                              s = s.replace(new RegExp(darkenColor(prev,18).replace('#','\\#'),'gi'),dark)
+                              return s
+                            })
                             setSvgEditAccent(c)
                           }} title="Couleur personnalisée" style={{width:20,height:20,borderRadius:'50%',border:'1px solid var(--border)',cursor:'pointer',padding:0,flexShrink:0}}/>
                         </div>
