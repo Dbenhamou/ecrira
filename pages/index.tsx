@@ -281,9 +281,22 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId }),
-      }).then(() => {
-        window.history.replaceState({}, '', '/');
-        window.location.reload();
+      }).then(async () => {
+        // Attendre que le webhook Stripe ait mis à jour le plan
+        let retries = 0
+        const checkPlan = async () => {
+          const { createClient } = await import('@supabase/supabase-js')
+          const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
+          const { data } = await sb.from('profiles').select('plan').eq('id', userId).single()
+          if (data?.plan === 'pro' || retries >= 5) {
+            window.history.replaceState({}, '', '/');
+            window.location.reload();
+          } else {
+            retries++
+            setTimeout(checkPlan, 1500)
+          }
+        }
+        setTimeout(checkPlan, 1000)
       });
     }
   }, [userId]);
@@ -300,7 +313,8 @@ export default function Home() {
   }, [userId])
 
   useEffect(() => {
-    if (!loading && userId && !profile.role && !isPro) setShowOnboarding(true)
+    const fromUpgrade = new URLSearchParams(window.location.search).get('upgrade') === 'success'
+    if (!loading && userId && !profile.role && !isPro && !fromUpgrade) setShowOnboarding(true)
   }, [loading, userId, profile.role])
 
   // ── Supabase: load posts ──

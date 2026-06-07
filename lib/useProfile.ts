@@ -20,6 +20,11 @@ export type Profile = {
   linkedin_token?: string
   linkedin_token_expiry?: string
   linkedin_id?: string
+  summary?: string
+  keywords?: string
+  tone?: string
+  content_themes?: string
+  pain_points?: string
 }
 
 export const DEFAULT_PROFILE: Profile = {
