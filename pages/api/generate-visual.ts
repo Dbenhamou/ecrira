@@ -111,6 +111,8 @@ REGLES ABSOLUES :
 - PAS de foreignObject, PAS @import, PAS filter complexe
 - Texte long = plusieurs balises text separees
 - Tous textes entre x=72 et x=1008
+- INTERDIT : hashtags (#), mentions (@), URLs dans le visuel
+- INTERDIT : reproduire le texte brut du post LinkedIn dans le visuel
 
 DONNEES :
 - Titre : ${titleLine}
@@ -122,7 +124,7 @@ DONNEES :
 STRUCTURE A RESPECTER :
 ${selectedInstructions}
 
-${watermarkLine ? `WATERMARK : Ajoute en bas du visuel l'element SVG suivant exactement tel quel : ${watermarkLine}` : ''}
+
 
 Reponds UNIQUEMENT avec le code SVG complet, commencant par <svg et finissant par </svg>. Aucun texte avant ou apres.`
 
@@ -154,11 +156,20 @@ Reponds UNIQUEMENT avec le code SVG complet, commencant par <svg et finissant pa
     if (!svgClean.includes('</svg>')) svgClean += '</svg>'
 
     // Sanitisation SVG : supprimer scripts, event handlers, liens javascript
-    const svgSafe = svgClean
+    let svgSafe = svgClean
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/\son\w+\s*=\s*["'][^"']*["']/gi, '')
       .replace(/javascript:/gi, '')
       .replace(/data:text\/html/gi, '')
+
+    // Supprimer les hashtags générés par Claude dans le SVG
+    svgSafe = svgSafe.replace(/<text[^>]*>[^<]*#\w+[^<]*<\/text>/gi, '')
+
+    // Injecter le logo Ecrira programmatiquement (plus fiable que via le prompt)
+    if (showWatermark) {
+      const logoImg = `<image x="860" y="1298" width="100" height="38" href="${ECRIRA_LOGO}" opacity="0.75" preserveAspectRatio="xMidYMid meet"/>`
+      svgSafe = svgSafe.replace('</svg>', logoImg + '</svg>')
+    }
 
     res.status(200).json({ svgContent: svgSafe })
   } catch (err) {
