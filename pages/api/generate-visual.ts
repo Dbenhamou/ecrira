@@ -9,7 +9,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
-  const { postContent, postTopic, profile } = req.body
+  const { postContent, postTopic, profile, visualType = 'classique', hideWatermark = false } = req.body
+  const isPro = profile?.plan === 'pro'
+  const showWatermark = !isPro || !hideWatermark
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
 
   const sector = profile?.sector || 'B2B'
@@ -73,7 +75,15 @@ RÈGLES TECHNIQUES ABSOLUES :
 - Les dégradés via <defs><linearGradient>
 - Texte long : découpe en plusieurs <text> avec tspan ou balises text séparées
 - Tous les textes doivent être dans les limites 72px ↔ 1008px
-- PAS de mention Ecrira nulle part
+TYPE DE VISUEL DEMANDÉ : ${visualType.toUpperCase()}
+- 'classique' : structure header/titre/points clés/stat/footer
+- 'timeline' : frise chronologique verticale avec étapes numérotées et connecteurs
+- 'stat' : visuel centré sur un chiffre/stat impactant avec contexte minimaliste
+- 'citation' : grande citation mise en valeur avec auteur et contexte
+- 'liste' : liste structurée avec icônes/puces visuelles, sans header lourd
+Adapte TOUTE la structure et la composition au type demandé.
+
+${showWatermark ? '- WATERMARK OBLIGATOIRE : texte "ecrira.com" en bas à droite, font-size=16, fill=%239EA39C, opacity=0.7, x=980, y=1330, text-anchor=end' : '- PAS de mention Ecrira'}
 
 Réponds UNIQUEMENT avec le code SVG complet, commençant par <svg et finissant par </svg>. Aucun texte avant ou après.`,      }],
     })

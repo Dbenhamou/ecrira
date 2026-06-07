@@ -238,6 +238,11 @@ export default function Home() {
   const [showVisualModal, setShowVisualModal] = useState(false)
   const [aiVisualUrl, setAiVisualUrl] = useState('')
   const [aiSvgContent, setAiSvgContent] = useState('')
+  const [visualType, setVisualType] = useState('classique')
+  const [hideWatermark, setHideWatermark] = useState(false)
+  const [visualCustomTitle, setVisualCustomTitle] = useState('')
+  const [visualCustomPoints, setVisualCustomPoints] = useState('')
+  const [showVisualConfig, setShowVisualConfig] = useState(false)
   const [svgEditTitle, setSvgEditTitle] = useState('')
   const [svgEditPoints, setSvgEditPoints] = useState<string[]>([])
   const [svgEditAccent, setSvgEditAccent] = useState('')
@@ -595,7 +600,14 @@ export default function Home() {
     try {
       const res = await authFetch('/api/generate-visual', {
         method: 'POST',
-        body: JSON.stringify({ postContent: postOutput, postTopic, profile }),
+        body: JSON.stringify({
+          postContent: postOutput,
+          postTopic: visualCustomTitle || postTopic,
+          profile,
+          visualType,
+          hideWatermark,
+          customPoints: visualCustomPoints,
+        }),
       })
       const data = await res.json()
       if (data.svgContent) {
@@ -779,7 +791,6 @@ export default function Home() {
     { id:'rediger', label:T('nav_rediger'), icon:<EditIcon/> },
     { id:'visuels', label:T('nav_visuels'), icon:<ImgIcon/> },
     { id:'calendrier', label:'Calendrier', icon:<CalIcon/> },
-    { id:'analytics', label:'Analytics', icon:<BarIcon/> },
     { id:'bibliotheque', label:T('nav_bibliotheque'), icon:<BookIcon/> },
     { id:'profil', label:T('nav_profil'), icon:<UserIcon/> },
   ]
@@ -880,7 +891,7 @@ export default function Home() {
               </div>
             )}
           </div>
-          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels"||item.id==="analytics")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
+          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
               <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
@@ -990,10 +1001,59 @@ export default function Home() {
                 {/* Action bar — always visible */}
                 <div style={{marginTop:16,display:'flex',flexDirection:'column' as const,gap:10}}>
 
-                  {/* Créer le visuel */}
-                  <button className="btn btn-primary" style={{fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||generatingAiVisual}>
-                    {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération visuel…</>:'🖼 Créer le visuel'}
-                  </button>
+                  {/* Créer le visuel — config + bouton */}
+                  <div style={{border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
+                    {/* Toggle config */}
+                    <div style={{display:'flex',gap:0}}>
+                      <button className="btn btn-primary" style={{flex:1,fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4,borderRadius:0}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||generatingAiVisual}>
+                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération visuel…</>:'🖼 Créer le visuel'}
+                      </button>
+                      <button onClick={()=>setShowVisualConfig(v=>!v)} style={{padding:'0 12px',background:'var(--forest)',border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',cursor:'pointer',color:'white',fontSize:16,opacity:postOutput?1:0.4}} disabled={!postOutput}>
+                        {showVisualConfig?'▲':'▼'}
+                      </button>
+                    </div>
+
+                    {/* Config panel */}
+                    {showVisualConfig && (
+                      <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)',display:'flex',flexDirection:'column' as const,gap:10}}>
+
+                        {/* Type de visuel */}
+                        <div>
+                          <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:6}}>Type de visuel</div>
+                          <div style={{display:'flex',gap:5,flexWrap:'wrap' as const}}>
+                            {[{id:'classique',label:'📰 Classique'},{id:'timeline',label:'🕓 Timeline'},{id:'stat',label:'📊 Stat'},{id:'citation',label:'💬 Citation'},{id:'liste',label:'📋 Liste'}].map(t=>(
+                              <button key={t.id} onClick={()=>setVisualType(t.id)} style={{padding:'5px 10px',borderRadius:20,border:'1.5px solid',borderColor:visualType===t.id?'var(--forest)':'var(--border)',background:visualType===t.id?'var(--forest)':'transparent',color:visualType===t.id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer'}}>
+                                {t.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Titre personnalisé */}
+                        <div>
+                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>Titre (optionnel — remplace le titre auto)</div>
+                          <input value={visualCustomTitle} onChange={e=>setVisualCustomTitle(e.target.value)} placeholder="Ex: 5 raisons pour lesquelles..." style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',boxSizing:'border-box' as const,color:'var(--text1)',background:'var(--bg)'}}/>
+                        </div>
+
+                        {/* Points personnalisés */}
+                        <div>
+                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>Points clés (optionnel — 1 par ligne)</div>
+                          <textarea value={visualCustomPoints} onChange={e=>setVisualCustomPoints(e.target.value)} placeholder={'Point 1\nPoint 2\nPoint 3'} rows={3} style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',resize:'vertical' as const,boxSizing:'border-box' as const,color:'var(--text1)',background:'var(--bg)',fontFamily:'inherit'}}/>
+                        </div>
+
+                        {/* Masquer mention Ecrira (Pro) */}
+                        {isPro && (
+                          <div style={{display:'flex',alignItems:'center',gap:8}}>
+                            <input type="checkbox" id="hideWm" checked={hideWatermark} onChange={e=>setHideWatermark(e.target.checked)} style={{accentColor:'var(--forest)',width:14,height:14}}/>
+                            <label htmlFor="hideWm" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer la mention "ecrira.com"</label>
+                          </div>
+                        )}
+                        {!isPro && (
+                          <div style={{fontSize:10,color:'var(--text3)',fontStyle:'italic' as const}}>✦ Passez en Pro pour masquer la mention ecrira.com</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
 
                   {/* Boutons Publier + Planifier */}
                   <div style={{display:'flex',gap:7}}>
@@ -1330,104 +1390,6 @@ export default function Home() {
             <div style={{background:'var(--sand)',borderRadius:16,padding:'40px 24px',textAlign:'center' as const}}><div style={{fontSize:28,marginBottom:12,opacity:.3}}>◫</div><div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:16,fontStyle:'italic',color:'var(--text2)',marginBottom:6}}>Générateur intégré au flow publication</div><div style={{fontSize:13,color:'var(--text3)'}}>Rendez-vous dans Rédiger → générez un post → cliquez sur "Créer le visuel".</div></div>
           </div>
 
-          {/* ANALYTICS */}
-          <div className={`page ${page==='analytics'?'active':''}`}>
-            <div className="eyebrow">Tableau de bord</div>
-            <div className="page-title">Analytics</div>
-            <div className="copper-rule"/>
-            <div className="page-sub">Votre activité sur les 30 derniers jours.</div>
-
-            {/* KPI Cards */}
-            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:24}}>
-              {[
-                {
-                  label:'Posts générés',
-                  value: (() => {
-                    const d30 = new Date(); d30.setDate(d30.getDate()-30);
-                    return savedPosts.filter(p=>new Date(p.created_at)>=d30).length;
-                  })(),
-                  icon:'✦',
-                  note:'en bibliothèque'
-                },
-                {
-                  label:'Posts publiés',
-                  value: (() => {
-                    const d30 = new Date(); d30.setDate(d30.getDate()-30);
-                    return scheduledPosts.filter(p=>p.status==='published'&&new Date(p.scheduled_at)>=d30).length;
-                  })(),
-                  icon:'📤',
-                  note:'sur LinkedIn'
-                },
-                {
-                  label:'Posts planifiés',
-                  value: (() => {
-                    const d30 = new Date(); d30.setDate(d30.getDate()-30);
-                    return scheduledPosts.filter(p=>p.status==='scheduled'&&new Date(p.scheduled_at)>=d30).length;
-                  })(),
-                  icon:'📅',
-                  note:'à venir'
-                },
-              ].map((kpi,i)=>(
-                <div key={i} style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:14,padding:'16px 14px',textAlign:'center' as const}}>
-                  <div style={{fontSize:22,marginBottom:4}}>{kpi.icon}</div>
-                  <div style={{fontSize:28,fontWeight:700,color:'var(--forest)',fontFamily:'Clash Display,sans-serif',lineHeight:1}}>{kpi.value}</div>
-                  <div style={{fontSize:11,fontWeight:600,color:'var(--text1)',marginTop:4}}>{kpi.label}</div>
-                  <div style={{fontSize:10,color:'var(--text3)',marginTop:2}}>{kpi.note}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Graphique activité par semaine */}
-            <div style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:14,padding:'18px 16px',marginBottom:20}}>
-              <div style={{fontSize:12,fontWeight:600,color:'var(--text1)',marginBottom:16}}>Activité — 4 dernières semaines</div>
-              {(() => {
-                const weeks = Array.from({length:4},(_,i)=>{
-                  const end = new Date(); end.setDate(end.getDate()-i*7);
-                  const start = new Date(end); start.setDate(start.getDate()-6);
-                  const label = `S${4-i}`;
-                  const generated = savedPosts.filter(p=>{const d=new Date(p.created_at);return d>=start&&d<=end}).length;
-                  const published = scheduledPosts.filter(p=>{const d=new Date(p.scheduled_at);return p.status==='published'&&d>=start&&d<=end}).length;
-                  return {label,generated,published};
-                }).reverse();
-                const maxVal = Math.max(...weeks.flatMap(w=>[w.generated,w.published]),1);
-                return (
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,alignItems:'flex-end'}}>
-                    {weeks.map((w,i)=>(
-                      <div key={i} style={{textAlign:'center' as const}}>
-                        <div style={{display:'flex',gap:3,justifyContent:'center',alignItems:'flex-end',height:80,marginBottom:6}}>
-                          <div title={`${w.generated} générés`} style={{width:14,background:'var(--forest)',borderRadius:'4px 4px 0 0',height:`${Math.max((w.generated/maxVal)*80,2)}px`,opacity:0.8}}/>
-                          <div title={`${w.published} publiés`} style={{width:14,background:'#D9C8A3',borderRadius:'4px 4px 0 0',height:`${Math.max((w.published/maxVal)*80,2)}px`,opacity:0.9}}/>
-                        </div>
-                        <div style={{fontSize:10,color:'var(--text3)',fontWeight:500}}>{w.label}</div>
-                        <div style={{fontSize:9,color:'var(--text3)',marginTop:2}}>{w.generated}g · {w.published}p</div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
-              <div style={{display:'flex',gap:14,marginTop:14,justifyContent:'center'}}>
-                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'var(--text2)'}}>
-                  <div style={{width:10,height:10,borderRadius:2,background:'var(--forest)',opacity:0.8}}/> Générés
-                </div>
-                <div style={{display:'flex',alignItems:'center',gap:5,fontSize:10,color:'var(--text2)'}}>
-                  <div style={{width:10,height:10,borderRadius:2,background:'#D9C8A3',opacity:0.9}}/> Publiés
-                </div>
-              </div>
-            </div>
-
-            {/* Lien LinkedIn Analytics */}
-            <div style={{background:'linear-gradient(135deg,#0077B5,#005885)',borderRadius:14,padding:'16px 18px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
-              <div>
-                <div style={{fontSize:13,fontWeight:600,color:'white',marginBottom:3}}>Stats LinkedIn natives</div>
-                <div style={{fontSize:11,color:'rgba(255,255,255,0.75)'}}>Impressions, likes, commentaires et portée de vos posts.</div>
-              </div>
-              <a href="https://www.linkedin.com/analytics/creator/content/" target="_blank" rel="noopener noreferrer"
-                style={{background:'white',color:'#0077B5',border:'none',borderRadius:8,padding:'8px 14px',fontSize:12,fontWeight:600,cursor:'pointer',textDecoration:'none',whiteSpace:'nowrap' as const,flexShrink:0}}>
-                Voir →
-              </a>
-            </div>
-          </div>
-
           {/* BIBLIOTHÈQUE */}
           <div className={`page ${page==='bibliotheque'?'active':''}`}>
             <div className="eyebrow">{T('your_content')}</div><div className="page-title">{T('library')}</div><div className="copper-rule"/>
@@ -1597,11 +1559,10 @@ export default function Home() {
           {id:'idees',label:T('nav_idees_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
           {id:'rediger',label:T('nav_rediger'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
 {id:'calendrier',label:'Agenda',icon:<CalIcon/>},
-          {id:'analytics',label:'Stats',icon:<BarIcon/>},
           {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
           {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
         ].map(item=>(
-          <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels"||item.id==="analytics")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>
+          <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>
             {item.icon}
             <span>{item.label}</span>
           </button>
