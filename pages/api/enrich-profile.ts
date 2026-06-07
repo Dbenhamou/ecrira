@@ -24,6 +24,32 @@ async function scrapePage(url: string): Promise<string> {
   }
 }
 
+async function fetchFavicon(baseUrl: string): Promise<string> {
+  try {
+    // Try to find favicon URL from HTML first
+    const res = await fetch(baseUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) })
+    if (!res.ok) return ''
+    const html = await res.text()
+    // Look for apple-touch-icon or icon link (higher quality)
+    const iconMatch = html.match(/<link[^>]+rel=["'](?:apple-touch-icon|icon)["'][^>]+href=["']([^"']+)["']/i)
+      || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:apple-touch-icon|icon)["']/i)
+    let iconUrl = iconMatch ? iconMatch[1] : '/favicon.ico'
+    if (!iconUrl.startsWith('http')) {
+      iconUrl = iconUrl.startsWith('/') ? new URL(baseUrl).origin + iconUrl : baseUrl + '/' + iconUrl
+    }
+    const iconRes = await fetch(iconUrl, { signal: AbortSignal.timeout(4000) })
+    if (!iconRes.ok) return ''
+    const buffer = await iconRes.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    const mimeType = iconRes.headers.get('content-type') || 'image/png'
+    const dataUri = `data:${mimeType};base64,${base64}`
+    // Only return if reasonably sized (< 200KB)
+    return base64.length < 200000 ? dataUri : ''
+  } catch {
+    return ''
+  }
+}
+
 async function extractColors(url: string): Promise<{ bg: string; text: string; accent: string }> {
   try {
     const res = await fetch(url, {
@@ -78,10 +104,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Valider que c'est bien une URL
   try { new URL(base) } catch { return res.status(400).json({ error: 'Domaine invalide' }) }
 
-  const [homeText, aboutText, colors] = await Promise.all([
+  const [homeText, aboutText, colors, logob64] = await Promise.all([
     scrapePage(base),
     scrapePage(`${base}/about`).then(t => t || scrapePage(`${base}/a-propos`)),
     extractColors(base),
+    fetchFavicon(base),
   ])
 
   const content = [homeText, aboutText].filter(Boolean).join('\n\n')
@@ -121,7 +148,7 @@ Réponds avec ce JSON exact (tous les champs en français) :
     const clean = raw.replace(/```json|```/g, '').trim()
     const suggestions = JSON.parse(clean)
 
-    res.status(200).json({ suggestions, colors })
+    res.status(200).json({ suggestions, colors, logo_b64: logob64 || '' })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Erreur analyse du site' })

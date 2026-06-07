@@ -44,7 +44,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .slice(0, 3)
   const keyPoints = lines.length > 0 ? lines : [postContent.substring(0, 100)]
 
-  const footerClassique = hideUserInfo ? '' : ` Cercle ${brandAccent}40 r=32 + initiales blanches bold. Nom blanc bold 27px + role #B7C0B8 20px. Badge LinkedIn ${brandAccent} droite rx=20.`
+  const footerClassique = hideUserInfo ? '' : (
+    profile?.logo_b64
+      ? ` Image logo entreprise : <image x="72" y="1258" width="80" height="60" href="${profile.logo_b64}" preserveAspectRatio="xMidYMid meet" opacity="0.9"/>. Nom blanc bold 27px x=168 y=1278. Role #B7C0B8 20px x=168 y=1308. Badge LinkedIn ${brandAccent} droite rx=20.`
+      : ` Cercle ${brandAccent}40 r=32 + initiales blanches bold. Nom blanc bold 27px + role #B7C0B8 20px. Badge LinkedIn ${brandAccent} droite rx=20.`
+  )
   const footerSimple = hideUserInfo ? '' : ` Nom blanc bold 26px + role #B7C0B8 19px.`
   const footerSimple2 = hideUserInfo ? '' : ` Nom blanc 26px + role #B7C0B8 18px.`
   const footerCitation = hideUserInfo ? '' : ` Cercle initiales + nom blanc 26px + role #B7C0B8 19px.`
@@ -112,6 +116,8 @@ REGLES ABSOLUES :
 - Texte long = plusieurs balises text separees
 - Tous textes entre x=72 et x=1008
 - INTERDIT : hashtags (#), mentions (@), URLs dans le visuel
+- Texte dans les cards : MAX 40 caractères par ligne, découpe en plusieurs balises text si nécessaire
+- Ne jamais laisser du texte déborder hors des rectangles
 - INTERDIT : reproduire le texte brut du post LinkedIn dans le visuel
 
 DONNEES :
@@ -167,7 +173,7 @@ Reponds UNIQUEMENT avec le code SVG complet, commencant par <svg et finissant pa
 
     // Injecter le logo Ecrira programmatiquement (plus fiable que via le prompt)
     if (showWatermark) {
-      const logoImg = `<image x="860" y="1298" width="100" height="38" href="${ECRIRA_LOGO}" opacity="0.75" preserveAspectRatio="xMidYMid meet"/>`
+      const logoImg = `<image x="820" y="1288" width="140" height="52" href="${ECRIRA_LOGO}" opacity="0.85" preserveAspectRatio="xMidYMid meet"/>`
       svgSafe = svgSafe.replace('</svg>', logoImg + '</svg>')
     }
 
