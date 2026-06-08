@@ -97,10 +97,10 @@ export default function Pricing() {
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
           <p style={{ color: '#516756', fontFamily: "'Clash Display', sans-serif", fontSize: '14px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}>
-            Tarifs simples
+{T.eyebrow}
           </p>
           <h1 style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#1F2421', margin: '0 0 16px' }}>
-            Choisissez votre plan
+{T.title}
           </h1>
           <p style={{ color: '#516756', fontSize: '18px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
             Commencez gratuitement, passez au Pro quand vous êtes prêt.
@@ -158,7 +158,7 @@ export default function Pricing() {
                 cursor: 'pointer',
               }}
             >
-              Commencer gratuitement
+{T.free_cta}
             </button>
           </div>
 
@@ -188,12 +188,12 @@ export default function Pricing() {
               padding: '6px 18px',
               borderRadius: '20px',
             }}>
-              Populaire
+{T.popular}
             </div>
             <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#D9C8A3', marginBottom: '8px' }}>Pro</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
               <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#FAF9F7' }}>19,90€</span>
-              <span style={{ color: '#B7C0B8', fontSize: '15px' }}>/mois</span>
+              <span style={{ color: '#B7C0B8', fontSize: '15px' }}>{T.per_month}</span>
             </div>
             <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>{T.pro_tagline}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -244,12 +244,7 @@ export default function Pricing() {
             </div>
             <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>{T.team_tagline}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {[
-                'Tout le plan Pro',
-                'Plusieurs utilisateurs',
-                'Tableau de bord partagé',
-                'Facturation centralisée',
-              ].map((f, i) => (
+              {T.team_features.map((f, i) => (
                 <li key={i} style={{ fontSize: '14px', color: '#B7C0B8', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '16px' }}>◦</span>
                   {f}
@@ -271,7 +266,7 @@ export default function Pricing() {
                 cursor: 'not-allowed',
               }}
             >
-              Bientôt disponible
+{T.team_cta}
             </button>
           </div>
         </div>
