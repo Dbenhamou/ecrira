@@ -182,10 +182,10 @@ function UpgradeModal({ onClose }: { onClose: () => void }) {
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:1000,display:"flex",alignItems:"center",justifyContent:"center"}} onClick={onClose}>
       <div style={{background:"#FAF9F7",borderRadius:20,padding:"40px 32px",maxWidth:400,width:"90%",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
         <div style={{fontSize:32,marginBottom:12}}>⚡</div>
-        <h2 style={{fontFamily:"Clash Display,sans-serif",fontSize:22,fontWeight:700,color:"#1F2421",marginBottom:8}}>Fonctionnalité Pro</h2>
-        <p style={{color:"#516756",fontSize:14,marginBottom:24,lineHeight:1.6}}>Cette fonctionnalité est réservée au plan Pro. Passez au Pro pour accéder aux visuels, au calendrier éditorial et aux posts illimités.</p>
-        <button onClick={()=>router.push("/pricing")} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"#1F2421",color:"#FAF9F7",fontFamily:"Clash Display,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:8}}>Voir les offres</button>
-        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #B7C0B8",background:"transparent",color:"#516756",fontSize:14,cursor:"pointer"}}>Annuler</button>
+        <h2 style={{fontFamily:"Clash Display,sans-serif",fontSize:22,fontWeight:700,color:"#1F2421",marginBottom:8}}>{T('upgrade_title')}</h2>
+        <p style={{color:"#516756",fontSize:14,marginBottom:24,lineHeight:1.6}}>{T('upgrade_body')}</p>
+        <button onClick={()=>router.push("/pricing")} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"#1F2421",color:"#FAF9F7",fontFamily:"Clash Display,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:8}}>{T('see_offers')}</button>
+        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #B7C0B8",background:"transparent",color:"#516756",fontSize:14,cursor:"pointer"}}>{T('cancel_btn')}</button>
       </div>
     </div>
   )
@@ -1699,28 +1699,28 @@ export default function Home() {
             <div style={{padding:'24px 32px 28px'}}>
               {onboardingStep===0&&(
                 <div>
-                  {[{icon:'✦',title:'10 idées par jour',desc:'Générées selon ton secteur et ton audience LinkedIn'},{icon:'◎',title:'Post en 30 secondes',desc:'Génère, édite, publie directement sur LinkedIn'},{icon:'◫',title:'Visuels 1080px',desc:'Crée des images pro pour accompagner chaque post'}].map((f,i)=>(
+                  {[{icon:'✦',title:T('onb_feat1_title'),desc:T('onb_feat1_desc')},{icon:'◎',title:T('onb_feat2_title'),desc:T('onb_feat2_desc')},{icon:'◫',title:T('onb_feat3_title'),desc:T('onb_feat3_desc')}].map((f,i)=>(
                     <div key={i} style={{display:'flex',gap:14,marginBottom:14}}>
                       <div style={{width:32,height:32,background:'var(--sand)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>{f.icon}</div>
                       <div><div style={{fontSize:13,fontWeight:500,color:'var(--text1)',marginBottom:2}}>{f.title}</div><div style={{fontSize:12,color:'var(--text2)'}}>{f.desc}</div></div>
                     </div>
                   ))}
-                  <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',marginTop:12}} onClick={()=>setOnboardingStep(1)}>Commencer</button>
+                  <button className="btn btn-primary" style={{width:'100%',justifyContent:'center',marginTop:12}} onClick={()=>setOnboardingStep(1)}>{T('start')}</button>
                 </div>
               )}
               {onboardingStep===1&&(
                 <div>
                   <div style={{background:'rgba(0,119,181,0.05)',border:'1px solid rgba(0,119,181,0.15)',borderRadius:12,padding:'14px 16px',marginBottom:10}}>
-                    <div style={{fontSize:13,fontWeight:600,color:'#0077B5',marginBottom:4}}>🔗 Connecte LinkedIn</div>
-                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:10}}>Récupère ton nom et enrichit ton profil automatiquement.</div>
+                    <div style={{fontSize:13,fontWeight:600,color:'#0077B5',marginBottom:4}}>{T('onb_connect_linkedin')}</div>
+                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:10}}>{T('onb_connect_linkedin_desc')}</div>
                     <button className="btn btn-primary" style={{background:'#0077B5',width:'100%',justifyContent:'center'}} onClick={connectLinkedIn}>{linkedinConnected?'✓ LinkedIn connecté':'Se connecter avec LinkedIn'}</button>
                   </div>
                   <div style={{background:'rgba(79,103,84,0.05)',border:'1px solid rgba(79,103,84,0.15)',borderRadius:12,padding:'14px 16px',marginBottom:14}}>
-                    <div style={{fontSize:13,fontWeight:600,color:'var(--forest)',marginBottom:4}}>✦ Enrichir depuis ton site</div>
-                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>Analyse ton site pour pré-remplir secteur, audience, stack.</div>
+                    <div style={{fontSize:13,fontWeight:600,color:'var(--forest)',marginBottom:4}}>{T('onb_enrich_site')}</div>
+                    <div style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>{T('onb_enrich_site_desc')}</div>
                     <div style={{display:'flex',gap:8}}>
                       <input className="form-input" placeholder="ex: entreprise.fr" value={profile.domain||''} onChange={(e:any)=>setProfile((p:any)=>({...p,domain:e.target.value}))} style={{flex:1,fontSize:12}}/>
-                      <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={enrichProfile} disabled={enriching}>{enriching?<><span className="spinner"/>...</>:'Analyser'}</button>
+                      <button className="btn btn-secondary" style={{fontSize:12,flexShrink:0}} onClick={enrichProfile} disabled={enriching}>{enriching?<><span className="spinner"/>...</>:T('onb_analyse_btn')}</button>
                     </div>
                     {enrichSuggestions&&(
                       <div style={{marginTop:8}}>
@@ -1732,21 +1732,21 @@ export default function Home() {
                     )}
                   </div>
                   <div style={{display:'flex',gap:8}}>
-                    <button className="btn btn-ghost" style={{flex:1,justifyContent:'center',fontSize:12}} onClick={()=>setOnboardingStep(2)}>Passer</button>
-                    <button className="btn btn-primary" style={{flex:2,justifyContent:'center'}} onClick={()=>setOnboardingStep(2)}>Continuer</button>
+                    <button className="btn btn-ghost" style={{flex:1,justifyContent:'center',fontSize:12}} onClick={()=>setOnboardingStep(2)}>{T('onb_pass_btn')}</button>
+                    <button className="btn btn-primary" style={{flex:2,justifyContent:'center'}} onClick={()=>setOnboardingStep(2)}>{T('onb_continue_btn')}</button>
                   </div>
                 </div>
               )}
               {onboardingStep===3&&(
   <div style={{display:'flex',flexDirection:'column',gap:16}}>
     <div style={{textAlign:'center',marginBottom:8}}>
-      <div style={{fontFamily:"'Clash Display',sans-serif",fontSize:20,fontWeight:700,color:'var(--text1)',marginBottom:6}}>Choisissez votre plan</div>
-      <div style={{fontSize:13,color:'var(--text2)'}}>Commencez gratuitement ou passez au Pro dès maintenant.</div>
+      <div style={{fontFamily:"'Clash Display',sans-serif",fontSize:20,fontWeight:700,color:'var(--text1)',marginBottom:6}}>{T('choose_plan')}</div>
+      <div style={{fontSize:13,color:'var(--text2)'}}>{T('choose_plan_sub')}</div>
     </div>
     <div style={{display:'flex',flexDirection:'column',gap:12}}>
       <div style={{border:'1.5px solid var(--border)',borderRadius:14,padding:'16px 20px',cursor:'pointer'}} onClick={finishOnboarding}>
-        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,color:'var(--text1)',marginBottom:4}}>Free — 0€/mois</div>
-        <div style={{fontSize:12,color:'var(--text2)'}}>3 posts/mois · Génération IA basique</div>
+        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,color:'var(--text1)',marginBottom:4}}>{T('free_plan_label')}</div>
+        <div style={{fontSize:12,color:'var(--text2)'}}>{T('free_plan_desc')}</div>
       </div>
       <div style={{border:'2px solid var(--forest)',borderRadius:14,padding:'16px 20px',cursor:'pointer',background:'var(--forest)',color:'white'}} onClick={async()=>{
         if(!userId) return;
@@ -1755,26 +1755,26 @@ export default function Home() {
         if(data.url) window.location.href = data.url;
         else console.error('Checkout error:', data);
       }}>
-        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,marginBottom:4}}>Pro — 19,90€/mois</div>
-        <div style={{fontSize:12,opacity:0.85}}>Posts illimités · Visuels · Calendrier</div>
+        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,marginBottom:4}}>{T('pro_plan_label')}</div>
+        <div style={{fontSize:12,opacity:0.85}}>{T('pro_plan_desc')}</div>
       </div>
       <div style={{border:'1.5px dashed var(--border)',borderRadius:14,padding:'16px 20px',opacity:0.5}}>
-        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,color:'var(--text2)',marginBottom:4}}>Team — Bientôt disponible</div>
-        <div style={{fontSize:12,color:'var(--text3)'}}>Multi-comptes & collaboration</div>
+        <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,color:'var(--text2)',marginBottom:4}}>{T('team_plan_label')}</div>
+        <div style={{fontSize:12,color:'var(--text3)'}}>{T('team_plan_desc')}</div>
       </div>
     </div>
   </div>
 )}
 {onboardingStep===2&&(
                 <div>
-                  {([['Prenom','name'],['Role','role'],['Entreprise','company'],['Secteur','sector'],['Audience LinkedIn','audience']] as [string,keyof typeof profile][]).map(([label,key])=>(
+                  {([[T('onb_field_prenom'),'name'],[T('onb_field_role'),'role'],[T('onb_field_company'),'company'],[T('onb_field_sector'),'sector'],[T('onb_field_audience'),'audience']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div className="form-group" key={key} style={{marginBottom:8}}>
                       <label className="form-label">{label}</label>
                       <input type="text" className="form-input" value={profile[key]||''} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))} style={{fontSize:13}}/>
                     </div>
                   ))}
                   <div style={{display:'flex',gap:8,marginTop:14}}>
-                    <button className="btn btn-ghost" style={{justifyContent:'center',fontSize:12}} onClick={completeOnboarding}>Passer</button>
+                    <button className="btn btn-ghost" style={{justifyContent:'center',fontSize:12}} onClick={completeOnboarding}>{T('onb_pass_btn')}</button>
                     <button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={async()=>{await handleSaveProfile();completeOnboarding()}}>{T('save_and_start')}</button>
                   </div>
                 </div>
