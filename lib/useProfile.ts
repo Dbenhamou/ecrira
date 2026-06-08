@@ -16,6 +16,10 @@ export type Profile = {
   brand_bg: string
   brand_text: string
   brand_accent: string
+  brand_color2?: string
+  brand_color3?: string
+  brand_color4?: string
+  brand_color5?: string
   writing_style: string
   linkedin_token?: string
   linkedin_token_expiry?: string
@@ -40,6 +44,10 @@ export const DEFAULT_PROFILE: Profile = {
   brand_bg: '#F8F6F2',
   brand_text: '#232323',
   brand_accent: '#4F6754',
+  brand_color2: '#0099FF',
+  brand_color3: '#302082',
+  brand_color4: '#8000FF',
+  brand_color5: '#6600FF',
   writing_style: '',
 }
 
@@ -103,6 +111,10 @@ export function useProfile() {
         brand_bg: data.brand_bg || '#FAF9F7',
         brand_text: data.brand_text || '#1F2421',
         brand_accent: data.brand_accent || '#516756',
+        brand_color2: data.brand_color2 || '#0099FF',
+        brand_color3: data.brand_color3 || '#302082',
+        brand_color4: data.brand_color4 || '#8000FF',
+        brand_color5: data.brand_color5 || '#6600FF',
         writing_style: data.writing_style || '',
         linkedin_token: data.linkedin_token || '',
         linkedin_token_expiry: data.linkedin_token_expiry || '',

@@ -35,7 +35,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const name = profile?.name || ''
   const role = profile?.role || ''
   const brandBg = profile?.brand_bg || '#FAF9F7'
+  const brandText = profile?.brand_text || '#1F2421'
   const brandAccent = profile?.brand_accent || '#516756'
+  const brandColor2 = profile?.brand_color2 || brandAccent
+  const brandColor3 = profile?.brand_color3 || brandAccent
+  const brandColor4 = profile?.brand_color4 || brandAccent
+  const brandColor5 = profile?.brand_color5 || brandAccent
+  const paletteDesc = `Palette : fond=${brandBg}, texte=${brandText}, couleur1=${brandAccent}, couleur2=${brandColor2}, couleur3=${brandColor3}, couleur4=${brandColor4}, couleur5=${brandColor5}`
 
   const lines = postContent
     .split('\n')
@@ -105,6 +111,7 @@ REGLES ABSOLUES :
 - font-family="Arial, Helvetica, sans-serif" UNIQUEMENT
 - Elements : rect, text, circle, line, path, defs, linearGradient, stop, polygon, image
 - PAS de foreignObject, PAS @import, PAS filter complexe
+- Utilise TOUTES les couleurs de la palette fournie : fond, texte, et les 5 couleurs de marque pour les éléments visuels (titres, accents, dégradés, blocs)
 - Texte long = plusieurs balises text separees
 - Tous textes entre x=72 et x=1008
 - INTERDIT : hashtags (#), mentions (@), URLs dans le visuel
