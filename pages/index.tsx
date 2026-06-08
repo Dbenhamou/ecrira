@@ -884,7 +884,7 @@ export default function Home() {
           )}
         </div>
         <button className="btn btn-primary" onClick={generateIdeas} disabled={loadingIdeas}>
-          {loadingIdeas ? <><span className="spinner"/> Génération…</> : '✦ Générer les idées'}
+          {loadingIdeas ? <><span className="spinner"/> {T('generating')}</> : '✦ Générer les idées'}
         </button>
       </div>
       {loadingIdeas && <div style={{marginBottom:12}}><div className="strip"/></div>}
@@ -1026,36 +1026,36 @@ export default function Home() {
               {/* LEFT: Formulaire */}
               <div className="card" style={{padding:'16px 18px'}}>
                 <div className="form-group" style={{marginBottom:10}}>
-                  <label className="form-label">Sujet</label>
+                  <label className="form-label">{T('subject_label')}</label>
                   <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopic(e.target.value)} placeholder={T('subject_placeholder')}/>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
                   <div className="form-group" style={{marginBottom:0}}>
-                    <label className="form-label">Format</label>
+                    <label className="form-label">{T('format_label')}</label>
                     <select className="form-input" style={{fontSize:12}} value={postFormat} onChange={e=>setPostFormat(e.target.value)}>
-                      <option value="educational">Conseil</option>
-                      <option value="alert">Alerte</option>
-                      <option value="opinion">Opinion</option>
-                      <option value="story">Story</option>
-                      <option value="list">Liste</option>
+                      <option value="educational">{T('fmt_educational_long')}</option>
+                      <option value="alert">{T('fmt_alert_long')}</option>
+                      <option value="opinion">{T('fmt_opinion_long')}</option>
+                      <option value="story">{T('fmt_story_long')}</option>
+                      <option value="list">{T('fmt_list_long')}</option>
                     </select>
                   </div>
                   <div className="form-group" style={{marginBottom:0}}>
-                    <label className="form-label">Longueur</label>
+                    <label className="form-label">{T('length_label')}</label>
                     <select className="form-input" style={{fontSize:12}} value={postLength} onChange={e=>setPostLength(e.target.value)}>
-                      <option value="short">Court</option>
-                      <option value="medium">Moyen</option>
-                      <option value="long">Long</option>
+                      <option value="short">{T('len_short')}</option>
+                      <option value="medium">{T('len_medium')}</option>
+                      <option value="long">{T('len_long')}</option>
                     </select>
                   </div>
                 </div>
                 <div className="form-group" style={{marginBottom:12}}>
-                  <label className="form-label">Ton</label>
+                  <label className="form-label">{T('tone_label')}</label>
                   <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
                     {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+' restants)':''}`:' Limite atteinte — Passer Pro'}</button>
+                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:' Limite atteinte — Passer Pro'}</button>
               </div>
 
               {/* RIGHT: Résultat */}
@@ -1064,7 +1064,7 @@ export default function Home() {
                   <div className="section-label" style={{marginBottom:0}}>{T('result')}</div>
                   <div style={{display:'flex',gap:6}}>
                     <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={savePost} disabled={!postOutput}>{T('save')}</button>
-                    <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={()=>postOutput&&copyText(postOutput)} disabled={!postOutput}>⎘ Copier</button>
+                    <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={()=>postOutput&&copyText(postOutput)} disabled={!postOutput}>{T('copy_btn')}</button>
                   </div>
                 </div>
                 {loadingPost&&<div style={{marginBottom:10}}><div className="strip"/></div>}
@@ -1073,13 +1073,13 @@ export default function Home() {
                 {postOutput && (
                   <div style={{marginTop:8,border:'1px solid var(--border)',borderRadius:12,overflow:'hidden',background:'white'}}>
                     <div style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderBottom:'1px solid var(--border)',background:'rgba(81,103,86,0.04)'}}>
-                      <span style={{fontSize:11,fontWeight:600,color:'var(--forest)'}}>✨ Améliorer ce post</span>
+                      <span style={{fontSize:11,fontWeight:600,color:'var(--forest)'}}>{T('improve_post')}</span>
                     </div>
                     <div style={{padding:'10px 12px',display:'flex',gap:8,alignItems:'flex-end'}}>
                       <textarea
                         value={improvementNote}
                         onChange={e=>setImprovementNote(e.target.value)}
-                        placeholder="Ex: Rends-le plus percutant, ajoute un chiffre, raccourcis-le, change le hook..."
+                        placeholder={T('improve_placeholder')}
                         rows={2}
                         style={{flex:1,fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',resize:'none' as const,fontFamily:'inherit',color:'var(--text1)',background:'var(--bg)',lineHeight:1.4}}
                       />
@@ -1089,7 +1089,7 @@ export default function Home() {
                         disabled={improving||!improvementNote.trim()}
                         style={{fontSize:11,padding:'7px 12px',background:'var(--forest)',flexShrink:0,borderRadius:8}}
                       >
-                        {improving?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:'Appliquer →'}
+                        {improving?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('apply_arrow')}
                       </button>
                     </div>
                   </div>
@@ -1101,7 +1101,7 @@ export default function Home() {
                   {/* Import visuel custom */}
                   <label style={{display:'flex',alignItems:'center',gap:6,padding:'9px 14px',borderRadius:10,border:'1px solid var(--border)',background:customVisualBase64?'var(--forest)':'white',cursor:'pointer',fontSize:12,fontWeight:500,color:customVisualBase64?'white':'var(--text2)',justifyContent:'center'}}>
                     <input type="file" accept="image/png,image/jpeg,image/svg+xml" style={{display:'none'}} onChange={handleVisualUpload}/>
-                    {customVisualBase64 ? `✓ ${customVisualName||'Visuel importé'}` : '📎 Importer un visuel'}
+                    {customVisualBase64 ? `✓ ${customVisualName||'Visuel importé'}` : T('import_visual')}
                     {customVisualBase64 && <span onClick={(e)=>{e.preventDefault();e.stopPropagation();setCustomVisualBase64(null);setCustomVisualName('')}} style={{marginLeft:6,background:'rgba(255,255,255,0.3)',borderRadius:4,color:'white',cursor:'pointer',fontSize:10,padding:'1px 5px'}}>✕</span>}
                   </label>
 
@@ -1116,7 +1116,7 @@ export default function Home() {
                     {/* Toggle config */}
                     <div style={{display:'flex',gap:0}}>
                       <button className="btn btn-primary" style={{flex:1,fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4,borderRadius:0}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||generatingAiVisual}>
-                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération visuel…</>:'🖼 Créer le visuel'}
+                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>{T('generating_visual')}</>:T('create_visual')}
                       </button>
                       <button onClick={()=>setShowVisualConfig(v=>!v)} style={{padding:'0 12px',background:'var(--forest)',border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',cursor:'pointer',color:'white',fontSize:16,opacity:postOutput?1:0.4}} disabled={!postOutput}>
                         {showVisualConfig?'▲':'▼'}
@@ -1129,7 +1129,7 @@ export default function Home() {
 
                         {/* Type de visuel */}
                         <div>
-                          <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:6}}>Type de visuel</div>
+                          <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:6}}>{T('visual_type_label')}</div>
                           <div style={{display:'flex',gap:5,flexWrap:'wrap' as const}}>
                             {[{id:'classique',label:'📰 Classique'},{id:'timeline',label:'🕓 Timeline'},{id:'stat',label:'📊 Stat'},{id:'citation',label:'💬 Citation'},{id:'liste',label:'📋 Liste'}].map(t=>(
                               <button key={t.id} onClick={()=>setVisualType(t.id)} style={{padding:'5px 10px',borderRadius:20,border:'1.5px solid',borderColor:visualType===t.id?'var(--forest)':'var(--border)',background:visualType===t.id?'var(--forest)':'transparent',color:visualType===t.id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer'}}>
@@ -1141,13 +1141,13 @@ export default function Home() {
 
                         {/* Titre personnalisé */}
                         <div>
-                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>Titre (optionnel — remplace le titre auto)</div>
-                          <input value={visualCustomTitle} onChange={e=>setVisualCustomTitle(e.target.value)} placeholder="Ex: 5 raisons pour lesquelles..." style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',boxSizing:'border-box' as const,color:'var(--text1)',background:'var(--bg)'}}/>
+                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>{T('custom_title_label')}</div>
+                          <input value={visualCustomTitle} onChange={e=>setVisualCustomTitle(e.target.value)} placeholder={T('custom_title_placeholder')} style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',boxSizing:'border-box' as const,color:'var(--text1)',background:'var(--bg)'}}/>
                         </div>
 
                         {/* Points personnalisés */}
                         <div>
-                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>Points clés (optionnel — 1 par ligne)</div>
+                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>{T('key_points_label')}</div>
                           <textarea value={visualCustomPoints} onChange={e=>setVisualCustomPoints(e.target.value)} placeholder={'Point 1\nPoint 2\nPoint 3'} rows={3} style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',resize:'vertical' as const,boxSizing:'border-box' as const,color:'var(--text1)',background:'var(--bg)',fontFamily:'inherit'}}/>
                         </div>
 
@@ -1159,7 +1159,7 @@ export default function Home() {
                           </div>
                         )}
                         {!isPro && (
-                          <div style={{fontSize:10,color:'var(--text3)',fontStyle:'italic' as const}}>✦ Passez en Pro pour masquer la mention ecrira.com</div>
+                          <div style={{fontSize:10,color:'var(--text3)',fontStyle:'italic' as const}}>{T('upgrade_watermark')}</div>
                         )}
 
 
@@ -1170,7 +1170,7 @@ export default function Home() {
                           disabled={generatingAiVisual}
                           style={{fontSize:12,justifyContent:'center',background:'var(--forest)',borderRadius:8,marginTop:4}}
                         >
-                          {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération...</>:'🔄 Régénérer avec ces paramètres'}
+                          {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération...</>:T('regenerate')}
                         </button>
                       </div>
                     )}
@@ -1184,7 +1184,7 @@ export default function Home() {
                       {linkedinConnected ? (
                         <>
                           <button className="btn" onClick={(e)=>{e.stopPropagation();setShowPublishMenu(m=>!m);setShowScheduleMenu(false);}} disabled={publishing||!postOutput} style={{width:'100%',background:'#0077B5',color:'white',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',opacity:postOutput?1:0.5}}>
-                            {publishing?<><span className="spinner" style={{borderTopColor:'white'}}/>Publication…</>:'📤 Publier ▾'}
+                            {publishing?<><span className="spinner" style={{borderTopColor:'white'}}/>Publication…</>:T('publish_btn')}
                           </button>
                           {showPublishMenu && (
                             <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:'100%',overflow:'hidden'}}>
@@ -1192,14 +1192,14 @@ export default function Home() {
                                 📝 Texte uniquement
                               </button>
                               <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false);}} disabled={!aiSvgContent} style={{width:'100%',padding:'10px 14px',fontSize:12,color:aiSvgContent?'var(--text1)':' var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:(aiSvgContent||customVisualBase64)?'pointer':'not-allowed'}}>
-                                🖼 Texte + visuel{(!aiSvgContent&&!customVisualBase64)?' (ajoutez un visuel)':''}
+                                {T('text_visual')}{(!aiSvgContent&&!customVisualBase64)?T('add_visual_hint'):''}
                               </button>
                             </div>
                           )}
                         </>
                       ) : (
                         <button className="btn btn-primary" style={{width:'100%',fontSize:12,justifyContent:'center',background:'#0077B5',borderRadius:10}} onClick={connectLinkedIn}>
-                          🔗 Connecter LinkedIn
+                          {T('connect_linkedin')}
                         </button>
                       )}
                     </div>
@@ -1215,7 +1215,7 @@ export default function Home() {
                             📝 Texte uniquement
                           </button>
                           <button className="btn" onClick={()=>{setScheduleWithVisual(true);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} disabled={!aiSvgContent&&!customVisualBase64} style={{width:'100%',padding:'10px 14px',fontSize:12,color:(aiSvgContent||customVisualBase64)?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:aiSvgContent?'pointer':'not-allowed'}}>
-                            🖼 Texte + visuel{!aiSvgContent?' (créez un visuel)':''}
+                            {T('text_visual')}{!aiSvgContent?T('create_visual_hint'):''}
                           </button>
                         </div>
                       )}
@@ -1229,13 +1229,13 @@ export default function Home() {
                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
                         <button className="btn btn-ghost" style={{padding:'4px 8px',fontSize:13}} onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()-1);setPickerMonth(d);}}>←</button>
                         <span style={{fontSize:13,fontWeight:600,color:'var(--text1)',textTransform:'capitalize' as const}}>
-                          {pickerMonth.toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}
+                          {pickerMonth.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{month:'long',year:'numeric'})}
                         </span>
                         <button className="btn btn-ghost" style={{padding:'4px 8px',fontSize:13}} onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()+1);setPickerMonth(d);}}>→</button>
                       </div>
                       {/* Jours semaine */}
                       <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',marginBottom:4}}>
-                        {['L','M','M','J','V','S','D'].map((d,i)=>(
+                        {lang==='fr'?['L','M','M','J','V','S','D']:['M','T','W','T','F','S','S'].map((d,i)=>(
                           <div key={i} style={{textAlign:'center' as const,fontSize:10,fontWeight:600,color:'var(--text3)',padding:'2px 0'}}>{d}</div>
                         ))}
                       </div>
@@ -1265,7 +1265,7 @@ export default function Home() {
                       </div>
                       {/* Heure */}
                       <div style={{display:'flex',alignItems:'center',gap:8,marginTop:12,borderTop:'1px solid var(--border)',paddingTop:12}}>
-                        <span style={{fontSize:11,color:'var(--text2)',flexShrink:0}}>🕐 Heure :</span>
+                        <span style={{fontSize:11,color:'var(--text2)',flexShrink:0}}>{T('time_label')}</span>
                         <div style={{position:'relative' as const,flex:1}}>
                           <button className="btn btn-ghost" onClick={(e)=>{e.stopPropagation();setShowTimePicker(v=>!v);}} style={{fontSize:12,width:'100%',justifyContent:'center'}}>
                             {scheduleDateTime.split('T')[1]||getNextQuarterHour()}
@@ -1287,7 +1287,7 @@ export default function Home() {
                           )}
                         </div>
                         <button className="btn btn-primary" style={{background:'var(--forest)',fontSize:12,flexShrink:0}} onClick={schedulePost} disabled={scheduling||!scheduleDateTime.split('T')[0]}>
-                          {scheduling?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:'Planifier →'}
+                          {scheduling?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('schedule_arrow')}
                         </button>
                       </div>
                     </div>
