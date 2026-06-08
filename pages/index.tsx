@@ -948,7 +948,6 @@ export default function Home() {
           <div>
             <div className="user-name">{profile.name||'Mon compte'}</div>
             <div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:`Completer le profil`}</div>
-            <span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:20,background:isPro?"var(--forest)":"rgba(0,0,0,0.08)",color:isPro?"white":"var(--text2)",letterSpacing:"0.5px",textTransform:"uppercase",cursor:"pointer",display:"inline-block",marginTop:4}} onClick={(e)=>{e.stopPropagation();window.location.href="/pricing"}}>{isPro?"Pro":"Free"}</span>
           </div>
             </div>
             <div className="theme-row"><span>{T('dark_mode')}</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
