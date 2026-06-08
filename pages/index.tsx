@@ -1518,7 +1518,7 @@ export default function Home() {
           <div className={`page ${page==='profil'?'active':''}`}>
             <div className="eyebrow">{T('settings')}</div><div className="page-title">{T('my_profile')}</div><div className="copper-rule"/>
             <div className="page-sub">{T('profile_sub')}</div>
-            <div className="profile-hero"><div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div><div><div className="profile-name">{profile.name||'Mon compte'}</div><div className="profile-role">{profile.role} · {profile.company}</div></div></div>
+            <div className="profile-hero"><div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div><div><div className="profile-name">{profile.name||T('profile_name_fallback')}</div><div className="profile-role">{profile.role} · {profile.company}</div></div></div>
             <div className="grid2">
               <div className="card">
                 <div className="section-label">{T('pro_identity')}</div>
@@ -1528,7 +1528,7 @@ export default function Home() {
                     <input type="text" className="form-input" value={profile[key]||''} placeholder={key==='domain'?'ex: entreprise.fr':undefined} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))}/>
                     {key==='domain'&&<>
                       <div style={{display:'flex',alignItems:'center',gap:8,marginTop:6}}>
-                        <div style={{fontSize:11,color:'var(--text3)',flex:1}}>Utilisé pour personnaliser les idées selon votre domaine.</div>
+                        <div style={{fontSize:11,color:'var(--text3)',flex:1}}>T('domain_hint_text')</div>
                         <button className="btn btn-secondary" style={{fontSize:11,flexShrink:0,whiteSpace:'nowrap' as const}} onClick={enrichProfile} disabled={enriching}>
                           {enriching?<><span className="spinner"/> {T('enriching_btn')}</>:T('enrich_btn')}
                         </button>
@@ -1569,7 +1569,7 @@ export default function Home() {
               <div>
                 <div className="card" style={{marginBottom:16}}>
                   <div className="section-label">{T('brand_colors')}</div>
-                  <div style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Utilisées par défaut dans le générateur visuel.</div>
+                  <div style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>T('brand_colors_hint_text')</div>
                   {([[T('color_bg'),'brand_bg'],[T('color_text'),'brand_text'],[T('color_primary'),'brand_accent'],[T('color_secondary'),'brand_color2'],[T('color_accent'),'brand_color3']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div key={key} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                       <span style={{fontSize:11,color:'var(--text2)',width:64,flexShrink:0}}>{label}</span>
@@ -1630,14 +1630,14 @@ export default function Home() {
                       <div style={{display:'flex',gap:7}}>
                         <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setShowAddRef(false);setNewRefPost('')}}>{T('cancel_btn')}</button>
                         <button className="btn btn-primary" style={{fontSize:12,flex:1,justifyContent:'center'}} onClick={addRefPost} disabled={!newRefPost.trim()}>
-                          Ajouter ce post →
+                          {T('add_post_btn')}
                         </button>
                       </div>
                     </div>
                   )}
                   {getRefPosts().length === 0 && !showAddRef && (
                     <div style={{textAlign:'center' as const,padding:'16px 0',color:'var(--text3)',fontSize:12}}>
-                      Aucun post référent — clique sur "+ Ajouter" pour commencer
+                      {T('no_ref_posts')}
                     </div>
                   )}
                   {getRefPosts().length > 0 && (
@@ -1652,7 +1652,7 @@ export default function Home() {
             {/* Bouton déconnexion — visible uniquement sur mobile */}
             <div className="mobile-only" style={{marginTop:24,paddingBottom:8}}>
               <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',color:'var(--text3)'}} onClick={signOut}>
-                ↩ Se déconnecter
+                {T('sign_out_mobile')}
               </button>
             </div>
           </div>
