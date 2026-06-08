@@ -37,11 +37,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const brandBg = profile?.brand_bg || '#FAF9F7'
   const brandText = profile?.brand_text || '#1F2421'
   const brandAccent = profile?.brand_accent || '#516756'
-  const brandColor2 = profile?.brand_color2 || brandAccent
-  const brandColor3 = profile?.brand_color3 || brandAccent
-  const brandColor4 = profile?.brand_color4 || brandAccent
-  const brandColor5 = profile?.brand_color5 || brandAccent
-  const paletteDesc = `Palette : fond=${brandBg}, texte=${brandText}, couleur1=${brandAccent}, couleur2=${brandColor2}, couleur3=${brandColor3}, couleur4=${brandColor4}, couleur5=${brandColor5}`
+  const brandPrimary = profile?.brand_accent || '#516756'
+  const brandSecondary = profile?.brand_color2 || brandPrimary
+  const brandAccentColor = profile?.brand_color3 || brandPrimary
+  const paletteDesc = `Palette marque : fond=${brandBg}, texte=${brandText}, primaire=${brandPrimary}, secondaire=${brandSecondary}, accent=${brandAccentColor}`
 
   const lines = postContent
     .split('\n')
@@ -59,46 +58,46 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Build type-specific instructions only
   const typeInstructions: Record<string, string> = {
     classique: `
-1. HEADER (0-170px) : degrade linearGradient ${brandAccent} vers version +20% sombre. Texte bold blanc 48px x=72 y=110 — largeur max 620px. Badge secteur rx=24 fond blanc 25% x=720 texte blanc bold 18px.
-2. TITRE (170-490px) : fond ${brandBg}. Rect ${brandAccent} 6px haut w=88 rx=3 y=182. Titre ${brandAccent} bold 58px y=290 et y=362. Sous-titre italic #555 25px y=430.
-3. SEPARATEUR (490-510px) : ligne #E0DAD4 pleine largeur + cercle ${brandAccent} r=5 centre + 2 cercles stroke r=3 a +-40px.
-4. POINTS CLES (510-1080px) : fond blanc. Label "POINTS CLES" #B0A898 12px centré y=548. 3 cards (x=56 w=968 rx=16) fond ${brandBg} avec bordure gauche rect ${brandAccent} 5px. Cercle ${brandAccent} r=28 + numero blanc bold 22px. Titre bold 28px #1F2421. Description ${brandAccent} 20px.
-5. STAT (1085-1200px) : fond ${brandAccent} opacity=0.12. Chiffre ${brandAccent} bold 68px centre. Label #1F2421 bold 22px.
+1. HEADER (0-170px) : degrade linearGradient ${brandPrimary} vers version +20% sombre. Texte bold blanc 48px x=72 y=110 — largeur max 620px. Badge secteur rx=24 fond blanc 25% x=720 texte blanc bold 18px.
+2. TITRE (170-490px) : fond ${brandBg}. Rect ${brandPrimary} 6px haut w=88 rx=3 y=182. Titre ${brandPrimary} bold 58px y=290 et y=362. Sous-titre italic #555 25px y=430.
+3. SEPARATEUR (490-510px) : ligne #E0DAD4 pleine largeur + cercle ${brandPrimary} r=5 centre + 2 cercles stroke r=3 a +-40px.
+4. POINTS CLES (510-1080px) : fond blanc. Label "POINTS CLES" #B0A898 12px centré y=548. 3 cards (x=56 w=968 rx=16) fond ${brandBg} avec bordure gauche rect ${brandPrimary} 5px. Cercle ${brandPrimary} r=28 + numero blanc bold 22px. Titre bold 28px #1F2421. Description ${brandPrimary} 20px.
+5. STAT (1085-1200px) : fond ${brandPrimary} opacity=0.12. Chiffre ${brandPrimary} bold 68px centre. Label #1F2421 bold 22px.
 `,
 
     timeline: `
-1. HEADER (0-160px) : fond ${brandAccent}. Titre bold blanc 48px centre y=95 max 2 lignes. Sous-titre blanc 75% 22px centre y=135.
-2. FRISE (160-1090px) : fond blanc. Ligne verticale centrale stroke=${brandAccent} strokeWidth=6 x1=540 x2=540 y1=195 y2=1040.
-   MAX 4 ETAPES espacees : cercle fill=${brandAccent} r=42 + numero blanc bold 26px. Cards alternees gauche (x=72 w=420 rx=16) / droite (x=588 w=420 rx=16) fond ${brandBg} bordure ${brandAccent} 5px. Ligne connectrice stroke=${brandAccent} strokeWidth=3. Titre card bold 28px #1F2421. Description 20px #555 max 2 lignes.
-3. CONCLUSION (1090-1210px) : fond ${brandAccent}. Texte blanc bold 30px centre. Sous-texte blanc 75% 21px.
+1. HEADER (0-160px) : fond ${brandPrimary}. Titre bold blanc 48px centre y=95 max 2 lignes. Sous-titre blanc 75% 22px centre y=135.
+2. FRISE (160-1090px) : fond blanc. Ligne verticale centrale stroke=${brandPrimary} strokeWidth=6 x1=540 x2=540 y1=195 y2=1040.
+   MAX 4 ETAPES espacees : cercle fill=${brandPrimary} r=42 + numero blanc bold 26px. Cards alternees gauche (x=72 w=420 rx=16) / droite (x=588 w=420 rx=16) fond ${brandBg} bordure ${brandPrimary} 5px. Ligne connectrice stroke=${brandPrimary} strokeWidth=3. Titre card bold 28px #1F2421. Description 20px #555 max 2 lignes.
+3. CONCLUSION (1090-1210px) : fond ${brandPrimary}. Texte blanc bold 30px centre. Sous-texte blanc 75% 21px.
 `,
 
     stat: `
 1. FOND (0-1350px) : rect ${brandBg}.
-2. BANDES DECO : rect ${brandAccent} x=0 y=0 width=12 height=1350. Rect ${brandAccent} x=1068 y=0 width=12 height=1350.
-3. CERCLES DECO : 3 cercles stroke=${brandAccent} strokeWidth=3 opacity=0.08/0.12/0.18 r=380/280/180 cx=540 cy=600.
+2. BANDES DECO : rect ${brandPrimary} x=0 y=0 width=12 height=1350. Rect ${brandPrimary} x=1068 y=0 width=12 height=1350.
+3. CERCLES DECO : 3 cercles stroke=${brandPrimary} strokeWidth=3 opacity=0.08/0.12/0.18 r=380/280/180 cx=540 cy=600.
 4. TITRE (y=140-230px) : texte #1F2421 bold 32px centre.
-5. CHIFFRE (y=350-620px) : stat cle ${brandAccent} bold font-size=220 centre. Unite font-size=100.
+5. CHIFFRE (y=350-620px) : stat cle ${brandPrimary} bold font-size=220 centre. Unite font-size=100.
 6. LABEL (y=640px) : #1F2421 bold 36px centre.
 7. CONTEXTE (y=710-900px) : 2-3 lignes #555 25px centre.
-8. ENCADRE (y=940-1080px) : rect ${brandAccent} rx=20 x=72 w=936. Titre italic blanc bold 32px centre. Sous-texte blanc 75% 22px.
+8. ENCADRE (y=940-1080px) : rect ${brandPrimary} rx=20 x=72 w=936. Titre italic blanc bold 32px centre. Sous-texte blanc 75% 22px.
 `,
 
     citation: `
 1. FOND (0-1350px) : rect ${brandBg}.
-2. GUILLEMETS MONUMENTAUX : text u+00AB fill=${brandAccent} opacity=0.22 font-size=500 font-weight=bold x=30 y=520. Text u+00BB fill=${brandAccent} opacity=0.22 font-size=500 font-weight=bold x=620 y=920.
-3. BANDE ACCENT : rect ${brandAccent} x=0 y=0 w=8 h=1350.
+2. GUILLEMETS MONUMENTAUX : text u+00AB fill=${brandPrimary} opacity=0.22 font-size=500 font-weight=bold x=30 y=520. Text u+00BB fill=${brandPrimary} opacity=0.22 font-size=500 font-weight=bold x=620 y=920.
+3. BANDE ACCENT : rect ${brandPrimary} x=0 y=0 w=8 h=1350.
 4. CITATION (y=220-700px) : phrase cle #1F2421 bold font-size=58 centre, max 3 lignes espacees de 80px.
-5. TRAIT (y=720px) : rect ${brandAccent} w=120 h=7 rx=4 centre.
-6. CONTEXTE (y=770-870px) : italic ${brandAccent} 28px centre.
-7. ENCADRE (y=920-1130px) : rect fill=${brandAccent} rx=22 x=56 w=968. Texte blanc bold 34px centre. Sous-texte blanc 78% 23px.
+5. TRAIT (y=720px) : rect ${brandPrimary} w=120 h=7 rx=4 centre.
+6. CONTEXTE (y=770-870px) : italic ${brandPrimary} 28px centre.
+7. ENCADRE (y=920-1130px) : rect fill=${brandPrimary} rx=22 x=56 w=968. Texte blanc bold 34px centre. Sous-texte blanc 78% 23px.
 `,
 
     liste: `
-1. HEADER (0-160px) : fond ${brandAccent}. Titre bold blanc 46px x=72 y=105 largeur max 620px. Badge rx=24 fond blanc 25% x=720 texte blanc bold 17px.
+1. HEADER (0-160px) : fond ${brandPrimary}. Titre bold blanc 46px x=72 y=105 largeur max 620px. Badge rx=24 fond blanc 25% x=720 texte blanc bold 17px.
 2. SOUS-TITRE (160-230px) : fond ${brandBg}. Italic #666 24px x=72 y=205.
-3. ITEMS (230-1110px) : fond blanc. 3-4 items (hauteur ~200px chacun) : rect ${brandBg} rx=16 x=56 w=968. Carre arrondi ${brandAccent} 58x58 rx=14 x=80 + numero blanc bold 30px. Titre bold 29px #1F2421 x=162. Description 21px #666 x=162.
-4. CTA (1110-1220px) : rect ${brandAccent} x=0 w=1080. Texte blanc bold 30px centre.
+3. ITEMS (230-1110px) : fond blanc. 3-4 items (hauteur ~200px chacun) : rect ${brandBg} rx=16 x=56 w=968. Carre arrondi ${brandPrimary} 58x58 rx=14 x=80 + numero blanc bold 30px. Titre bold 29px #1F2421 x=162. Description 21px #666 x=162.
+4. CTA (1110-1220px) : rect ${brandPrimary} x=0 w=1080. Texte blanc bold 30px centre.
 `,
   }
 
@@ -125,7 +124,7 @@ REGLES ABSOLUES :
 DONNEES :
 - Titre : ${titleLine}
 - Points : ${pointsLine}
-- Accent : ${brandAccent}
+- Accent : ${brandPrimary}
 - Fond : ${brandBg}
 
 STRUCTURE A RESPECTER :

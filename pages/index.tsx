@@ -1554,7 +1554,7 @@ export default function Home() {
                 <div className="card" style={{marginBottom:16}}>
                   <div className="section-label">{T('brand_colors')}</div>
                   <div style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>Utilisées par défaut dans le générateur visuel.</div>
-                  {([['Fond','brand_bg'],['Texte','brand_text'],['Couleur 1','brand_accent'],['Couleur 2','brand_color2'],['Couleur 3','brand_color3'],['Couleur 4','brand_color4'],['Couleur 5','brand_color5']] as [string,keyof typeof profile][]).map(([label,key])=>(
+                  {([['Fond','brand_bg'],['Texte','brand_text'],['Primaire','brand_accent'],['Secondaire','brand_color2'],['Accent','brand_color3']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div key={key} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                       <span style={{fontSize:11,color:'var(--text2)',width:64,flexShrink:0}}>{label}</span>
                       <input type="color" value={(profile[key] as string)||'#516756'} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))} style={{width:30,height:30,borderRadius:8,border:'1px solid var(--border)',cursor:'pointer',padding:2}}/>
