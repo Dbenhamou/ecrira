@@ -517,6 +517,8 @@ export default function Home() {
             brand_accent: data.colors.accent || p.brand_accent,
           }))
           showToast('Couleurs de marque détectées ✓')
+        } else {
+          showToast('Site dynamique détecté — renseigne les couleurs manuellement')
         }
       } else showToast(data.error || 'Impossible d\'analyser le site')
     } catch { showToast('Erreur réseau') }

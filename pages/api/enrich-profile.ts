@@ -50,20 +50,20 @@ async function fetchFavicon(baseUrl: string): Promise<string> {
   }
 }
 
-async function extractColors(url: string): Promise<{ bg: string; text: string; accent: string }> {
+async function extractColors(url: string): Promise<{ bg: string; text: string; accent: string } | null> {
   try {
     const res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Ecrira/1.0)' },
       signal: AbortSignal.timeout(8000),
     })
-    if (!res.ok) return { bg: '#FAF9F7', text: '#1F2421', accent: '#516756' }
+    if (!res.ok) return null
     const html = await res.text()
 
     // Extraire les couleurs hex du CSS inline + style tags
     const colorMatches = html.match(/#[0-9a-fA-F]{6}\b/g) || []
     const uniqueColors = Array.from(new Set(colorMatches)).slice(0, 20)
 
-    if (uniqueColors.length < 2) return { bg: '#FAF9F7', text: '#1F2421', accent: '#516756' }
+    if (uniqueColors.length < 2) return null
 
     // Utiliser Claude Haiku pour identifier bg/text/accent
     const colorMsg = await anthropic.messages.create({
@@ -85,7 +85,7 @@ Réponds UNIQUEMENT avec ce JSON: {"bg":"#xxxxxx","text":"#xxxxxx","accent":"#xx
     const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim())
     return parsed
   } catch {
-    return { bg: '#FAF9F7', text: '#1F2421', accent: '#516756' }
+    return null
   }
 }
 
