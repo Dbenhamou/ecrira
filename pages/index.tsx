@@ -1467,8 +1467,13 @@ export default function Home() {
                   </div>
                   <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:16,maxHeight:120,overflow:'hidden'}}>{selectedCalPost.content?.substring(0,200)}…</div>
                   {selectedCalPost.svg_content && (
-                    <div style={{marginBottom:16,borderRadius:8,overflow:'hidden',height:80,background:'var(--sand)',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                      <span style={{fontSize:11,color:'var(--text3)'}}>🖼 Visuel joint</span>
+                    <div style={{marginBottom:16,borderRadius:8,overflow:'hidden',border:'1px solid var(--border)'}}>
+                      <img
+                        src={`data:image/png;base64,${selectedCalPost.svg_content}`}
+                        style={{width:'100%',display:'block',maxHeight:200,objectFit:'cover'}}
+                        alt="Visuel joint"
+                        onError={(e)=>{(e.target as HTMLImageElement).style.display='none'}}
+                      />
                     </div>
                   )}
                   <div style={{display:'flex',gap:8}}>
