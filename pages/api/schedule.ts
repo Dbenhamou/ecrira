@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '../../lib/auth-helper'
 import { sendNotification } from '../../lib/notify'
 
+export const config = { api: { bodyParser: { sizeLimit: '10mb' } } }
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
