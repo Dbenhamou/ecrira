@@ -1055,7 +1055,7 @@ export default function Home() {
                     {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:' Limite atteinte — Passer Pro'}</button>
+                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>
               </div>
 
               {/* RIGHT: Résultat */}
@@ -1170,7 +1170,7 @@ export default function Home() {
                           disabled={generatingAiVisual}
                           style={{fontSize:12,justifyContent:'center',background:'var(--forest)',borderRadius:8,marginTop:4}}
                         >
-                          {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération...</>:T('regenerate')}
+                          {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('regenerate')}
                         </button>
                       </div>
                     )}
@@ -1189,7 +1189,7 @@ export default function Home() {
                           {showPublishMenu && (
                             <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:'100%',overflow:'hidden'}}>
                               <button className="btn" onClick={()=>{publishPost(false);setShowPublishMenu(false);}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
-                                📝 Texte uniquement
+                                {T('text_only_option')}
                               </button>
                               <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false);}} disabled={!aiSvgContent} style={{width:'100%',padding:'10px 14px',fontSize:12,color:aiSvgContent?'var(--text1)':' var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:(aiSvgContent||customVisualBase64)?'pointer':'not-allowed'}}>
                                 {T('text_visual')}{(!aiSvgContent&&!customVisualBase64)?T('add_visual_hint'):''}
@@ -1212,7 +1212,7 @@ export default function Home() {
                       {showScheduleMenu && (
                         <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:'100%',overflow:'hidden'}}>
                           <button className="btn" onClick={()=>{setScheduleWithVisual(false);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
-                            📝 Texte uniquement
+                            {T('text_only_option')}
                           </button>
                           <button className="btn" onClick={()=>{setScheduleWithVisual(true);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} disabled={!aiSvgContent&&!customVisualBase64} style={{width:'100%',padding:'10px 14px',fontSize:12,color:(aiSvgContent||customVisualBase64)?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:aiSvgContent?'pointer':'not-allowed'}}>
                             {T('text_visual')}{!aiSvgContent?T('create_visual_hint'):''}
@@ -1348,8 +1348,8 @@ export default function Home() {
 
           {/* CALENDRIER */}
           <div className={`page ${page==='calendrier'?'active':''}`}>
-            <div className="eyebrow">Planification</div>
-            <div className="page-title">Calendrier éditorial</div>
+            <div className="eyebrow">{T('planning')}</div>
+            <div className="page-title">{T('editorial_calendar')}</div>
             <div className="copper-rule"/>
 
             {/* Contrôles calendrier */}
@@ -1357,7 +1357,7 @@ export default function Home() {
               <div style={{display:'flex',gap:6}}>
                 {(['semaine','mois','annee'] as const).map(v=>(
                   <button key={v} className={`chip ${calView===v?'on':''}`} onClick={()=>setCalView(v)} style={{fontSize:12}}>
-                    {v==='semaine'?'Semaine':v==='mois'?'Mois':'Année'}
+                    {v==='semaine'?T('view_week'):v==='mois'?T('view_month'):T('view_year')}
                   </button>
                 ))}
               </div>
@@ -1365,9 +1365,9 @@ export default function Home() {
                 <button className="btn btn-ghost" style={{fontSize:13,padding:'5px 10px'}} onClick={()=>moveCalendar(-1)}>←</button>
                 <span style={{fontSize:13,fontWeight:500,color:'var(--text1)',minWidth:160,textAlign:'center' as const}}>{getCalendarTitle()}</span>
                 <button className="btn btn-ghost" style={{fontSize:13,padding:'5px 10px'}} onClick={()=>moveCalendar(1)}>→</button>
-                <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>setCalDate(new Date())}>Aujourd'hui</button>
+                <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>setCalDate(new Date())}>{T('today_btn')}</button>
               </div>
-              <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>setPage('rediger')}>✦ Nouveau post</button>
+              <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>setPage('rediger')}>{T('new_post_btn')}</button>
             </div>
 
             {/* Vue Semaine */}
@@ -1379,14 +1379,14 @@ export default function Home() {
                   return (
                     <div key={i} style={{minHeight:120,background:'var(--white)',border:`1px solid ${isToday?'var(--forest)':'var(--border)'}`,borderRadius:12,padding:'8px 10px'}}>
                       <div style={{fontSize:11,fontWeight:600,color:isToday?'var(--forest)':'var(--text3)',marginBottom:6,textTransform:'uppercase' as const}}>
-                        {day.toLocaleDateString('fr-FR',{weekday:'short'})} {day.getDate()}
+                        {day.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'short'})} {day.getDate()}
                       </div>
                       {dayPosts.map((p:any)=>(
                         <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${p.status==='published'?'rgba(81,103,86,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:'pointer',fontSize:11,overflow:'hidden'}}>
                           {p.svg_content && (p.svg_content.trimStart().startsWith('<') ? <div style={{width:'100%',height:48,overflow:'hidden',borderRadius:4,marginBottom:3,pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: p.svg_content.replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} /> : <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:48,objectFit:'cover',borderRadius:4,marginBottom:3,display:'block'}} />)}
                           <div style={{fontWeight:500,color:'var(--text1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
-                          <div style={{fontSize:10,color:'var(--text3)'}}>{new Date(p.scheduled_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
-                          <span style={{fontSize:9,fontWeight:600,color:p.status==='published'?'var(--forest)':p.status==='error'?'#c0392b':'#8a7040',textTransform:'uppercase' as const}}>{p.status==='published'?'✓ Publié':p.status==='error'?'Erreur':'Planifié'}</span>
+                          <div style={{fontSize:10,color:'var(--text3)'}}>{new Date(p.scheduled_at).toLocaleTimeString(lang==='fr'?'fr-FR':'en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+                          <span style={{fontSize:9,fontWeight:600,color:p.status==='published'?'var(--forest)':p.status==='error'?'#c0392b':'#8a7040',textTransform:'uppercase' as const}}>{p.status==='published'?T('status_published'):p.status==='error'?T('status_error'):T('status_pending')}</span>
                         </div>
                       ))}
                     </div>
@@ -1399,7 +1399,7 @@ export default function Home() {
             {calView==='mois' && (
               <div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2,marginBottom:4}}>
-                  {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d=>(
+                  {lang==='fr'?['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>(
                     <div key={d} style={{textAlign:'center' as const,fontSize:11,fontWeight:600,color:'var(--text3)',padding:'4px 0'}}>{d}</div>
                   ))}
                 </div>
@@ -1433,12 +1433,12 @@ export default function Home() {
                   return (
                     <div key={month} style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:12,padding:'12px 14px',cursor:'pointer'}} onClick={()=>{setCalDate(new Date(calDate.getFullYear(),month,1));setCalView('mois')}}>
                       <div style={{fontSize:12,fontWeight:600,color:'var(--text1)',marginBottom:8,textTransform:'capitalize' as const}}>
-                        {new Date(calDate.getFullYear(),month,1).toLocaleDateString('fr-FR',{month:'long'})}
+                        {new Date(calDate.getFullYear(),month,1).toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{month:'long'})}
                       </div>
                       {monthPosts.length>0?(
                         <div style={{fontSize:11,color:'var(--text2)'}}>{monthPosts.length} post{monthPosts.length>1?'s':''}</div>
                       ):(
-                        <div style={{fontSize:11,color:'var(--text3)'}}>Aucun post</div>
+                        <div style={{fontSize:11,color:'var(--text3)'}}>{T('no_posts_month')}</div>
                       )}
                       <div style={{marginTop:6,display:'flex',gap:3,flexWrap:'wrap' as const}}>
                         {monthPosts.slice(0,3).map((p:any)=>(
@@ -1459,27 +1459,27 @@ export default function Home() {
                 <div style={{background:'var(--white)',borderRadius:20,padding:24,maxWidth:480,width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.15)'}} onClick={e=>e.stopPropagation()}>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
                     <span className={`badge ${selectedCalPost.status==='published'?'badge-forest':'badge-copper'}`}>
-                      {selectedCalPost.status==='published'?'✓ Publié':selectedCalPost.status==='error'?'Erreur':'Planifié'}
+                      {selectedCalPost.status==='published'?T('status_published'):selectedCalPost.status==='error'?T('status_error'):T('status_pending')}
                     </span>
                     <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>setSelectedCalPost(null)}>✕</button>
                   </div>
                   <div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:16,fontWeight:500,color:'var(--text1)',marginBottom:6}}>{selectedCalPost.topic||'Post'}</div>
                   <div style={{fontSize:12,color:'var(--text3)',marginBottom:12}}>
-                    {new Date(selectedCalPost.scheduled_at).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})} à {new Date(selectedCalPost.scheduled_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
+                    {new Date(selectedCalPost.scheduled_at).toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long'})} à {new Date(selectedCalPost.scheduled_at).toLocaleTimeString(lang==='fr'?'fr-FR':'en-GB',{hour:'2-digit',minute:'2-digit'})}
                   </div>
                   <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:16,maxHeight:120,overflow:'hidden'}}>{selectedCalPost.content?.substring(0,200)}…</div>
                   {selectedCalPost.svg_content && (
                     <div style={{marginBottom:16,borderRadius:8,overflow:'hidden',border:'1px solid var(--border)'}}>
                       {selectedCalPost.svg_content.trimStart().startsWith('<')
                         ? <div style={{width:'100%',maxHeight:200,overflow:'hidden',pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: selectedCalPost.svg_content.replace(/<svg/, '<svg style="width:100%;height:auto;display:block;max-height:200px"')}} />
-                        : <img src={`data:image/png;base64,${selectedCalPost.svg_content}`} style={{width:'100%',display:'block',maxHeight:200,objectFit:'cover'}} alt="Visuel joint" />
+                        : <img src={`data:image/png;base64,${selectedCalPost.svg_content}`} style={{width:'100%',display:'block',maxHeight:200,objectFit:'cover'}} alt={T('visual_attached')} />
                       }
                     </div>
                   )}
                   <div style={{display:'flex',gap:8}}>
-                    <button className="btn btn-secondary" style={{fontSize:12,flex:1,justifyContent:'center'}} onClick={()=>{setPostOutput(selectedCalPost.content);setPostTopic(selectedCalPost.topic);setPage('rediger');setSelectedCalPost(null)}}>✏️ Modifier</button>
+                    <button className="btn btn-secondary" style={{fontSize:12,flex:1,justifyContent:'center'}} onClick={()=>{setPostOutput(selectedCalPost.content);setPostTopic(selectedCalPost.topic);setPage('rediger');setSelectedCalPost(null)}}>{T('edit_post_btn')}</button>
                     {selectedCalPost.status==='pending'&&(
-                      <button className="btn btn-ghost" style={{fontSize:12,color:'#c0392b',flex:1,justifyContent:'center'}} onClick={()=>{cancelScheduled(selectedCalPost.id);setSelectedCalPost(null)}}>🗑 Annuler</button>
+                      <button className="btn btn-ghost" style={{fontSize:12,color:'#c0392b',flex:1,justifyContent:'center'}} onClick={()=>{cancelScheduled(selectedCalPost.id);setSelectedCalPost(null)}}>{T('cancel_post_btn')}</button>
                     )}
                   </div>
                 </div>
