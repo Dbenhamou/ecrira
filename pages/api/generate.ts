@@ -101,15 +101,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     + (seed ? 'Seed de variation : ' + seed + ' — utilise cet angle unique, different des posts habituels sur ce sujet.\n' : '')
     + 'Reponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
 
-  // Rate limit : max 20 générations/jour
-  const today = new Date().toISOString().split('T')[0]
-  const { count } = await supabaseAdmin
-    .from('saved_posts')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', userId)
-    .gte('created_at', today)
-  if ((count || 0) >= DAILY_LIMIT) {
-    return res.status(429).json({ error: 'Limite journalière de 20 générations atteinte.' })
+  // Vérification plan Free (5 posts à vie)
+  const { data: userProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('plan, posts_count_this_month')
+    .eq('id', userId)
+    .single()
+
+  const isPro = userProfile?.plan === 'pro'
+  const postsCount = userProfile?.posts_count_this_month ?? 0
+
+  if (!isPro && postsCount >= 5) {
+    return res.status(403).json({ error: 'LIMIT_REACHED', message: 'Limite de 5 posts atteinte. Passez au plan Pro pour continuer.' })
   }
 
   try {
@@ -124,6 +127,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     const content = (message.content[0] as { text: string }).text
+
+    // Incrémenter le compteur si Free
+    if (!isPro) {
+      await supabaseAdmin
+        .from('profiles')
+        .update({ posts_count_this_month: postsCount + 1 })
+        .eq('id', userId)
+    }
+
     res.status(200).json({ content })
   } catch (err) {
     console.error(err)

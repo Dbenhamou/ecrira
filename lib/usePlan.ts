@@ -32,24 +32,11 @@ export function usePlan(userId: string | null): PlanState {
 
       if (!data) return;
 
-      // Reset mensuel si besoin
-      const resetAt = new Date(data.posts_count_reset_at);
-      const now = new Date();
-      const diffDays = (now.getTime() - resetAt.getTime()) / (1000 * 60 * 60 * 24);
-
-      let postsCount = data.posts_count_this_month ?? 0;
-
-      if (diffDays > 30) {
-        await supabase.from('profiles').update({
-          posts_count_this_month: 0,
-          posts_count_reset_at: now.toISOString(),
-        }).eq('id', userId);
-        postsCount = 0;
-      }
-
+      const postsCount = data.posts_count_this_month ?? 0;
       const plan: Plan = data.plan === 'pro' ? 'pro' : 'free';
       const isPro = plan === 'pro';
-      const canGenerate = isPro || postsCount < 3;
+      // Free = 5 posts à vie (pas de reset)
+      const canGenerate = isPro || postsCount < 5;
 
       setState({ plan, isPro, postsThisMonth: postsCount, canGenerate, loading: false });
     };

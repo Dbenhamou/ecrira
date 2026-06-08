@@ -459,6 +459,7 @@ export default function Home() {
     try {
       const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile}) })
       const data = await res.json()
+      if (data.error === 'LIMIT_REACHED') { setShowUpgradeModal(true); setLoadingPost(false); return }
       if (data.content) { setPostOutput(data.content); setGeneratedCount(c => c + 1) }
       else showToast('Erreur : '+(data.error||'inconnue'))
     } catch { showToast('Erreur réseau') }
@@ -1032,7 +1033,7 @@ export default function Home() {
                     {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:'✦ Générer le post'}</button>
+                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+' restants)':''}`:' Limite atteinte — Passer Pro'}</button>
               </div>
 
               {/* RIGHT: Résultat */}
