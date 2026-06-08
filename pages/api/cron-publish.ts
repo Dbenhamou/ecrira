@@ -47,6 +47,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Avec image si svg_content disponible
       if (post.svg_content) {
+        // Convertir SVG brut → PNG via resvg
+        let pngBuffer: Buffer | null = null
+        try {
+          const { Resvg } = await import('@resvg/resvg-js')
+          const resvg = new Resvg(post.svg_content, { fitTo: { mode: 'width', value: 1080 } })
+          const pngData = resvg.render()
+          pngBuffer = Buffer.from(pngData.asPng())
+        } catch (resvgErr) {
+          console.error('[cron] resvg conversion failed:', resvgErr)
+        }
+
+        if (!pngBuffer) {
+          // Fallback sans image
+          await supabase.from('scheduled_posts').update({ status: 'error' }).eq('id', post.id)
+          failed++
+          continue
+        }
+
         // Upload image LinkedIn
         const registerRes = await fetch('https://api.linkedin.com/v2/assets?action=registerUpload', {
           method: 'POST',
@@ -64,7 +82,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const asset = registerData.value?.asset
 
         if (uploadUrl && asset) {
-          const pngBuffer = Buffer.from(post.svg_content, 'base64')
           await fetch(uploadUrl, {
             method: 'PUT',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'image/png' },

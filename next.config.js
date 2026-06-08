@@ -21,6 +21,9 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
+  outputFileTracingIncludes: {
+    '/api/cron-publish': ['./node_modules/@resvg/resvg-js/**/*'],
+  },
   async headers() {
     return [
       {
