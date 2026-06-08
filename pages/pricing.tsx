@@ -83,7 +83,7 @@ export default function Pricing() {
             <p style={{ color: '#516756', fontSize: '14px', marginBottom: '32px' }}>Pour découvrir Ecrira</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
-                '3 posts générés / mois',
+                '5 posts générés à vie',
                 'Génération IA basique',
                 'Style d\'écriture personnalisé',
                 '✗ Visuels LinkedIn',
