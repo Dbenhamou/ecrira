@@ -3,14 +3,65 @@ import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import Head from 'next/head';
 
+const pricingT = {
+  fr: {
+    tab_title: 'Tarifs — Ecrira',
+    eyebrow: 'Tarifs simples',
+    title: 'Choisissez votre plan',
+    subtitle: '{T.subtitle}',
+    per_month: '/mois',
+    free_tagline: 'Pour découvrir Ecrira',
+    free_features: ['5 posts générés à vie', 'Génération IA basique', "Style d'écriture personnalisé", 'Visuels LinkedIn', 'Calendrier éditorial', 'Publication directe'],
+    free_cta: 'Commencer gratuitement',
+    popular: 'Populaire',
+    pro_tagline: 'Pour les créateurs sérieux',
+    pro_features: ['Posts illimités', 'Génération IA avancée', "Style d'écriture personnalisé", 'Visuels LinkedIn', 'Calendrier éditorial', 'Publication directe LinkedIn'],
+    pro_cta: 'Passer en Pro',
+    loading: 'Chargement...',
+    team_tagline: 'Multi-comptes & collaboration',
+    team_features: ['Tout le plan Pro', 'Plusieurs utilisateurs', 'Tableau de bord partagé', 'Facturation centralisée'],
+    team_cta: 'Bientôt disponible',
+  },
+  en: {
+    tab_title: 'Pricing — Ecrira',
+    eyebrow: 'Simple pricing',
+    title: 'Choose your plan',
+    subtitle: 'Start for free, upgrade to Pro when you are ready.',
+    per_month: '/month',
+    free_tagline: 'To discover Ecrira',
+    free_features: ['5 posts included', 'Basic AI generation', 'Custom writing style', 'LinkedIn visuals', 'Editorial calendar', 'Direct publishing'],
+    free_cta: 'Get started for free',
+    popular: 'Popular',
+    pro_tagline: 'For serious creators',
+    pro_features: ['Unlimited posts', 'Advanced AI generation', 'Custom writing style', 'LinkedIn visuals', 'Editorial calendar', 'Direct LinkedIn publishing'],
+    pro_cta: 'Upgrade to Pro',
+    loading: 'Loading...',
+    team_tagline: 'Multi-accounts & collaboration',
+    team_features: ['Everything in Pro', 'Multiple users', 'Shared dashboard', 'Centralized billing'],
+    team_cta: 'Coming soon',
+  },
+}
+
 export default function Pricing() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [lang, setLang] = useState<'fr'|'en'>('fr');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    // Détecter la langue depuis le profil Supabase ou navigator
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const { data } = await supabase.from('profiles').select('lang').eq('id', session.user.id).single();
+        if (data?.lang) { setLang(data.lang as 'fr'|'en'); return; }
+      }
+      const browserLang = navigator.language.startsWith('fr') ? 'fr' : 'en';
+      setLang(browserLang);
+    });
   }, []);
+
+  const T = pricingT[lang];
 
   const handleUpgrade = async () => {
     if (!user) { router.push('/login'); return; }
@@ -33,7 +84,7 @@ export default function Pricing() {
   return (
     <>
       <Head>
-        <title>Tarifs — Ecrira</title>
+        <title>{T.tab_title}</title>
         <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
       </Head>
 
@@ -78,17 +129,12 @@ export default function Pricing() {
             <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#516756', marginBottom: '8px' }}>Free</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
               <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#1F2421' }}>0€</span>
-              <span style={{ color: '#B7C0B8', fontSize: '15px' }}>/mois</span>
+              <span style={{ color: '#B7C0B8', fontSize: '15px' }}>{T.per_month}</span>
             </div>
-            <p style={{ color: '#516756', fontSize: '14px', marginBottom: '32px' }}>Pour découvrir Ecrira</p>
+            <p style={{ color: '#516756', fontSize: '14px', marginBottom: '32px' }}>{T.free_tagline}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
-                '5 posts générés à vie',
-                'Génération IA basique',
-                'Style d\'écriture personnalisé',
-                '✗ Visuels LinkedIn',
-                '✗ Calendrier éditorial',
-                '✗ Publication directe',
+                ...T.free_features.map((f,i) => i < 3 ? f : '✗ ' + f),
               ].map((f, i) => (
                 <li key={i} style={{ fontSize: '14px', color: f.startsWith('✗') ? '#B7C0B8' : '#1F2421', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   {!f.startsWith('✗') && <span style={{ color: '#516756', fontSize: '16px' }}>✓</span>}
@@ -149,15 +195,10 @@ export default function Pricing() {
               <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#FAF9F7' }}>19,90€</span>
               <span style={{ color: '#B7C0B8', fontSize: '15px' }}>/mois</span>
             </div>
-            <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>Pour les créateurs sérieux</p>
+            <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>{T.pro_tagline}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
-                'Posts illimités',
-                'Génération IA avancée',
-                'Style d\'écriture personnalisé',
-                'Visuels LinkedIn',
-                'Calendrier éditorial',
-                'Publication directe LinkedIn',
+                ...T.pro_features,
               ].map((f, i) => (
                 <li key={i} style={{ fontSize: '14px', color: '#FAF9F7', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ color: '#D9C8A3', fontSize: '16px' }}>✓</span>
@@ -182,7 +223,7 @@ export default function Pricing() {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? 'Chargement...' : 'Passer en Pro'}
+              {loading ? T.loading : T.pro_cta}
             </button>
           </div>
 
@@ -201,7 +242,7 @@ export default function Pricing() {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
               <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#B7C0B8' }}>—</span>
             </div>
-            <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>Multi-comptes & collaboration</p>
+            <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>{T.team_tagline}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
                 'Tout le plan Pro',
