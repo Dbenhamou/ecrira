@@ -898,7 +898,7 @@ export default function Home() {
         {/* Mobile header */}
         <div className="mobile-header">
           <div className="mobile-header-logo" style={{cursor:'pointer'}} onClick={()=>setPage('apercu')}>
-            <img src="/logo-ecrira.png" alt="Ecrira" style={{height:24,width:'auto'}} />
+            <img src="/logo-ecrira.png" alt="Ecrira" style={{height:36,width:'auto'}} />
           </div>
           <div style={{display:'flex',alignItems:'center',gap:8}}>
             <div style={{display:'flex',gap:3}}>
@@ -1646,7 +1646,7 @@ export default function Home() {
 {id:'calendrier',label:'Agenda',icon:<CalIcon/>},
           {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
           {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
-          ...(!isPro ? [{id:'__pricing',label:'Pro ✦',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>}] : []),
+          {id:'__pricing',label:isPro?'Pro ✦':'Passer Pro',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>},
         ].map(item=>(
           <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} style={item.id==='__pricing'?{color:'var(--forest)',fontWeight:700}:{}} onClick={()=>{ if(item.id==="__pricing"){ window.location.href='/pricing'; return; } if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>
             {item.icon}
