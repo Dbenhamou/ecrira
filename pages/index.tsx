@@ -540,6 +540,20 @@ export default function Home() {
     setSavingProfile(false)
   }
 
+  // Auto-save profil avec debounce 1.5s
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout>|null>(null)
+  const isFirstRender = useRef(true)
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return }
+    if (!userId) return
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    autoSaveTimer.current = setTimeout(async () => {
+      const ok = await saveProfile(profile)
+      if (ok) showToast('Profil sauvegardé ✓')
+    }, 1500)
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current) }
+  }, [profile])
+
   const [linkedinConnected, setLinkedinConnected] = useState(false)
   const lang = (profile.lang || 'fr') as Lang
   const T = (key: Parameters<typeof t>[1]) => t(lang, key)
