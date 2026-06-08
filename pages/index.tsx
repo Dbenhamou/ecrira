@@ -973,7 +973,7 @@ export default function Home() {
 
         <div className="main">
           {/* Badge plan — haut droite sur toutes les pages */}
-          <div style={{position:'fixed',top:16,right:20,zIndex:300}}>
+          <div className="desktop-only-badge" style={{position:'fixed',top:16,right:20,zIndex:300}}>
             <span onClick={()=>window.location.href='/pricing'} style={{fontSize:11,fontWeight:700,padding:'4px 10px',borderRadius:20,background:isPro?'var(--forest)':'#c0392b',color:'white',letterSpacing:'0.5px',textTransform:'uppercase' as const,cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
               {isPro?'Pro':'Free'}
             </span>
