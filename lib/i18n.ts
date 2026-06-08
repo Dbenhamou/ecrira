@@ -325,6 +325,12 @@ export const translations = {
     onb_field_company: 'Entreprise',
     onb_field_sector: 'Secteur',
     onb_field_audience: 'Audience LinkedIn',
+
+    // Micro-textes restants
+    toast_enter_topic: 'Saisis un sujet d\'abord',
+    visual_imported_label: 'Visuel importé',
+    visual_imported_alt: 'Visuel importé',
+    sans_titre: 'Sans titre',
   },
 
   en: {
@@ -653,6 +659,12 @@ export const translations = {
     onb_field_company: 'Company',
     onb_field_sector: 'Sector',
     onb_field_audience: 'LinkedIn audience',
+
+    // Micro-textes restants
+    toast_enter_topic: 'Please enter a topic first',
+    visual_imported_label: 'Visual imported',
+    visual_imported_alt: 'Imported visual',
+    sans_titre: 'Untitled',
   },
 }
 

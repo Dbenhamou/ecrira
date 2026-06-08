@@ -332,7 +332,7 @@ export default function Home() {
     if (data) {
       setSavedPosts(data.map((p: any) => ({
         id: p.id, topic: p.topic, content: p.content, format: p.format,
-        created_at: p.created_at_display || new Date(p.created_at).toLocaleDateString('fr-FR'),
+        created_at: p.created_at_display || new Date(p.created_at).toLocaleDateString(profile.lang==='en'?'en-GB':'fr-FR'),
       })))
     }
     setLoadingPosts(false)
@@ -461,7 +461,7 @@ export default function Home() {
 
   const generatePost = useCallback(async (topic?: string) => {
     const t = topic || postTopic
-    if (!t.trim()) { showToast('Saisis un sujet d\'abord'); return }
+    if (!t.trim()) { showToast(T('toast_enter_topic')); return }
     if (topic) setPostTopic(topic)
     setPage('rediger'); setLoadingPost(true); setPostOutput('')
     try {
@@ -477,9 +477,9 @@ export default function Home() {
   // ── Supabase: save post ──
   const savePost = async () => {
     if (!postOutput.trim() || !userId) return
-    const displayDate = new Date().toLocaleDateString('fr-FR')
+    const displayDate = new Date().toLocaleDateString(profile.lang==='en'?'en-GB':'fr-FR')
     const { data, error } = await supabase.from('saved_posts').insert({
-      user_id: userId, topic: postTopic||'Sans titre',
+      user_id: userId, topic: postTopic||T('sans_titre'),
       content: postOutput, format: postFormat, created_at_display: displayDate,
     }).select().single()
     if (!error && data) {
@@ -741,7 +741,7 @@ export default function Home() {
       setCustomVisualName(file.name)
       // Reset AI visual
       setAiSvgContent('')
-      showToast('Visuel importé ✓')
+      showToast(T('visual_imported_label') + ' ✓')
     }
     reader.readAsDataURL(file)
   }
@@ -1063,7 +1063,7 @@ export default function Home() {
                     {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> Génération…</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>
+                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> {T('generating')}</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>
               </div>
 
               {/* RIGHT: Résultat */}
@@ -1109,13 +1109,13 @@ export default function Home() {
                   {/* Import visuel custom */}
                   <label style={{display:'flex',alignItems:'center',gap:6,padding:'9px 14px',borderRadius:10,border:'1px solid var(--border)',background:customVisualBase64?'var(--forest)':'white',cursor:'pointer',fontSize:12,fontWeight:500,color:customVisualBase64?'white':'var(--text2)',justifyContent:'center'}}>
                     <input type="file" accept="image/png,image/jpeg,image/svg+xml" style={{display:'none'}} onChange={handleVisualUpload}/>
-                    {customVisualBase64 ? `✓ ${customVisualName||'Visuel importé'}` : T('import_visual')}
+                    {customVisualBase64 ? `✓ ${customVisualName||T('visual_imported_label')}` : T('import_visual')}
                     {customVisualBase64 && <span onClick={(e)=>{e.preventDefault();e.stopPropagation();setCustomVisualBase64(null);setCustomVisualName('')}} style={{marginLeft:6,background:'rgba(255,255,255,0.3)',borderRadius:4,color:'white',cursor:'pointer',fontSize:10,padding:'1px 5px'}}>✕</span>}
                   </label>
 
                   {customVisualBase64 && (
                     <div style={{borderRadius:12,overflow:'hidden',border:'1px solid var(--border)',marginTop:4}}>
-                      <img src={`data:image/png;base64,${customVisualBase64}`} style={{width:'100%',display:'block'}} alt="Visuel importé"/>
+                      <img src={`data:image/png;base64,${customVisualBase64}`} style={{width:'100%',display:'block'}} alt={T('visual_imported_alt')}/>
                     </div>
                   )}
 
