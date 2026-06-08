@@ -1364,7 +1364,7 @@ export default function Home() {
                       </div>
                       {dayPosts.map((p:any)=>(
                         <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${p.status==='published'?'rgba(81,103,86,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:'pointer',fontSize:11,overflow:'hidden'}}>
-                          {p.svg_content && <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:48,objectFit:'cover',borderRadius:4,marginBottom:3,display:'block'}} />}
+                          {p.svg_content && (p.svg_content.trimStart().startsWith('<') ? <div style={{width:'100%',height:48,overflow:'hidden',borderRadius:4,marginBottom:3,pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: p.svg_content.replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} /> : <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:48,objectFit:'cover',borderRadius:4,marginBottom:3,display:'block'}} />)}
                           <div style={{fontWeight:500,color:'var(--text1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           <div style={{fontSize:10,color:'var(--text3)'}}>{new Date(p.scheduled_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
                           <span style={{fontSize:9,fontWeight:600,color:p.status==='published'?'var(--forest)':p.status==='error'?'#c0392b':'#8a7040',textTransform:'uppercase' as const}}>{p.status==='published'?'✓ Publié':p.status==='error'?'Erreur':'Planifié'}</span>
@@ -1394,7 +1394,7 @@ export default function Home() {
                         {day&&<div style={{fontSize:11,fontWeight:isToday?700:400,color:isToday?'var(--forest)':'var(--text3)',marginBottom:3}}>{day.getDate()}</div>}
                         {dayPosts.slice(0,2).map((p:any)=>(
                           <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,padding:'2px 5px',marginBottom:2,cursor:'pointer',fontSize:10,overflow:'hidden',color:'var(--text1)'}}>
-                            {p.svg_content && <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:28,objectFit:'cover',borderRadius:3,marginBottom:2,display:'block'}} />}
+                            {p.svg_content && (p.svg_content.trimStart().startsWith('<') ? <div style={{width:'100%',height:28,overflow:'hidden',borderRadius:3,marginBottom:2,pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: p.svg_content.replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} /> : <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:28,objectFit:'cover',borderRadius:3,marginBottom:2,display:'block'}} />)}
                             <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           </div>
                         ))}
@@ -1451,12 +1451,10 @@ export default function Home() {
                   <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:16,maxHeight:120,overflow:'hidden'}}>{selectedCalPost.content?.substring(0,200)}…</div>
                   {selectedCalPost.svg_content && (
                     <div style={{marginBottom:16,borderRadius:8,overflow:'hidden',border:'1px solid var(--border)'}}>
-                      <img
-                        src={`data:image/png;base64,${selectedCalPost.svg_content}`}
-                        style={{width:'100%',display:'block',maxHeight:200,objectFit:'cover'}}
-                        alt="Visuel joint"
-                        onError={(e)=>{(e.target as HTMLImageElement).style.display='none'}}
-                      />
+                      {selectedCalPost.svg_content.trimStart().startsWith('<')
+                        ? <div style={{width:'100%',maxHeight:200,overflow:'hidden',pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: selectedCalPost.svg_content.replace(/<svg/, '<svg style="width:100%;height:auto;display:block;max-height:200px"')}} />
+                        : <img src={`data:image/png;base64,${selectedCalPost.svg_content}`} style={{width:'100%',display:'block',maxHeight:200,objectFit:'cover'}} alt="Visuel joint" />
+                      }
                     </div>
                   )}
                   <div style={{display:'flex',gap:8}}>
