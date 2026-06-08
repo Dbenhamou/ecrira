@@ -191,7 +191,7 @@ function UpgradeModal({ onClose, lang }: { onClose: () => void, lang: 'fr'|'en' 
         <h2 style={{fontFamily:"Clash Display,sans-serif",fontSize:22,fontWeight:700,color:"#1F2421",marginBottom:8}}>{TU('upgrade_title')}</h2>
         <p style={{color:"#516756",fontSize:14,marginBottom:24,lineHeight:1.6}}>{TU('upgrade_body')}</p>
         <button onClick={()=>router.push("/pricing")} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"#1F2421",color:"#FAF9F7",fontFamily:"Clash Display,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:8}}>{TU('see_offers')}</button>
-        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #B7C0B8",background:"transparent",color:"#516756",fontSize:14,cursor:"pointer"}}>{T('cancel_btn')}</button>
+        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #B7C0B8",background:"transparent",color:"#516756",fontSize:14,cursor:"pointer"}}>{TU('cancel_btn')}</button>
       </div>
     </div>
   )
