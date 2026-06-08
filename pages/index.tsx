@@ -855,7 +855,7 @@ export default function Home() {
     { id:'idees', label:T('nav_idees'), icon:<BulbIcon/> },
     { id:'rediger', label:T('nav_rediger'), icon:<EditIcon/> },
     { id:'visuels', label:T('nav_visuels'), icon:<ImgIcon/> },
-    { id:'calendrier', label:'Calendrier', icon:<CalIcon/> },
+    { id:'calendrier', label:T('nav_calendrier'), icon:<CalIcon/> },
     { id:'bibliotheque', label:T('nav_bibliotheque'), icon:<BookIcon/> },
     { id:'profil', label:T('nav_profil'), icon:<UserIcon/> },
   ]
@@ -894,7 +894,7 @@ export default function Home() {
         <div key={i} className="idea-card fade" style={{animationDelay:`${i*.06}s`,border:idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined,background:idea.recommended?'rgba(168,120,79,0.04)':undefined}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
             <span className="idea-tag">{idea.topic}</span>
-            {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--forest)',border:'1px solid rgba(168,120,79,0.25)'}}>★ Recommandé</span>}
+            {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--forest)',border:'1px solid rgba(168,120,79,0.25)'}}>{T('recommended')}</span>}
           </div>
           <div className="idea-title">{idea.title}</div>
           <div className="idea-hook">{idea.hook}</div>
@@ -944,14 +944,14 @@ export default function Home() {
             </button>
             {showNotifPanel && (
               <div style={{position:'absolute' as const,left:'100%',top:0,marginLeft:8,width:320,background:'var(--white)',border:'1px solid var(--border)',borderRadius:14,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:200,maxHeight:400,overflowY:'auto' as const}} onClick={e=>e.stopPropagation()}>
-                <div style={{padding:'12px 14px',borderBottom:'1px solid var(--border)',fontSize:12,fontWeight:600,color:'var(--text1)'}}>Notifications</div>
+                <div style={{padding:'12px 14px',borderBottom:'1px solid var(--border)',fontSize:12,fontWeight:600,color:'var(--text1)'}}>{T('notifications')}</div>
                 {notifications.length===0 ? (
                   <div style={{padding:24,textAlign:'center' as const,fontSize:12,color:'var(--text3)'}}>Aucune notification</div>
                 ) : notifications.map((n:any)=>(
                   <div key={n.id} style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',background:n.read?'transparent':'rgba(81,103,86,0.04)'}}>
                     <div style={{fontSize:12,fontWeight:n.read?400:600,color:'var(--text1)',marginBottom:2}}>{n.title}</div>
                     {n.body&&<div style={{fontSize:11,color:'var(--text3)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{n.body}</div>}
-                    <div style={{fontSize:10,color:'var(--text3)',marginTop:3}}>{new Date(n.created_at).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+                    <div style={{fontSize:10,color:'var(--text3)',marginTop:3}}>{new Date(n.created_at).toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
                   </div>
                 ))}
               </div>
@@ -962,8 +962,8 @@ export default function Home() {
             <div className="user-row" onClick={()=>setPage('profil')}>
               <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
           <div>
-            <div className="user-name">{profile.name||'Mon compte'}</div>
-            <div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:`Completer le profil`}</div>
+            <div className="user-name">{profile.name||T('my_account')}</div>
+            <div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:T('complete_profile')}</div>
           </div>
             </div>
             <div className="theme-row"><span>{T('dark_mode')}</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
@@ -1665,7 +1665,7 @@ export default function Home() {
           {id:'apercu',label:T('nav_apercu'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
           {id:'idees',label:T('nav_idees_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
           {id:'rediger',label:T('nav_rediger'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
-{id:'calendrier',label:'Agenda',icon:<CalIcon/>},
+{id:'calendrier',label:T('nav_calendrier'),icon:<CalIcon/>},
           {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
           {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
           {id:'__pricing',label:isPro?'Pro ✦':'Passer Pro',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>},

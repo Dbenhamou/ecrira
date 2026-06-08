@@ -164,6 +164,13 @@ export const translations = {
     toast_enrich_error: 'Erreur analyse du site',
     toast_linkedin_success: '✓ LinkedIn connecté !',
     toast_linkedin_error: 'Erreur connexion LinkedIn',
+
+    // Nav/Header supplémentaires
+    nav_calendrier: 'Calendrier',
+    notifications: 'Notifications',
+    no_notifications: 'Aucune notification',
+    my_account: 'Mon compte',
+    complete_profile: 'Compléter le profil',
   },
 
   en: {
@@ -331,6 +338,13 @@ export const translations = {
     toast_enrich_error: 'Error analysing site',
     toast_linkedin_success: '✓ LinkedIn connected!',
     toast_linkedin_error: 'LinkedIn connection error',
+
+    // Nav/Header supplémentaires
+    nav_calendrier: 'Calendar',
+    notifications: 'Notifications',
+    no_notifications: 'No notifications',
+    my_account: 'My account',
+    complete_profile: 'Complete profile',
   },
 }
 
