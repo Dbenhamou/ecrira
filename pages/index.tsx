@@ -736,7 +736,7 @@ export default function Home() {
           const blob = new Blob([new TextEncoder().encode(aiSvgContent)], { type: 'image/svg+xml;charset=utf-8' })
           const url = URL.createObjectURL(blob)
           img.onload = () => { try { ctx.drawImage(img, 0, 0, 1080, 1350); URL.revokeObjectURL(url); resolve(canvas.toDataURL('image/png').split(',')[1]) } catch(e) { reject(e) } }
-          img.onerror = () => { URL.revokeObjectURL(url); resolve('') }
+          img.onerror = () => { URL.revokeObjectURL(url); resolve(null as any) }
           img.src = url
         }).catch(() => null)
       } // end else if aiSvgContent
@@ -748,7 +748,7 @@ export default function Home() {
           topic: postTopic || 'Sans titre',
           scheduled_at: new Date(scheduleDateTime).toISOString(),
       
-          svg_content: svgBase64,
+          svg_content: svgBase64 || null,
         }),
       })
       const data = await res.json()
@@ -1382,7 +1382,8 @@ export default function Home() {
                         {day.toLocaleDateString('fr-FR',{weekday:'short'})} {day.getDate()}
                       </div>
                       {dayPosts.map((p:any)=>(
-                        <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${p.status==='published'?'rgba(81,103,86,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:'pointer',fontSize:11}}>
+                        <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${p.status==='published'?'rgba(81,103,86,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:'pointer',fontSize:11,overflow:'hidden'}}>
+                          {p.svg_content && <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:48,objectFit:'cover',borderRadius:4,marginBottom:3,display:'block'}} />}
                           <div style={{fontWeight:500,color:'var(--text1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           <div style={{fontSize:10,color:'var(--text3)'}}>{new Date(p.scheduled_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</div>
                           <span style={{fontSize:9,fontWeight:600,color:p.status==='published'?'var(--forest)':p.status==='error'?'#c0392b':'#8a7040',textTransform:'uppercase' as const}}>{p.status==='published'?'✓ Publié':p.status==='error'?'Erreur':'Planifié'}</span>
@@ -1411,8 +1412,9 @@ export default function Home() {
                       <div key={i} style={{minHeight:80,background:day?'var(--white)':'transparent',border:day?`1px solid ${isToday?'var(--forest)':'var(--border)'}`:'none',borderRadius:8,padding:'4px 6px',opacity:isCurrentMonth?1:0.4}}>
                         {day&&<div style={{fontSize:11,fontWeight:isToday?700:400,color:isToday?'var(--forest)':'var(--text3)',marginBottom:3}}>{day.getDate()}</div>}
                         {dayPosts.slice(0,2).map((p:any)=>(
-                          <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,padding:'2px 5px',marginBottom:2,cursor:'pointer',fontSize:10,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,color:'var(--text1)'}}>
-                            {p.topic||'Post'}
+                          <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,padding:'2px 5px',marginBottom:2,cursor:'pointer',fontSize:10,overflow:'hidden',color:'var(--text1)'}}>
+                            {p.svg_content && <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:28,objectFit:'cover',borderRadius:3,marginBottom:2,display:'block'}} />}
+                            <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           </div>
                         ))}
                         {dayPosts.length>2&&<div style={{fontSize:9,color:'var(--text3)'}}>+{dayPosts.length-2}</div>}
