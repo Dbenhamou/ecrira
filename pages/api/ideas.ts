@@ -46,7 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Seed rotatif — varie selon l'heure et le jour pour forcer la diversité
   const now = new Date()
-  const seed = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${Math.floor(now.getHours()/4)}`
+  const seed = `${now.getMonth()}-${now.getDate()}-${Math.floor(now.getHours()/4)}`
 
   // Angles rotatifs selon le jour de la semaine
   const ANGLES_FR = [
@@ -86,6 +86,7 @@ Langue : ${lang}.`
   const userPrompt = `${news ? `${isEn ? 'Recent news:' : 'Actualités du secteur :'}\n${news}\n\n` : ''}${pastBlock}${isEn ? 'Generate exactly 10 FRESH LinkedIn post ideas for today.' : 'Génère exactement 10 idées de posts LinkedIn NOUVELLES pour aujourd\'hui.'}
 
 Seed de variation : ${seed} — utilise ce seed pour varier l'angle et le style.
+Année en cours : 2026. Ne cite jamais d'années antérieures à 2025 dans les titres ou hooks.
 Angle du jour à privilégier pour au moins 3 idées : ${dayAngle}
 
 Couvre des angles VARIÉS : actualité récente, ${dayAngle}, conseils pratiques, tendances, cas concrets, prises de position.
