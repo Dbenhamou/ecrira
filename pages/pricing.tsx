@@ -50,6 +50,9 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistSent, setWaitlistSent] = useState(false);
+  const [annual, setAnnual] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistSent, setWaitlistSent] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -122,6 +125,13 @@ export default function Pricing() {
 {T.title}
           </h1>
           <p style={{ color: '#516756', fontSize: '18px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>{T.subtitle}</p>
+          <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center',marginTop:24}}>
+            <span style={{fontSize:14,color:!annual?'#1F2421':'#B7C0B8',fontWeight:!annual?600:400}}>{lang==='fr'?'Mensuel':'Monthly'}</span>
+            <div onClick={()=>setAnnual(v=>!v)} style={{width:46,height:26,borderRadius:13,background:annual?'#516756':'#E3DED7',cursor:'pointer',position:'relative',transition:'background 0.2s'}}>
+              <div style={{position:'absolute',top:3,left:annual?23:3,width:20,height:20,borderRadius:'50%',background:'white',transition:'left 0.2s',boxShadow:'0 1px 4px rgba(0,0,0,0.15)'}}/>
+            </div>
+            <span style={{fontSize:14,color:annual?'#1F2421':'#B7C0B8',fontWeight:annual?600:400}}>{lang==='fr'?'Annuel':'Annual'}<span style={{marginLeft:6,fontSize:11,background:'#D9C8A3',color:'#1F2421',padding:'2px 7px',borderRadius:20,fontWeight:600}}>-20%</span></span>
+          </div>
           <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center',marginTop:24}}>
             <span style={{fontSize:14,color:!annual?'#1F2421':'#B7C0B8',fontWeight:!annual?600:400}}>{lang==='fr'?'Mensuel':'Monthly'}</span>
             <div onClick={()=>setAnnual(v=>!v)} style={{width:46,height:26,borderRadius:13,background:annual?'#516756':'#E3DED7',cursor:'pointer',position:'relative',transition:'background 0.2s'}}>
