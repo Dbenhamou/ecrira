@@ -871,7 +871,7 @@ export default function Home() {
   if (loading) return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#FAF9F7',fontFamily:"'Inter',sans-serif"}}>
       <div style={{textAlign:'center' as const}}>
-        <div style={{width:36,height:36,background:'#516756',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 4h8a4 4 0 0 1 0 8H6V4Z" fill="white" opacity=".9"/><path d="M6 12h5l4 8H6v-8Z" fill="white" opacity=".5"/></svg></div>
+        <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{width:60,height:'auto',margin:'0 auto 16px',display:'block'}} />
         <div style={{fontSize:13,color:'#6B7069'}}>{T('loading')}</div>
       </div>
     </div>
