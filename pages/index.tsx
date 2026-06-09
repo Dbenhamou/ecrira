@@ -917,7 +917,7 @@ export default function Home() {
 
   return (
     <>
-      <Head><title>Ecrira</title></Head>
+      <Head><title>Ecrira</title><link rel="icon" href="/logo-ecrira-icon.png" type="image/png"/><link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/></Head>
       <div className="app">
         {/* Mobile header */}
         <div className="mobile-header">
