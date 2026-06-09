@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Disallow: /api/
+Sitemap: https://ecrira.com/sitemap.xml

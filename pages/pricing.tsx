@@ -85,8 +85,24 @@ export default function Pricing() {
     <>
       <Head>
         <title>{T.tab_title}</title>
+        <meta name="description" content={lang==='fr'?"Ecrira génère vos posts LinkedIn en quelques secondes grâce à l'IA. Commencez gratuitement.":"Ecrira generates your LinkedIn posts in seconds with AI. Start for free."} />
+        <meta property="og:title" content="Ecrira — Générateur de posts LinkedIn par IA" />
+        <meta property="og:description" content="Générez des posts LinkedIn percutants en 30 secondes." />
+        <meta property="og:image" content="https://ecrira.com/og-image.png" />
+        <meta property="og:type" content="website" />
+        <meta name="twitter:card" content="summary_large_image" />
         <link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
       </Head>
+      {/* Header navigation */}
+      <div style={{position:'sticky',top:0,zIndex:100,background:'white',borderBottom:'1px solid #E3DED7',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <a href="/" style={{display:'flex',alignItems:'center',gap:8,textDecoration:'none'}}>
+          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:24,width:'auto'}} />
+        </a>
+        <div style={{display:'flex',gap:10}}>
+          <a href="/" style={{fontSize:13,color:'#516756',textDecoration:'none',padding:'7px 14px',borderRadius:8,border:'1px solid rgba(81,103,86,0.3)',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?'Se connecter':'Sign in'}</a>
+          <a href="/" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#516756',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Commencer gratuitement':'Start for free'}</a>
+        </div>
+      </div>
 
       <main style={{
         minHeight: '100vh',
