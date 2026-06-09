@@ -350,6 +350,9 @@ export const translations = {
     toast_publish_error: 'Erreur publication',
     linkedin_preview: 'Aperçu LinkedIn',
     close_preview: 'Fermer l\'aperçu',
+    schedule_from_lib: 'Planifier',
+    use_post: 'Utiliser',
+    chars: 'car.',
   },
 
   en: {
@@ -703,6 +706,9 @@ export const translations = {
     toast_publish_error: 'Publishing error',
     linkedin_preview: 'LinkedIn preview',
     close_preview: 'Close preview',
+    schedule_from_lib: 'Schedule',
+    use_post: 'Use',
+    chars: 'chars',
   },
 }
 

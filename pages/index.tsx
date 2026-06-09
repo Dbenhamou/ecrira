@@ -1617,11 +1617,29 @@ export default function Home() {
             {!loadingPosts && savedPosts.length===0 ? (
               <div className="card empty"><div className="empty-icon">◫</div><div className="empty-title">{T('library_empty_title')}</div><div className="empty-body">{T('library_empty_save')}</div></div>
             ) : savedPosts.map(p=>(
-              <div key={p.id} className="saved-card fade">
-                <div className="saved-header"><div><span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span><span style={{fontSize:11,color:'var(--text3)',marginLeft:8}}>{p.created_at}</span></div><button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>{T('delete')}</button></div>
-                <div className="saved-title">{p.topic}</div>
-                <div className="saved-preview">{p.content.substring(0,180)}…</div>
-                <div style={{display:'flex',gap:7}}><button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>{T('copy_post_btn')}</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>{T('edit')}</button></div>
+              <div key={p.id} className="saved-card fade" style={{position:'relative'}}>
+                {/* Header */}
+                <div className="saved-header">
+                  <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap' as const}}>
+                    <span className="badge badge-forest">{fmtLabels[p.format]||p.format}</span>
+                    <span style={{fontSize:11,color:'var(--text3)'}}>{p.created_at}</span>
+                    <span style={{fontSize:10,color:'var(--text3)',background:'var(--sand)',padding:'1px 6px',borderRadius:10}}>{p.content.length} {T('chars')}</span>
+                  </div>
+                  <button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b',borderColor:'transparent'}} onClick={()=>deletePost(p.id)}>{T('delete')}</button>
+                </div>
+                {/* Titre */}
+                <div className="saved-title" style={{marginBottom:6}}>{p.topic}</div>
+                {/* Aperçu contenu — 2 premières lignes */}
+                <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:12,padding:'10px 12px',background:'var(--ivory)',borderRadius:8,border:'1px solid var(--border)',fontFamily:"'Inter',sans-serif",whiteSpace:'pre-line' as const,maxHeight:80,overflow:'hidden',position:'relative' as const}}>
+                  {p.content.split('\n').slice(0,3).join('\n')}
+                  <div style={{position:'absolute',bottom:0,left:0,right:0,height:28,background:'linear-gradient(transparent,var(--ivory))'}}/>
+                </div>
+                {/* Actions */}
+                <div style={{display:'flex',gap:7,flexWrap:'wrap' as const}}>
+                  <button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>{T('copy_post_btn')}</button>
+                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>{T('use_post')}</button>
+                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('calendrier');setTimeout(()=>document.getElementById('new-post-btn')?.click(),100)}}>{T('schedule_from_lib')}</button>
+                </div>
               </div>
             ))}
           </div>
