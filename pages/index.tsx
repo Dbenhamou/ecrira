@@ -243,6 +243,7 @@ export default function Home() {
   const [loadingPosts, setLoadingPosts] = useState(false)
   const [loadingPost, setLoadingPost] = useState(false)
   const [showLinkedInPreview, setShowLinkedInPreview] = useState(false)
+  const [draggedPostId, setDraggedPostId] = useState<string|null>(null)
   const [postTopic, setPostTopic] = useState('')
   const [postFormat, setPostFormat] = useState('educational')
   const [postLength, setPostLength] = useState('medium')
@@ -755,6 +756,26 @@ export default function Home() {
       showToast(T('visual_imported_label') + ' ✓')
     }
     reader.readAsDataURL(file)
+  }
+
+  // ── Drag & drop calendrier
+  const handleDrop = async (targetDate: Date) => {
+    if (!draggedPostId) return
+    const post = scheduledPosts.find((p:any) => p.id === draggedPostId)
+    if (!post) return
+    const oldDate = new Date(post.scheduled_at)
+    const newDate = new Date(targetDate)
+    newDate.setHours(oldDate.getHours(), oldDate.getMinutes(), 0, 0)
+    if (newDate.toDateString() === oldDate.toDateString()) return
+    try {
+      await authFetch('/api/schedule', {
+        method: 'PUT',
+        body: JSON.stringify({ id: post.id, content: post.content, scheduled_at: newDate.toISOString(), topic: post.topic, svg_content: post.svg_content }),
+      })
+      setScheduledPosts(prev => prev.map((p:any) => p.id === draggedPostId ? {...p, scheduled_at: newDate.toISOString()} : p).sort((a:any,b:any) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()))
+      showToast(lang==='en'?'Post rescheduled ✓':'Post replanifié ✓')
+    } catch { showToast(T('toast_save_error')) }
+    setDraggedPostId(null)
   }
 
   const schedulePost = async () => {
@@ -1450,12 +1471,21 @@ export default function Home() {
                   const dayPosts = getPostsForDay(day)
                   const isToday = day.toDateString()===new Date().toDateString()
                   return (
-                    <div key={i} style={{minHeight:120,background:'var(--white)',border:`1px solid ${isToday?'var(--forest)':'var(--border)'}`,borderRadius:12,padding:'8px 10px'}}>
+                    <div key={i}
+                      onDragOver={e=>{e.preventDefault();e.currentTarget.style.background='rgba(81,103,86,0.06)';e.currentTarget.style.borderColor='var(--forest)'}}
+                      onDragLeave={e=>{e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)'}}
+                      onDrop={e=>{e.preventDefault();e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)';handleDrop(day)}}
+                      style={{minHeight:120,background:'var(--white)',border:`1px solid ${isToday?'var(--forest)':'var(--border)'}`,borderRadius:12,padding:'8px 10px',transition:'background 0.15s,border-color 0.15s'}}>
                       <div style={{fontSize:11,fontWeight:600,color:isToday?'var(--forest)':'var(--text3)',marginBottom:6,textTransform:'uppercase' as const}}>
                         {day.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'short'})} {day.getDate()}
                       </div>
                       {dayPosts.map((p:any)=>(
-                        <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${p.status==='published'?'rgba(81,103,86,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:'pointer',fontSize:11,overflow:'hidden'}}>
+                        <div key={p.id}
+                          draggable={p.status!=='published'}
+                          onDragStart={e=>{e.stopPropagation();setDraggedPostId(p.id);e.dataTransfer.effectAllowed='move'}}
+                          onDragEnd={()=>setDraggedPostId(null)}
+                          onClick={()=>setSelectedCalPost(p)}
+                          style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${draggedPostId===p.id?'var(--forest)':p.status==='published'?'rgba(81,103,86,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:p.status!=='published'?'grab':'pointer',fontSize:11,overflow:'hidden',opacity:draggedPostId===p.id?0.5:1,transition:'opacity 0.15s'}}>
                           {p.svg_content && (p.svg_content.trimStart().startsWith('<') ? <div style={{width:'100%',height:48,overflow:'hidden',borderRadius:4,marginBottom:3,pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(p.svg_content).replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} /> : <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:48,objectFit:'cover',borderRadius:4,marginBottom:3,display:'block'}} />)}
                           <div style={{fontWeight:500,color:'var(--text1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           <div style={{fontSize:10,color:'var(--text3)'}}>{new Date(p.scheduled_at).toLocaleTimeString(lang==='fr'?'fr-FR':'en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
@@ -1482,10 +1512,19 @@ export default function Home() {
                     const isToday = day?.toDateString()===new Date().toDateString()
                     const isCurrentMonth = day?.getMonth()===calDate.getMonth()
                     return (
-                      <div key={i} style={{minHeight:80,background:day?'var(--white)':'transparent',border:day?`1px solid ${isToday?'var(--forest)':'var(--border)'}`:'none',borderRadius:8,padding:'4px 6px',opacity:isCurrentMonth?1:0.4}}>
+                      <div key={i}
+                        onDragOver={e=>{if(day){e.preventDefault();e.currentTarget.style.background='rgba(81,103,86,0.06)';e.currentTarget.style.borderColor='var(--forest)'}}}
+                        onDragLeave={e=>{if(day){e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)'}}}
+                        onDrop={e=>{if(day){e.preventDefault();e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)';handleDrop(day)}}}
+                        style={{minHeight:80,background:day?'var(--white)':'transparent',border:day?`1px solid ${isToday?'var(--forest)':'var(--border)'}`:'none',borderRadius:8,padding:'4px 6px',opacity:isCurrentMonth?1:0.4,transition:'background 0.15s,border-color 0.15s'}}>
                         {day&&<div style={{fontSize:11,fontWeight:isToday?700:400,color:isToday?'var(--forest)':'var(--text3)',marginBottom:3}}>{day.getDate()}</div>}
                         {dayPosts.slice(0,2).map((p:any)=>(
-                          <div key={p.id} onClick={()=>setSelectedCalPost(p)} style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,padding:'2px 5px',marginBottom:2,cursor:'pointer',fontSize:10,overflow:'hidden',color:'var(--text1)'}}>
+                          <div key={p.id}
+                            draggable={p.status!=='published'}
+                            onDragStart={e=>{e.stopPropagation();setDraggedPostId(p.id);e.dataTransfer.effectAllowed='move'}}
+                            onDragEnd={()=>setDraggedPostId(null)}
+                            onClick={()=>setSelectedCalPost(p)}
+                            style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,padding:'2px 5px',marginBottom:2,cursor:p.status!=='published'?'grab':'pointer',fontSize:10,overflow:'hidden',color:'var(--text1)',opacity:draggedPostId===p.id?0.5:1}}>
                             {p.svg_content && (p.svg_content.trimStart().startsWith('<') ? <div style={{width:'100%',height:28,overflow:'hidden',borderRadius:3,marginBottom:2,pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(p.svg_content).replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} /> : <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:28,objectFit:'cover',borderRadius:3,marginBottom:2,display:'block'}} />)}
                             <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           </div>
