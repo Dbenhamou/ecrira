@@ -247,7 +247,7 @@ export default function Home() {
   const [draggedPostId, setDraggedPostId] = useState<string|null>(null)
   const [searchLibrary, setSearchLibrary] = useState('')
   const [suggestedHashtags, setSuggestedHashtags] = useState<string[]>([])
-  const [postTopic, setPostTopic] = useState('')
+  const [postTopic, setPostTopic] = useState(() => { try { return localStorage.getItem('ecrira_draft_topic') || '' } catch { return '' } })
   const [postFormat, setPostFormat] = useState('educational')
   const [postLength, setPostLength] = useState('medium')
   const [postTone, setPostTone] = useState('expert')
@@ -456,6 +456,12 @@ export default function Home() {
 
   const showToast = (msg: string) => { setToast(msg); setToastVisible(true); setTimeout(()=>setToastVisible(false), 2600) }
   const toggleDark = () => { const n=!dark; setDark(n); document.documentElement.dataset.theme=n?'dark':''; localStorage.setItem('ecrira_dark',n?'1':'0') }
+
+  // Auto-save brouillon sujet
+  const setPostTopicWithSave = (v: string) => {
+    setPostTopic(v)
+    try { localStorage.setItem('ecrira_draft_topic', v) } catch {}
+  }
 
   const generateIdeas = async () => {
     setLoadingIdeas(true)
@@ -736,6 +742,7 @@ export default function Home() {
       const data = await res.json()
       if (data.content) {
         setPostOutput(data.content)
+        try { localStorage.removeItem('ecrira_draft_topic') } catch {}
         // Extraire + suggérer des hashtags
         const existingTags = (data.content.match(/#[\w\u00C0-\u024F]+/g) || []).map((t:string)=>t)
         setSuggestedHashtags(existingTags.slice(0,5))
@@ -1050,7 +1057,11 @@ export default function Home() {
             <div className="page-sub">{new Date().toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
             <div className="stats-grid">
               <div className="stat-card"><div className="stat-label">{T('saved_posts')}</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">{T('in_library')}</div></div>
-              <div className="stat-card"><div className="stat-label">{T('generated_posts')}</div><div className="stat-value">{generatedCount}</div><div className="stat-note">{T('in_total')}</div></div>
+              <div className="stat-card">
+                <div className="stat-label">{T('generated_posts')}</div>
+                <div className="stat-value">{generatedCount}</div>
+                <div className="stat-note">{generatedCount===0?(lang==='en'?'Generate your first!':'Génère ton premier !'):T('in_total')}</div>
+              </div>
               <div className="stat-card"><div className="stat-label">{T('active_sector')}</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>{profile.sector?.split(' ')[0]||'Cyber'}</div><div className="stat-note">{profile.company||T('my_company')}</div></div>
             </div>
             {/* Checklist premiers pas */}
@@ -1097,7 +1108,7 @@ export default function Home() {
               <div className="card" style={{padding:'16px 18px'}}>
                 <div className="form-group" style={{marginBottom:10}}>
                   <label className="form-label">{T('subject_label')}</label>
-                  <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopic(e.target.value)} placeholder={T('subject_placeholder')}/>
+                  <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopicWithSave(e.target.value)} placeholder={T('subject_placeholder')}/>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
                   <div className="form-group" style={{marginBottom:0}}>
@@ -1966,6 +1977,7 @@ export default function Home() {
                     )}
                   </div>
                   <div style={{display:'flex',gap:8}}>
+                    <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>setOnboardingStep(0)}>← {lang==='en'?'Back':'Retour'}</button>
                     <button className="btn btn-ghost" style={{flex:1,justifyContent:'center',fontSize:12}} onClick={()=>setOnboardingStep(2)}>{T('onb_pass_btn')}</button>
                     <button className="btn btn-primary" style={{flex:2,justifyContent:'center'}} onClick={()=>setOnboardingStep(2)}>{T('onb_continue_btn')}</button>
                   </div>
@@ -2023,6 +2035,7 @@ export default function Home() {
                     </div>
                   ))}
                   <div style={{display:'flex',gap:8,marginTop:14}}>
+                    <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>setOnboardingStep(1)}>← {lang==='en'?'Back':'Retour'}</button>
                     <button className="btn btn-ghost" style={{justifyContent:'center',fontSize:12}} onClick={completeOnboarding}>{T('onb_pass_btn')}</button>
                     <button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={async()=>{await handleSaveProfile();completeOnboarding()}}>{T('save_and_start')}</button>
                   </div>

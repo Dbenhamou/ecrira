@@ -400,3 +400,9 @@ select.form-input { cursor: pointer; }
 /* Mobile only */
 .mobile-only { display: none; }
 @media (max-width: 768px) { .mobile-only { display: block; } .desktop-only-badge { display: none !important; } }
+
+/* Masquer widget Lusha */
+#lusha-app, .lusha-widget, [id*="lusha"], [class*="lusha"] {
+  display: none !important;
+  visibility: hidden !important;
+}
