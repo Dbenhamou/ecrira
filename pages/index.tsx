@@ -1642,7 +1642,7 @@ export default function Home() {
               <div>
                 <div className="card" style={{marginBottom:16}}>
                   <div className="section-label">{T('brand_colors')}</div>
-                  <div style={{fontSize:12,color:'var(--text2)',marginBottom:12}}>T('brand_colors_hint_text')</div>
+                  <div style={{fontSize:12,color:'var(--text2)',marginBottom:12}>{T('brand_colors_hint_text')}</div>
                   {([[T('color_bg'),'brand_bg'],[T('color_text'),'brand_text'],[T('color_primary'),'brand_accent'],[T('color_secondary'),'brand_color2'],[T('color_accent'),'brand_color3']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div key={key} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                       <span style={{fontSize:11,color:'var(--text2)',width:64,flexShrink:0}}>{label}</span>
