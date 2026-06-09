@@ -285,12 +285,7 @@ export default function Pricing() {
             )}
           </div>
         </div>
-        <div style={{textAlign:'center',margin:'40px auto 0',maxWidth:600,padding:'0 20px'}}>
-          <div style={{display:'inline-flex',alignItems:'center',gap:10,background:'white',border:'1px solid #E3DED7',borderRadius:12,padding:'12px 20px',fontSize:13,color:'#516756'}}>
-            <span style={{fontSize:20}}>🛡</span>
-            <span>{lang==='fr'?'Satisfait ou remboursé 7 jours · Sans engagement · Annulable à tout moment':'7-day money-back guarantee · No commitment · Cancel anytime'}</span>
-          </div>
-        </div>
+
         <div style={{maxWidth:680,margin:'60px auto 0',padding:'0 20px'}}>
           <h2 style={{fontFamily:"'Clash Display',sans-serif",fontSize:28,fontWeight:700,color:'#1F2421',textAlign:'center',marginBottom:32}}>{lang==='fr'?'Questions fréquentes':'FAQ'}</h2>
           {[
