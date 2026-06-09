@@ -50,9 +50,6 @@ export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistSent, setWaitlistSent] = useState(false);
-  const [annual, setAnnual] = useState(false);
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistSent, setWaitlistSent] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
