@@ -1125,7 +1125,7 @@ export default function Home() {
                       )}}
                     />
                     {/* Visuel dans aperçu */}
-                    {(aiSvgContent || customVisualBase64) && withImage && (
+                    {(aiSvgContent || customVisualBase64) && (
                       <div style={{marginTop:10,borderRadius:8,overflow:'hidden'}}>
                         {aiSvgContent
                           ? <div style={{width:'100%',pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(aiSvgContent).replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} />
