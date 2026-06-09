@@ -1148,8 +1148,7 @@ export default function Home() {
                     <span style={{fontSize:11,color:'var(--text3)',flexShrink:0}}>{lang==='en'?'Hashtags:':'Hashtags :'}</span>
                     {suggestedHashtags.map((tag,i)=>(
                       <button key={i} onClick={()=>{
-                        if(!postOutput.includes(tag)) setPostOutput(p=>p+'
-'+tag)
+                        if(!postOutput.includes(tag)) setPostOutput(p=>p+'\n'+tag)
                       }} style={{fontSize:11,padding:'2px 8px',borderRadius:20,border:'1px solid rgba(81,103,86,0.3)',background:'rgba(81,103,86,0.06)',color:'var(--forest)',cursor:'pointer',fontFamily:'inherit'}}>
                         {tag}
                       </button>
