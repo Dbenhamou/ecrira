@@ -408,7 +408,7 @@ export default function Home() {
         const elapsed = Date.now() - ideasLastRefresh.current
         const remaining = IDEAS_REFRESH_MS - elapsed
         if (remaining <= 0) {
-          authFetch('/api/ideas', { method:'POST', body:JSON.stringify({profile: {...profile, lang}}) })
+          authFetch('/api/ideas', { method:'POST', body:JSON.stringify({profile: {...profile, lang}, pastTitles: ideas.slice(0,10).map((i:any)=>i.title).filter(Boolean)}) })
             .then(r=>r.json()).then(async data=>{
               if (data.ideas) {
                 setIdeas(data.ideas)
@@ -457,7 +457,8 @@ export default function Home() {
   const generateIdeas = async () => {
     setLoadingIdeas(true)
     try {
-      const res = await authFetch('/api/ideas', { method:'POST', body:JSON.stringify({profile: {...profile, lang}}) })
+      const pastTitles = ideas.slice(0,10).map((i:any)=>i.title).filter(Boolean)
+      const res = await authFetch('/api/ideas', { method:'POST', body:JSON.stringify({profile: {...profile, lang}, pastTitles}) })
       const data = await res.json()
       if (data.ideas) {
         setIdeas(data.ideas)
