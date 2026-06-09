@@ -8,7 +8,7 @@ const pricingT = {
     tab_title: 'Tarifs — Ecrira',
     eyebrow: 'Tarifs simples',
     title: 'Choisissez votre plan',
-    subtitle: '{T.subtitle}',
+    subtitle: 'Commencez gratuitement, passez au Pro quand vous êtes prêt.',
     per_month: '/mois',
     free_tagline: 'Pour découvrir Ecrira',
     free_features: ['5 posts générés à vie', 'Génération IA basique', "Style d'écriture personnalisé", 'Visuels LinkedIn', 'Calendrier éditorial', 'Publication directe'],
