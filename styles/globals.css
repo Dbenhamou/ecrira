@@ -22,16 +22,42 @@
 }
 
 [data-theme="dark"] {
-  --ivory:   #161714;
-  --sand:    #1e201c;
-  --charcoal:#F0EDE8;
-  --white:   #1d1f1b;
-  --border:  #2c2e2a;
-  --text1:   #F0EDE8;
-  --text2:   #9a9d94;
-  --text3:   #5a5d54;
-  --shadow:  0 10px 40px rgba(0,0,0,0.3);
+  --ivory:      #161714;
+  --sand:       #1e201c;
+  --charcoal:   #F0EDE8;
+  --white:      #1d1f1b;
+  --border:     #2c2e2a;
+  --text1:      #F0EDE8;
+  --text2:      #9a9d94;
+  --text3:      #5a5d54;
+  --shadow:     0 10px 40px rgba(0,0,0,0.3);
+  --shadow-sm:  0 2px 12px rgba(0,0,0,0.2);
+  --forest:     #6a8f70;
+  --sage:       #4a5a4c;
+  --champagne:  #8a7040;
+  --success:    #6a8f70;
+  --warning:    #a07830;
 }
+
+/* Dark mode — overrides éléments hardcodés */
+[data-theme="dark"] .btn-primary { background: #6a8f70; }
+[data-theme="dark"] .nav-link.active { background: #6a8f70; }
+[data-theme="dark"] .idea-tag { background: rgba(106,143,112,0.15); color: #6a8f70; border-color: rgba(106,143,112,0.25); }
+[data-theme="dark"] .form-input { background: #1e201c; color: #F0EDE8; }
+[data-theme="dark"] .post-editor { background: #1e201c; color: #F0EDE8; }
+[data-theme="dark"] .chip { background: #1d1f1b; color: #9a9d94; }
+[data-theme="dark"] .chip:hover, [data-theme="dark"] .chip.on { color: #6a8f70; border-color: #6a8f70; background: rgba(106,143,112,0.1); }
+[data-theme="dark"] .badge-forest { background: rgba(106,143,112,0.15); color: #6a8f70; }
+[data-theme="dark"] .badge-copper { background: rgba(138,112,64,0.2); color: #c09050; }
+[data-theme="dark"] .stat-card { background: #1d1f1b; }
+[data-theme="dark"] .idea-card { background: #1d1f1b; }
+[data-theme="dark"] .saved-card { background: #1d1f1b; }
+[data-theme="dark"] .profile-hero { background: #1d1f1b; }
+[data-theme="dark"] .toast { background: #F0EDE8; color: #161714; }
+[data-theme="dark"] .sidebar { background: #1d1f1b; }
+[data-theme="dark"] .mobile-nav { background: #1d1f1b; }
+[data-theme="dark"] .mobile-header { background: #1d1f1b; }
+[data-theme="dark"] select.form-input option { background: #1e201c; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
