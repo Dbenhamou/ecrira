@@ -47,6 +47,9 @@ export default function Pricing() {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [lang, setLang] = useState<'fr'|'en'>('fr');
+  const [annual, setAnnual] = useState(false);
+  const [waitlistEmail, setWaitlistEmail] = useState('');
+  const [waitlistSent, setWaitlistSent] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setUser(data.user));
@@ -118,9 +121,14 @@ export default function Pricing() {
           <h1 style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#1F2421', margin: '0 0 16px' }}>
 {T.title}
           </h1>
-          <p style={{ color: '#516756', fontSize: '18px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>
-            Commencez gratuitement, passez au Pro quand vous êtes prêt.
-          </p>
+          <p style={{ color: '#516756', fontSize: '18px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>{T.subtitle}</p>
+          <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center',marginTop:24}}>
+            <span style={{fontSize:14,color:!annual?'#1F2421':'#B7C0B8',fontWeight:!annual?600:400}}>{lang==='fr'?'Mensuel':'Monthly'}</span>
+            <div onClick={()=>setAnnual(v=>!v)} style={{width:46,height:26,borderRadius:13,background:annual?'#516756':'#E3DED7',cursor:'pointer',position:'relative',transition:'background 0.2s'}}>
+              <div style={{position:'absolute',top:3,left:annual?23:3,width:20,height:20,borderRadius:'50%',background:'white',transition:'left 0.2s',boxShadow:'0 1px 4px rgba(0,0,0,0.15)'}}/>
+            </div>
+            <span style={{fontSize:14,color:annual?'#1F2421':'#B7C0B8',fontWeight:annual?600:400}}>{lang==='fr'?'Annuel':'Annual'}<span style={{marginLeft:6,fontSize:11,background:'#D9C8A3',color:'#1F2421',padding:'2px 7px',borderRadius:20,fontWeight:600}}>-20%</span></span>
+          </div>
         </div>
 
         {/* Cards */}
@@ -208,7 +216,7 @@ export default function Pricing() {
             </div>
             <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#D9C8A3', marginBottom: '8px' }}>Pro</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
-              <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#FAF9F7' }}>19,90€</span>
+              <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#FAF9F7' }}>{annual?'15,90€':'19,90€'}</span>
               <span style={{ color: '#B7C0B8', fontSize: '15px' }}>{T.per_month}</span>
             </div>
             <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>{T.pro_tagline}</p>
@@ -267,24 +275,35 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <button
-              disabled
-              style={{
-                width: '100%',
-                padding: '14px',
-                borderRadius: '12px',
-                border: '1.5px dashed #B7C0B8',
-                background: 'transparent',
-                color: '#B7C0B8',
-                fontFamily: "'Clash Display', sans-serif",
-                fontSize: '15px',
-                fontWeight: 600,
-                cursor: 'not-allowed',
-              }}
-            >
-{T.team_cta}
-            </button>
+            {waitlistSent ? (
+              <div style={{textAlign:'center',padding:'14px',background:'rgba(81,103,86,0.08)',borderRadius:12,fontSize:13,color:'#516756',fontWeight:500}}>✓ {lang==='fr'?"Inscrit sur la liste d'attente !":"Added to waitlist!"}</div>
+            ) : (
+              <div style={{display:'flex',gap:8}}>
+                <input type="email" placeholder={lang==='fr'?'Votre email':'Your email'} value={waitlistEmail} onChange={e=>setWaitlistEmail(e.target.value)} style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1px solid #E3DED7',fontSize:13,fontFamily:"'Inter',sans-serif",outline:'none'}}/>
+                <button onClick={async()=>{if(!waitlistEmail)return;await fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:waitlistEmail,userId:'anonymous'})}).catch(()=>{});setWaitlistSent(true)}} style={{padding:'10px 16px',borderRadius:10,background:'#516756',color:'white',border:'none',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?"M'avertir":"Notify me"}</button>
+              </div>
+            )}
           </div>
+        </div>
+        <div style={{textAlign:'center',margin:'40px auto 0',maxWidth:600,padding:'0 20px'}}>
+          <div style={{display:'inline-flex',alignItems:'center',gap:10,background:'white',border:'1px solid #E3DED7',borderRadius:12,padding:'12px 20px',fontSize:13,color:'#516756'}}>
+            <span style={{fontSize:20}}>🛡</span>
+            <span>{lang==='fr'?'Satisfait ou remboursé 7 jours · Sans engagement · Annulable à tout moment':'7-day money-back guarantee · No commitment · Cancel anytime'}</span>
+          </div>
+        </div>
+        <div style={{maxWidth:680,margin:'60px auto 0',padding:'0 20px'}}>
+          <h2 style={{fontFamily:"'Clash Display',sans-serif",fontSize:28,fontWeight:700,color:'#1F2421',textAlign:'center',marginBottom:32}}>{lang==='fr'?'Questions fréquentes':'FAQ'}</h2>
+          {[
+            {q:lang==='fr'?'Puis-je annuler à tout moment ?':'Can I cancel anytime?',a:lang==='fr'?"Oui, sans engagement. Votre accès Pro reste actif jusqu'à la fin de la période en cours.":"Yes, no commitment. Your Pro access stays active until the end of the current period."},
+            {q:lang==='fr'?'Fonctionne pour tous les secteurs ?':'Does it work for all industries?',a:lang==='fr'?"Oui. Ecrira s'adapte à votre secteur : cybersécurité, finance, immobilier, marketing, RH et bien d'autres.":"Yes. Ecrira adapts to your industry: cybersecurity, finance, real estate, marketing, HR and many more."},
+            {q:lang==='fr'?'Mes posts sont-ils uniques ?':'Are my posts truly unique?',a:lang==='fr'?'Chaque post est généré selon votre profil et votre style. Deux utilisateurs ne reçoivent jamais le même post.':'Each post is generated based on your profile and style. No two users receive the same post.'},
+            {q:lang==='fr'?'Mes données sont-elles sécurisées ?':'Is my data secure?',a:lang==='fr'?'Vos données sont stockées sur Supabase (UE) et ne sont jamais revendues.':'Your data is stored on Supabase (EU) and is never sold.'},
+          ].map((faq,i)=>(
+            <details key={i} style={{borderBottom:'1px solid #E3DED7',padding:'16px 0'}}>
+              <summary style={{fontSize:15,fontWeight:600,color:'#1F2421',cursor:'pointer',listStyle:'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>{faq.q}<span style={{fontSize:18,color:'#516756',flexShrink:0,marginLeft:12}}>+</span></summary>
+              <p style={{fontSize:14,color:'#6B7069',lineHeight:1.7,marginTop:10,paddingRight:24}}>{faq.a}</p>
+            </details>
+          ))}
         </div>
       </main>
     </>
