@@ -1155,7 +1155,7 @@ export default function Home() {
                     ))}
                   </div>
                 )}
-                {/* Toggle aperçu LinkedIn */}}
+                {/* Toggle aperçu LinkedIn */}
                 {postOutput && (
                   <div style={{marginTop:6,marginBottom:2,display:'flex',justifyContent:'flex-end'}}>
                     <button
