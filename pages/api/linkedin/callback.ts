@@ -58,6 +58,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       linkedin_token: tokenData.access_token,
       linkedin_token_expiry: expiresAt,
       linkedin_id: li.sub,
+      linkedin_picture: li.picture || null,
     }
 
     // Enrich name only if empty

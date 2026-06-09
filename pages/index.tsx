@@ -873,7 +873,6 @@ export default function Home() {
     { id:'apercu', label:T('nav_apercu'), icon:<GridIcon/> },
     { id:'idees', label:T('nav_idees'), icon:<BulbIcon/> },
     { id:'rediger', label:T('nav_rediger'), icon:<EditIcon/> },
-    { id:'visuels', label:T('nav_visuels'), icon:<ImgIcon/> },
     { id:'calendrier', label:T('nav_calendrier'), icon:<CalIcon/> },
     { id:'bibliotheque', label:T('nav_bibliotheque'), icon:<BookIcon/> },
     { id:'profil', label:T('nav_profil'), icon:<UserIcon/> },
@@ -944,8 +943,8 @@ export default function Home() {
               ))}
             </div>
             <span onClick={()=>window.location.href='/pricing'} style={{fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,background:isPro?'var(--forest)':'rgba(0,0,0,0.08)',color:isPro?'white':'var(--text2)',letterSpacing:'0.5px',textTransform:'uppercase' as const,cursor:'pointer'}}>{isPro?'Pro':'Free'}</span>
-            <div className="mobile-header-avatar" onClick={()=>setPage('profil')}>
-              {profile.name?profile.name.slice(0,2).toUpperCase():'??'}
+            <div className="mobile-header-avatar" onClick={()=>setPage('profil')} style={{overflow:'hidden',padding:0}}>
+              {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} /> : profile.name?profile.name.slice(0,2).toUpperCase():'??'}
             </div>
           </div>
         </div>
@@ -976,10 +975,10 @@ export default function Home() {
               </div>
             )}
           </div>
-          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
+          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if(item.id==="calendrier"&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
-              <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
+              {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:28,height:28,borderRadius:'50%',objectFit:'cover'}} /> : <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}
           <div>
             <div className="user-name">{profile.name||T('my_account')}</div>
             <div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:T('complete_profile')}</div>
@@ -1106,9 +1105,10 @@ export default function Home() {
                   <div style={{background:'white',border:'1px solid #e0e0e0',borderRadius:12,padding:16,marginTop:4,marginBottom:8,fontFamily:'system-ui,sans-serif',fontSize:14,lineHeight:1.6,color:'#000'}}>
                     {/* Header LinkedIn simulé */}
                     <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
-                      <div style={{width:40,height:40,borderRadius:'50%',background:'var(--forest)',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:14,flexShrink:0}}>
-                        {profile.name?profile.name.slice(0,2).toUpperCase():'??'}
-                      </div>
+                      {(profile as any).linkedin_picture
+                        ? <img src={(profile as any).linkedin_picture} alt="" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',flexShrink:0}} />
+                        : <div style={{width:40,height:40,borderRadius:'50%',background:'var(--forest)',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:14,flexShrink:0}}>{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
+                      }
                       <div>
                         <div style={{fontWeight:600,fontSize:13,color:'#000'}}>{profile.name||'Votre nom'}</div>
                         <div style={{fontSize:11,color:'#666'}}>{profile.role}{profile.company?` · ${profile.company}`:''}</div>
@@ -1124,6 +1124,15 @@ export default function Home() {
                           .replace(/(@[^\s@<>]+)/g,'<span style="color:#0a66c2;cursor:pointer">$1</span>')
                       )}}
                     />
+                    {/* Visuel dans aperçu */}
+                    {(aiSvgContent || customVisualBase64) && withImage && (
+                      <div style={{marginTop:10,borderRadius:8,overflow:'hidden'}}>
+                        {aiSvgContent
+                          ? <div style={{width:'100%',pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(aiSvgContent).replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} />
+                          : <img src={`data:image/png;base64,${customVisualBase64}`} alt="" style={{width:'100%',display:'block'}} />
+                        }
+                      </div>
+                    )}
                     {/* Reactions LinkedIn */}
                     <div style={{display:'flex',gap:16,marginTop:14,paddingTop:10,borderTop:'1px solid #e0e0e0',fontSize:12,color:'#666'}}>
                       <span style={{cursor:'pointer',display:'flex',alignItems:'center',gap:4}}>👍 J'aime</span>
@@ -1582,7 +1591,7 @@ export default function Home() {
           <div className={`page ${page==='profil'?'active':''}`}>
             <div className="eyebrow">{T('settings')}</div><div className="page-title">{T('my_profile')}</div><div className="copper-rule"/>
             <div className="page-sub">{T('profile_sub')}</div>
-            <div className="profile-hero"><div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div><div><div className="profile-name">{profile.name||T('profile_name_fallback')}</div><div className="profile-role">{profile.role} · {profile.company}</div></div></div>
+            <div className="profile-hero">{(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} /> : <div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}<div><div className="profile-name">{profile.name||T('profile_name_fallback')}</div><div className="profile-role">{profile.role} · {profile.company}</div></div></div>
             <div className="grid2">
               <div className="card">
                 <div className="section-label">{T('pro_identity')}</div>

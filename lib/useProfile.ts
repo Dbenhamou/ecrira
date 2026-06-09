@@ -18,6 +18,7 @@ export type Profile = {
   brand_accent: string
   brand_color2?: string
   brand_color3?: string
+  linkedin_picture?: string
   writing_style: string
   linkedin_token?: string
   linkedin_token_expiry?: string
@@ -109,6 +110,7 @@ export function useProfile() {
         brand_text: data.brand_text || '#1F2421',
         brand_accent: data.brand_accent || '#516756',
         brand_color2: data.brand_color2 || '#0099FF',
+        linkedin_picture: data.linkedin_picture || '',
         brand_color3: data.brand_color3 || '#302082',
         writing_style: data.writing_style || '',
         linkedin_token: data.linkedin_token || '',
