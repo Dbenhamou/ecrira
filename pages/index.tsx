@@ -1196,11 +1196,6 @@ export default function Home() {
               </div>
                 {postVariants.length > 1 && (
                   <div style={{display:'flex',gap:6,marginBottom:6}}>
-                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'3px 10px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--forest)':'var(--border)'}`,background:activeVariant===i?'rgba(81,103,86,0.08)':'transparent',color:activeVariant===i?'var(--forest)':'var(--text2)',cursor:'pointer'}}>{lang==='en'?`v${i+1}`:`v${i+1}`}</button>))}
-                  </div>
-                )}
-                {postVariants.length > 1 && (
-                  <div style={{display:'flex',gap:6,marginBottom:6}}>
                     {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'3px 10px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--forest)':'var(--border)'}`,background:activeVariant===i?'rgba(81,103,86,0.08)':'transparent',color:activeVariant===i?'var(--forest)':'var(--text2)',cursor:'pointer'}}>v{i+1}</button>))}
                   </div>
                 )}
