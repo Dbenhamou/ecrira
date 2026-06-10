@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
-  const { topic, format, length, tone, profile, seed, improvement, previousPost } = req.body
+  const { topic, format, length, tone, profile, seed, improvement, previousPost, variant = 0 } = req.body
   if (topic && topic.length > 500) return res.status(400).json({ error: 'Sujet trop long (max 500 car.)' })
 
   const formatMap: Record<string, string> = {
