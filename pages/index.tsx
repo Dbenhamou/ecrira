@@ -497,6 +497,22 @@ export default function Home() {
     setLoadingPost(false)
   }
 
+  const generate3Variants = async () => {
+    const t = postTopic
+    if (!t.trim()) { showToast(T('toast_enter_topic')); return }
+    setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0)
+    try {
+      const results: string[] = []
+      for (let i = 0; i < 3; i++) {
+        const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variant:i+1}) })
+        const data = await res.json()
+        if (data.content) results.push(data.content)
+      }
+      if (results.length > 0) { setPostVariants(results); setPostOutput(results[0]); setActiveVariant(0) }
+    } catch { showToast(T('toast_save_error')) }
+    setLoadingPost(false)
+  }
+
   const generatePost = useCallback(async (topic?: string) => {
     const t = topic || postTopic
     if (!t.trim()) { showToast(T('toast_enter_topic')); return }
@@ -1183,7 +1199,12 @@ export default function Home() {
                     {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'3px 10px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--forest)':'var(--border)'}`,background:activeVariant===i?'rgba(81,103,86,0.08)':'transparent',color:activeVariant===i?'var(--forest)':'var(--text2)',cursor:'pointer'}}>{lang==='en'?`v${i+1}`:`v${i+1}`}</button>))}
                   </div>
                 )}
-                {/* Hashtags suggérés */}}
+                {postVariants.length > 1 && (
+                  <div style={{display:'flex',gap:6,marginBottom:6}}>
+                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'3px 10px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--forest)':'var(--border)'}`,background:activeVariant===i?'rgba(81,103,86,0.08)':'transparent',color:activeVariant===i?'var(--forest)':'var(--text2)',cursor:'pointer'}}>v{i+1}</button>))}
+                  </div>
+                )}
+                {/* Hashtags suggérés */}}}
                 {suggestedHashtags.length > 0 && (
                   <div style={{marginTop:6,marginBottom:2,display:'flex',flexWrap:'wrap' as const,gap:5,alignItems:'center'}}>
                     <span style={{fontSize:11,color:'var(--text3)',flexShrink:0}}>{lang==='en'?'Hashtags:':'Hashtags :'}</span>
