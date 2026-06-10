@@ -88,6 +88,7 @@ export default function Pricing() {
     <>
       <Head>
         <title>{T.tab_title}</title>
+        <script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script>
         <meta name="description" content={lang==='fr'?"Ecrira génère vos posts LinkedIn en quelques secondes grâce à l'IA. Commencez gratuitement.":"Ecrira generates your LinkedIn posts in seconds with AI. Start for free."} />
         <meta property="og:title" content="Ecrira — Générateur de posts LinkedIn par IA" />
         <meta property="og:description" content="Générez des posts LinkedIn percutants en 30 secondes." />
