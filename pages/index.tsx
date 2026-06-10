@@ -481,6 +481,22 @@ export default function Home() {
     setLoadingIdeas(false)
   }
 
+  const generate3Variants = async () => {
+    const t = postTopic
+    if (!t.trim()) { showToast(T('toast_enter_topic')); return }
+    setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0)
+    try {
+      const results: string[] = []
+      for (let i = 0; i < 3; i++) {
+        const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variant:i+1}) })
+        const data = await res.json()
+        if (data.content) results.push(data.content)
+      }
+      if (results.length > 0) { setPostVariants(results); setPostOutput(results[0]); setActiveVariant(0) }
+    } catch { showToast(T('toast_save_error')) }
+    setLoadingPost(false)
+  }
+
   const generatePost = useCallback(async (topic?: string) => {
     const t = topic || postTopic
     if (!t.trim()) { showToast(T('toast_enter_topic')); return }
@@ -963,6 +979,7 @@ export default function Home() {
 
   return (
     <>
+      {trialBanner}
       <Head><title>Ecrira</title><link rel="icon" href="/favicon-32.png" type="image/png"/><script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script><link rel="icon" href="/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/><meta name="theme-color" content="#516756"/></Head>
       <div className="app">
         {/* Mobile header */}
@@ -978,7 +995,7 @@ export default function Home() {
                 </button>
               ))}
             </div>
-            <span onClick={()=>window.location.href='/pricing'} style={{fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,background:isPro?'var(--forest)':'rgba(0,0,0,0.08)',color:isPro?'white':'var(--text2)',letterSpacing:'0.5px',textTransform:'uppercase' as const,cursor:'pointer'}}>{isPro?'Pro':'Free'}</span>
+            <span onClick={()=>window.location.href='/pricing'} style={{fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,background:plan==='trial'?'#D9A840':isPro?'var(--forest)':'rgba(0,0,0,0.08)',color:plan==='trial'||isPro?'white':'var(--text2)',letterSpacing:'0.5px',textTransform:'uppercase' as const,cursor:'pointer'}}>{plan==='trial'?`TRIAL ${trialDaysLeft}j`:isPro?'Pro':'Free'}</span>
             <div className="mobile-header-avatar" onClick={()=>setPage('profil')} style={{overflow:'hidden',padding:0}}>
               {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} /> : profile.name?profile.name.slice(0,2).toUpperCase():'??'}
             </div>
@@ -1144,7 +1161,7 @@ export default function Home() {
                     {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
                   </div>
                 </div>
-                <button className="btn btn-primary" style={{width:'100%',justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> {T('generating')}</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>
+                <div style={{display:'flex',gap:6}}><button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> {T('generating')}</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>{isPro&&<button className="btn btn-secondary" style={{fontSize:12,padding:'0 12px',flexShrink:0}} onClick={()=>{ if(!canGenerate){setShowUpgradeModal(true);return;} generate3Variants(); }} disabled={loadingPost}>×3</button>}</div>
               </div>
 
               {/* RIGHT: Résultat */}
@@ -1161,7 +1178,12 @@ export default function Home() {
                 <textarea className="post-editor" style={{minHeight:260}} value={postOutput} onChange={e=>setPostOutput(e.target.value.slice(0,3000))} placeholder={T('post_placeholder')} maxLength={3000}/>
                 <div style={{position:'absolute',bottom:8,right:10,fontSize:10,color:postOutput.length>2800?'#c0392b':'var(--text3)',fontFamily:'monospace',pointerEvents:'none'}}>{postOutput.length}/3000</div>
               </div>
-                {/* Hashtags suggérés */}
+                {postVariants.length > 1 && (
+                  <div style={{display:'flex',gap:6,marginBottom:6}}>
+                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'3px 10px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--forest)':'var(--border)'}`,background:activeVariant===i?'rgba(81,103,86,0.08)':'transparent',color:activeVariant===i?'var(--forest)':'var(--text2)',cursor:'pointer'}}>{lang==='en'?`v${i+1}`:`v${i+1}`}</button>))}
+                  </div>
+                )}
+                {/* Hashtags suggérés */}}
                 {suggestedHashtags.length > 0 && (
                   <div style={{marginTop:6,marginBottom:2,display:'flex',flexWrap:'wrap' as const,gap:5,alignItems:'center'}}>
                     <span style={{fontSize:11,color:'var(--text3)',flexShrink:0}}>{lang==='en'?'Hashtags:':'Hashtags :'}</span>
