@@ -103,8 +103,14 @@ export default function Pricing() {
           <img src="/logo-ecrira.png" alt="Ecrira" style={{height:24,width:'auto'}} />
         </a>
         <div style={{display:'flex',gap:10}}>
-          <a href="/" style={{fontSize:13,color:'#516756',textDecoration:'none',padding:'7px 14px',borderRadius:8,border:'1px solid rgba(81,103,86,0.3)',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?'Se connecter':'Sign in'}</a>
-          <a href="/" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#516756',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Commencer gratuitement':'Start for free'}</a>
+          {user ? (
+            <a href="/" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#516756',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Accéder à mon compte':'Go to my account'}</a>
+          ) : (
+            <>
+              <a href="/login" style={{fontSize:13,color:'#516756',textDecoration:'none',padding:'7px 14px',borderRadius:8,border:'1px solid rgba(81,103,86,0.3)',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?'Se connecter':'Sign in'}</a>
+              <a href="/login" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#516756',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Commencer gratuitement':'Start for free'}</a>
+            </>
+          )}
         </div>
       </div>
 
