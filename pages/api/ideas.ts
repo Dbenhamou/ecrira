@@ -71,27 +71,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const news = await fetchNews(sector, isEn)
 
-  const systemPrompt = `${isEn ? 'You are a LinkedIn personal branding expert.' : 'Tu es un expert en personal branding LinkedIn.'}
+  // Calibrage automatique du niveau de technicité
+  const keywords = profile?.keywords || techStack || ''
+  const hasTechnicalKeywords = keywords.length > 0 || sector.length > 10
+  const audienceIsExpert = audience.toLowerCase().match(/expert|rssi|dsi|cto|ciso|ingénieur|engineer|developer|technique|msp|mssp|analyst|architect/i)
+  const audienceIsDecideur = audience.toLowerCase().match(/directeur|manager|ceo|coo|dg|pme|pmle|dirigeant|decision|business|commercial|vente/i)
+
+  const techLevel = audienceIsExpert ? 'expert' : audienceIsDecideur ? 'decideur' : 'generaliste'
+
+  const techLevelInstruction = techLevel === 'expert'
+    ? (isEn
+        ? `TECHNICAL DEPTH: Your audience are experts. Use precise technical terminology (${keywords || sector}). Titles and hooks must include specific technical terms, real tool names, concrete metrics. Avoid generic phrasing.`
+        : `NIVEAU TECHNIQUE: Ton audience est composée d'experts. Utilise la terminologie technique précise (${keywords || sector}). Les titres et hooks doivent inclure des termes techniques spécifiques, des noms d'outils réels, des métriques concrètes. Évite les formulations génériques.`)
+    : techLevel === 'decideur'
+    ? (isEn
+        ? `DEPTH: Your audience are business decision-makers. Translate technical concepts into business impact (ROI, risk, cost, time). Use concrete numbers and real-world examples.`
+        : `NIVEAU: Ton audience est composée de décideurs business. Traduis les concepts techniques en impact business (ROI, risque, coût, temps). Utilise des chiffres concrets et des exemples réels.`)
+    : (isEn
+        ? `DEPTH: Balanced mix of accessible and expert content. Alternate between practical advice and deeper insights.`
+        : `NIVEAU: Mix équilibré entre contenu accessible et expert. Alterne entre conseils pratiques et insights plus profonds.`)
+
+  const systemPrompt = `${isEn ? 'You are a LinkedIn personal branding expert specialized in the user\'s sector.' : 'Tu es un expert en personal branding LinkedIn spécialisé dans le secteur de l\'utilisateur.'}
 Utilisateur : ${role}${company ? ` chez ${company}` : ''}.
 Secteur : ${sector || 'Non précisé'}.
 Audience : ${audience}.
-${techStack ? `Stack : ${techStack}.` : ''}
+${keywords ? `Mots-clés métier : ${keywords}.` : ''}
+${techStack ? `Stack/Outils : ${techStack}.` : ''}
 ${domain ? `Domaine entreprise : ${domain}.` : ''}
-Langue : ${lang}.`
+Langue : ${lang}.
+
+${techLevelInstruction}`
 
   const pastBlock = pastTitles?.length > 0
     ? `${isEn ? 'ALREADY GENERATED (do NOT repeat these subjects):' : 'DÉJÀ GÉNÉRÉS (ne répète PAS ces sujets)'}\n${pastTitles.map((t: string) => `- ${t}`).join('\n')}\n\n`
     : ''
 
-  const userPrompt = `${news ? `${isEn ? 'Recent news:' : 'Actualités du secteur :'}\n${news}\n\n` : ''}${pastBlock}${isEn ? 'Generate exactly 10 FRESH LinkedIn post ideas for today.' : 'Génère exactement 10 idées de posts LinkedIn NOUVELLES pour aujourd\'hui.'}
+  const userPrompt = `${news ? `${isEn ? 'Recent news:' : 'Actualités du secteur :'}\n${news}\n\n` : ''}${pastBlock}${isEn ? 'Generate exactly 10 FRESH LinkedIn post ideas for today.' : "Génère exactement 10 idées de posts LinkedIn NOUVELLES pour aujourd'hui."}
 
 Seed de variation : ${seed} — utilise ce seed pour varier l'angle et le style.
 Année en cours : 2026. Ne cite jamais d'années antérieures à 2025 dans les titres ou hooks.
 Angle du jour à privilégier pour au moins 3 idées : ${dayAngle}
 
+RÈGLES ABSOLUES POUR LES TITRES ET HOOKS :
+${isEn
+  ? `- Titles must be specific and concrete: include real numbers, tool names, or sharp assertions
+- Hooks must create immediate tension with a precise fact or provocative claim
+- NEVER use generic phrases like "here's what you need to know"
+- Use the actual keywords from the user profile: ${keywords || sector}
+- Each idea must feel tailor-made for this exact professional profile`
+  : `- Les titres doivent être spécifiques et concrets : vrais chiffres, noms d'outils, assertions tranchées
+- Les hooks doivent créer une tension immédiate avec un fait précis ou une affirmation provocatrice
+- Ne JAMAIS utiliser des formules génériques comme "voici ce que vous devez savoir"
+- Utiliser les vrais mots-clés du profil : ${keywords || sector}
+- Chaque idée doit sembler faite sur mesure pour ce profil exact`}
+
 Couvre des angles VARIÉS : actualité récente, ${dayAngle}, conseils pratiques, tendances, cas concrets, prises de position.
 Les 2 premières idées doivent être les plus originales et percutantes.
-Adapte chaque idée au secteur et à l'audience de l'utilisateur.
 IMPORTANT : Chaque idée doit être DISTINCTE des précédentes par son angle, son format et son sujet.
 
 Format JSON strict (tableau de 10 objets) :
