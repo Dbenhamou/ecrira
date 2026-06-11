@@ -116,6 +116,7 @@ export function useProfile() {
         linkedin_picture: data.linkedin_picture || '',
         brand_color3: data.brand_color3 || '#302082',
         writing_style: data.writing_style || '',
+        formality: (data as any).formality || 'vouvoiement',
         linkedin_token: data.linkedin_token || '',
         linkedin_token_expiry: data.linkedin_token_expiry || '',
         linkedin_id: data.linkedin_id || '',
