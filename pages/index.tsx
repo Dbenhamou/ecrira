@@ -465,7 +465,14 @@ export default function Home() {
     try { localStorage.setItem('ecrira_draft_topic', v) } catch {}
   }
 
+  const isProfileComplete = () => !!(profile.name && (profile.sector || (profile as any).domain || (profile as any).website))
+
   const generateIdeas = async () => {
+    if (!isProfileComplete()) {
+      showToast(lang === 'en' ? 'Complete your profile first (name + sector or website)' : "Complète ton profil d'abord (nom + secteur ou site web)")
+      setPage('profil')
+      return
+    }
     setLoadingIdeas(true)
     try {
       const pastTitles = ideas.slice(0,10).map((i:any)=>i.title).filter(Boolean)
@@ -611,7 +618,9 @@ export default function Home() {
     // Check LinkedIn connection status from URL param
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
-      if (params.get('linkedin') === 'success') {
+      if (params.get('linkedin') === 'already_used') {
+        showToast(lang==='en'?'This LinkedIn account is already linked to another Ecrira account.':'Ce compte LinkedIn est déjà lié à un autre compte Ecrira.')
+      } else if (params.get('linkedin') === 'success') {
         setLinkedinConnected(true)
         showToast(lang==='en'?'✓ LinkedIn connected!':'✓ LinkedIn connecté !')
         window.history.replaceState({}, '', '/')
@@ -1763,7 +1772,7 @@ export default function Home() {
           <div className={`page ${page==='profil'?'active':''}`}>
             <div className="eyebrow">{T('settings')}</div><div className="page-title">{T('my_profile')}</div><div className="copper-rule"/>
             <div className="page-sub">{T('profile_sub')}</div>
-            <div className="profile-hero">{(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} /> : <div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}<div><div className="profile-name">{profile.name||T('profile_name_fallback')}</div><div className="profile-role">{profile.role} · {profile.company}</div></div></div>
+            <div className="profile-hero">{(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} /> : <div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}<div><div className="profile-name">{profile.name||T('profile_name_fallback')}</div><div className="profile-role">{profile.role} · {profile.company}</div>{(profile as any).email&&<div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{(profile as any).email}</div>}</div></div>
             <div className="grid2">
               <div className="card">
                 <div className="section-label">{T('pro_identity')}</div>
@@ -1924,10 +1933,13 @@ export default function Home() {
 
       {showOnboarding&&(
         <div style={{position:'fixed',inset:0,zIndex:600,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(6px)',padding:20}}>
-          <div style={{background:'var(--white)',borderRadius:24,width:'100%',maxWidth:520,boxShadow:'0 32px 80px rgba(0,0,0,0.2)',overflow:'hidden'}}>
-            <div style={{background:'var(--forest)',padding:'28px 32px 24px'}}>
-              <div style={{marginBottom:8}}>
-                <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:36,width:'auto'}} />
+          <div style={{background:'var(--white)',borderRadius:20,width:'100%',maxWidth:500,boxShadow:'0 24px 64px rgba(0,0,0,0.25)',overflow:'hidden'}}>
+            <div style={{background:'var(--forest)',padding:'24px 28px 20px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
+                <div style={{background:'white',borderRadius:10,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+                  <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:22,width:'auto'}} />
+                </div>
+                <span style={{fontFamily:"'Clash Display',sans-serif",fontSize:15,fontWeight:600,color:'white',letterSpacing:'0.02em'}}>Ecrira</span>
               </div>
               <div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:22,fontWeight:500,color:'white',marginBottom:4}}>
                 {onboardingStep===0&&'Bienvenue'}{onboardingStep===1&&'Connecte LinkedIn'}{onboardingStep===2&&'Ton profil'}

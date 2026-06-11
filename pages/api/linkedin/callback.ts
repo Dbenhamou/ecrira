@@ -54,6 +54,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .eq('id', userId)
       .single()
 
+    // Block if linkedin_id already used by another account
+    if (li.sub) {
+      const { data: existingLinkedin } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('linkedin_id', li.sub)
+        .neq('id', userId)
+        .maybeSingle()
+
+      if (existingLinkedin) {
+        return res.redirect('/?linkedin=already_used')
+      }
+    }
+
     const updates: Record<string, any> = {
       linkedin_token: tokenData.access_token,
       linkedin_token_expiry: expiresAt,
