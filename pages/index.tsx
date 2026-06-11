@@ -615,19 +615,19 @@ export default function Home() {
   const T = (key: Parameters<typeof t>[1]) => t(lang, key)
 
   useEffect(() => {
-    // Realtime notifications
-    if (userId) {
-      const channel = supabase
-        .channel('notifications-' + userId)
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, (payload: any) => {
-          const n = payload.new as any
-          setNotifications((prev: any[]) => [n, ...prev])
-          setUnreadCount((c: number) => c + 1)
-        })
-        .subscribe()
-      return () => { supabase.removeChannel(channel) }
-    }
+    if (!userId) return
+    const channel = supabase
+      .channel('notifications-' + userId)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, (payload: any) => {
+        const n = payload.new as any
+        setNotifications((prev: any[]) => [n, ...prev])
+        setUnreadCount((c: number) => c + 1)
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [userId])
 
+  useEffect(() => {
     // Check LinkedIn connection status from URL param
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
