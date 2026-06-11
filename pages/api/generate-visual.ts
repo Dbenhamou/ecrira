@@ -120,6 +120,7 @@ REGLES ABSOLUES :
 - Texte dans les cards : MAX 40 caractères par ligne, découpe en plusieurs balises text si nécessaire
 - Ne jamais laisser du texte déborder hors des rectangles
 - INTERDIT : reproduire le texte brut du post LinkedIn dans le visuel
+- INTERDIT : afficher une année antérieure à ${new Date().getFullYear()} — si une année est nécessaire, utilise ${new Date().getFullYear()}
 
 DONNEES :
 - Titre : ${titleLine}
