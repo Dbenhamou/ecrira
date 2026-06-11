@@ -43,9 +43,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const contentThemes = profile?.content_themes || ''
   const painPoints = profile?.pain_points || ''
   const techStack = profile?.tech_stack || ''
+  const isEn = (profile?.lang || 'fr') === 'en'
   const formality = profile?.formality || 'vouvoiement'
   const formalityInstruction = isEn ? '' : formality === 'tutoiement' ? '\nTUTOIEMENT OBLIGATOIRE : tutoie systématiquement le lecteur dans tout le post (tu, ton, tes, toi). Jamais de vous/votre.' : '\nVOUVOIEMENT OBLIGATOIRE : vouvoie systématiquement le lecteur dans tout le post (vous, votre, vos). Jamais de tu/ton/tes.'
-  const isEn = (profile?.lang || 'fr') === 'en'
   const lang = isEn ? 'English' : 'Français'
   const langInstruction = isEn
     ? 'IMPORTANT: Write the ENTIRE post in English. Do not use any French words.'
