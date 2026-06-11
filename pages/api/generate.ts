@@ -112,7 +112,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .eq('id', userId)
     .single()
 
-  const isPro = userProfile?.plan === 'pro'
+  const isPro = userProfile?.plan === 'pro' || userProfile?.plan === 'trial'
   const postsCount = userProfile?.posts_count_this_month ?? 0
 
   if (!isPro && postsCount >= 5) {

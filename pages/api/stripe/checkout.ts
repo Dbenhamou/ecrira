@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { stripe } from '../../../lib/stripe';
 import { createClient } from '@supabase/supabase-js';
+import { requireAuth } from '../../../lib/auth-helper';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,9 +11,12 @@ const supabase = createClient(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
 
+  const authUserId = await requireAuth(req, res)
+  if (!authUserId) return
+
   const { userId } = req.body;
 
-  if (!userId) return res.status(400).json({ error: 'Missing userId' });
+  if (!userId || userId !== authUserId) return res.status(403).json({ error: 'Non autorisé' });
 
   // Récupérer l'email depuis Supabase
   const { data: profileData } = await supabase.from('profiles').select('email').eq('id', userId).single();

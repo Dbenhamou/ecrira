@@ -45,6 +45,11 @@ export function usePlan(userId: string | null): PlanState {
     };
 
     fetchPlan();
+
+    // Refresh au focus fenêtre (ex: retour après paiement Stripe)
+    const handleFocus = () => fetchPlan()
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
   }, [userId]);
 
   return state;

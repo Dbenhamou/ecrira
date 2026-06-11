@@ -20,8 +20,8 @@ export default function Landing() {
         <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(250,249,247,0.95)',backdropFilter:'blur(8px)',borderBottom:'1px solid #E3DED7',padding:'14px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <img src="/logo-ecrira.png" alt="Ecrira" style={{height:24,width:'auto'}} />
           <div style={{display:'flex',gap:10}}>
-            <button onClick={()=>router.push('/')} style={{padding:'7px 16px',borderRadius:8,border:'1px solid rgba(81,103,86,0.3)',background:'transparent',color:'#516756',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Se connecter</button>
-            <button onClick={()=>router.push('/')} style={{padding:'7px 16px',borderRadius:8,background:'#516756',color:'white',border:'none',fontSize:13,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>Essai gratuit 7 jours →</button>
+            <button onClick={()=>router.push('/login')} style={{padding:'7px 16px',borderRadius:8,border:'1px solid rgba(81,103,86,0.3)',background:'transparent',color:'#516756',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Se connecter</button>
+            <button onClick={()=>router.push('/login')} style={{padding:'7px 16px',borderRadius:8,background:'#516756',color:'white',border:'none',fontSize:13,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>Essai gratuit 7 jours →</button>
           </div>
         </div>
         {/* Hero */}
@@ -29,7 +29,7 @@ export default function Landing() {
           <div style={{display:'inline-block',background:'rgba(81,103,86,0.08)',color:'#516756',fontSize:12,fontWeight:600,padding:'5px 14px',borderRadius:20,marginBottom:20,letterSpacing:'0.05em'}}>✦ 7 JOURS GRATUITS · SANS CB</div>
           <h1 style={{fontFamily:"'Clash Display',sans-serif",fontSize:'clamp(36px,6vw,64px)',fontWeight:700,color:'#1F2421',lineHeight:1.15,marginBottom:20}}>Votre expertise mérite<br/>d'être vue.</h1>
           <p style={{fontSize:18,color:'#6B7069',lineHeight:1.7,maxWidth:520,margin:'0 auto 36px'}}>Ecrira génère vos posts LinkedIn en 30 secondes — personnalisés pour votre secteur, dans votre style.</p>
-          <button onClick={()=>router.push('/')} style={{padding:'16px 36px',borderRadius:14,background:'#516756',color:'white',border:'none',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(81,103,86,0.3)'}}>Commencer gratuitement →</button>
+          <button onClick={()=>router.push('/login')} style={{padding:'16px 36px',borderRadius:14,background:'#516756',color:'white',border:'none',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 20px rgba(81,103,86,0.3)'}}>Commencer gratuitement →</button>
           <p style={{fontSize:12,color:'#9EA39C',marginTop:12}}>Sans carte bancaire · Sans engagement</p>
         </div>
         {/* Features */}
@@ -51,7 +51,7 @@ export default function Landing() {
         <div style={{background:'#516756',padding:'60px 24px',textAlign:'center'}}>
           <h2 style={{fontFamily:"'Clash Display',sans-serif",fontSize:32,fontWeight:700,color:'white',marginBottom:12}}>Prêt à booster votre présence LinkedIn ?</h2>
           <p style={{fontSize:16,color:'rgba(255,255,255,0.8)',marginBottom:28}}>7 jours Pro gratuits — aucune carte bancaire requise.</p>
-          <button onClick={()=>router.push('/')} style={{padding:'14px 32px',borderRadius:12,background:'white',color:'#516756',border:'none',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Commencer maintenant →</button>
+          <button onClick={()=>router.push('/login')} style={{padding:'14px 32px',borderRadius:12,background:'white',color:'#516756',border:'none',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Commencer maintenant →</button>
         </div>
         {/* Footer */}
         <div style={{background:'#1F2421',padding:'32px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:16}}>

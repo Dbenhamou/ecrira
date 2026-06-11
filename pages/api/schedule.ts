@@ -16,6 +16,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
+  // Vérification plan Pro pour planifier
+  const { data: userPlan } = await supabase.from('profiles').select('plan, trial_ends_at').eq('id', userId).single()
+  const trialActive = userPlan?.plan === 'trial' && userPlan?.trial_ends_at && new Date(userPlan.trial_ends_at) > new Date()
+  const isPro = userPlan?.plan === 'pro' || trialActive
+  if (!isPro) return res.status(403).json({ error: 'UPGRADE_REQUIRED', message: 'La planification requiert le plan Pro.' })
+
   // Supprimer un post planifié
   if (req.method === 'DELETE') {
     const { id } = req.body
