@@ -1050,6 +1050,24 @@ export default function Home() {
             )}
           </div>
           <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if(item.id==="calendrier"&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
+          {/* Checklist sidebar persistante */}
+          {(!profile.role || !linkedinConnected || generatedCount === 0) && (
+            <div style={{margin:'0 12px 12px',padding:'12px',background:'rgba(81,103,86,0.06)',borderRadius:12,border:'1px solid rgba(81,103,86,0.12)'}}>
+              <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',textTransform:'uppercase' as const,letterSpacing:'0.08em',marginBottom:8}}>{lang==='en'?'Getting started':'Premiers pas'}</div>
+              {[
+                {done:!!profile.role,label:lang==='en'?'Complete profile':'Compléter profil',action:()=>setPage('profil')},
+                {done:linkedinConnected,label:'Connecter LinkedIn',action:connectLinkedIn},
+                {done:generatedCount>0,label:lang==='en'?'First post':'Premier post',action:()=>setPage('rediger')},
+              ].map((item,i)=>(
+                <div key={i} onClick={!item.done?item.action:undefined} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',cursor:item.done?'default':'pointer',opacity:item.done?0.5:1}}>
+                  <div style={{width:16,height:16,borderRadius:'50%',border:`1.5px solid ${item.done?'var(--forest)':'var(--border)'}`,background:item.done?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    {item.done&&<svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
+                  </div>
+                  <span style={{fontSize:11,color:item.done?'var(--text3)':'var(--text1)',textDecoration:item.done?'line-through':'none'}}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="sidebar-footer">
             <div className="user-row" onClick={()=>setPage('profil')}>
               {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:28,height:28,borderRadius:'50%',objectFit:'cover'}} /> : <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}
@@ -1838,6 +1856,14 @@ export default function Home() {
                   <div style={{marginTop:8,display:'flex',gap:6,flexWrap:'wrap'}}>
                     {postTone && <span className="badge badge-forest">{postTone.charAt(0).toUpperCase()+postTone.slice(1)}</span>}
                     {profile.sector && <span className="badge badge-copper">{profile.sector}</span>}
+                  <div className="form-group" style={{marginTop:16}}>
+                    <label className="form-label">{lang==='en'?'Tone':'Tutoiement / Vouvoiement'}</label>
+                    <div style={{display:'flex',gap:8,marginTop:4}}>
+                      {['tutoiement','vouvoiement'].map(f=>(
+                        <button key={f} onClick={()=>setProfile((p:any)=>({...p,formality:f}))} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--border)'}`,background:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'rgba(81,103,86,0.08)':'transparent',color:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--text2)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit',textTransform:'capitalize' as const}}>{f}</button>
+                      ))}
+                    </div>
+                  </div>
                     {profile.company && <span className="badge badge-forest">{profile.company}</span>}
                   </div>
                 </div>
@@ -2086,6 +2112,14 @@ export default function Home() {
                       <input type="text" className="form-input" value={profile[key]||''} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))} style={{fontSize:13}}/>
                     </div>
                   ))}
+                  <div style={{marginBottom:12}}>
+                    <label className="form-label" style={{fontSize:12}}>{lang==='en'?'How do you address your audience?':'Comment tu t\'adresses à ton audience ?'}</label>
+                    <div style={{display:'flex',gap:8,marginTop:6}}>
+                      {['tutoiement','vouvoiement'].map(f=>(
+                        <button key={f} onClick={()=>setProfile((p:any)=>({...p,formality:f}))} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--border)'}`,background:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'rgba(81,103,86,0.08)':'transparent',color:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--text2)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit',textTransform:'capitalize' as const}}>{lang==='en'?(f==='tutoiement'?'Informal (tu)':'Formal (vous)'):f}</button>
+                      ))}
+                    </div>
+                  </div>
                   <div style={{display:'flex',gap:8,marginTop:14}}>
                     <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>setOnboardingStep(1)}>← {lang==='en'?'Back':'Retour'}</button>
                     <button className="btn btn-ghost" style={{justifyContent:'center',fontSize:12}} onClick={completeOnboarding}>{T('onb_pass_btn')}</button>

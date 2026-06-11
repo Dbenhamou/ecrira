@@ -43,6 +43,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const contentThemes = profile?.content_themes || ''
   const painPoints = profile?.pain_points || ''
   const techStack = profile?.tech_stack || ''
+  const formality = profile?.formality || 'vouvoiement'
+  const formalityInstruction = isEn ? '' : formality === 'tutoiement' ? '\nTUTOIEMENT OBLIGATOIRE : tutoie systématiquement le lecteur dans tout le post (tu, ton, tes, toi). Jamais de vous/votre.' : '\nVOUVOIEMENT OBLIGATOIRE : vouvoie systématiquement le lecteur dans tout le post (vous, votre, vos). Jamais de tu/ton/tes.'
   const isEn = (profile?.lang || 'fr') === 'en'
   const lang = isEn ? 'English' : 'Français'
   const langInstruction = isEn
@@ -103,6 +105,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     + "- N'utilise JAMAIS de Markdown : pas de **, pas de __, pas de ##, pas de *\n"
     + '- Le texte doit etre brut, pret a coller sur LinkedIn tel quel\n\n'
     + (seed ? 'Seed de variation : ' + seed + ' — utilise cet angle unique, different des posts habituels sur ce sujet.\n' : '')
+    + formalityInstruction + '\n'
     + 'Reponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
 
   // Vérification plan Free (5 posts à vie)
