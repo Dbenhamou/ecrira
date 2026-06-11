@@ -20,6 +20,7 @@ export type Profile = {
   brand_color3?: string
   linkedin_picture?: string
   writing_style: string
+  formality: string
   linkedin_token?: string
   linkedin_token_expiry?: string
   linkedin_id?: string
@@ -46,6 +47,7 @@ export const DEFAULT_PROFILE: Profile = {
   brand_color2: '#0099FF',
   brand_color3: '#302082',
   writing_style: '',
+  formality: 'vouvoiement',
 }
 
 export function useProfile() {

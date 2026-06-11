@@ -102,7 +102,7 @@ export async function sendNotification({ userId, type, title, body, userEmail, l
   if (error) console.error('[notify] DB error:', error)
 
   // 2. Envoyer l'email (sauf post_scheduled — pas d'email)
-  if (type === 'post_scheduled' || !userEmail || !process.env.RESEND_API_KEY) return
+  if (!userEmail || !process.env.RESEND_API_KEY) return
 
   try {
     const res = await fetch('https://api.resend.com/emails', {
