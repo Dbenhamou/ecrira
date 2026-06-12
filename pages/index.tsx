@@ -268,6 +268,7 @@ export default function Home() {
   const [improving, setImproving] = useState(false)
   const [visualType, setVisualType] = useState('classique')
   const [hideWatermark, setHideWatermark] = useState(false)
+  const [hideCompanyLogo, setHideCompanyLogo] = useState(false)
   const [visualCustomTitle, setVisualCustomTitle] = useState('')
   const [visualCustomPoints, setVisualCustomPoints] = useState('')
   const [showVisualConfig, setShowVisualConfig] = useState(false)
@@ -720,7 +721,7 @@ export default function Home() {
           hideWatermark,
           isPro,
           customPoints: visualCustomPoints,
-          showCompanyLogo: (profile as any).company_logo ? true : false,
+          showCompanyLogo: (profile as any).company_logo && !hideCompanyLogo ? true : false,
           companyLogo: (profile as any).company_logo || '',
         }),
       })
@@ -1392,6 +1393,12 @@ export default function Home() {
                           <div style={{display:'flex',alignItems:'center',gap:8}}>
                             <input type="checkbox" id="hideWm" checked={hideWatermark} onChange={e=>setHideWatermark(e.target.checked)} style={{accentColor:'var(--forest)',width:14,height:14}}/>
                             <label htmlFor="hideWm" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer la mention "ecrira.com"</label>
+                          </div>
+                        )}
+                        {(profile as any).company_logo && (
+                          <div style={{display:'flex',alignItems:'center',gap:8,marginTop:4}}>
+                            <input type="checkbox" id="hideCompanyLogo" checked={hideCompanyLogo} onChange={e=>setHideCompanyLogo(e.target.checked)} style={{accentColor:'var(--forest)',width:14,height:14}}/>
+                            <label htmlFor="hideCompanyLogo" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer le logo entreprise</label>
                           </div>
                         )}
                         {!isPro && (
