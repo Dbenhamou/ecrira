@@ -102,7 +102,7 @@ export default function Pricing() {
       {/* Header navigation */}
       <div style={{position:'sticky',top:0,zIndex:100,background:'white',borderBottom:'1px solid #E3DED7',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <a href="/" style={{display:'flex',alignItems:'center',gap:8,textDecoration:'none'}}>
-          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:42,width:'auto'}} />
+          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:52,width:'auto'}} />
         </a>
         <div style={{display:'flex',gap:10}}>
           {user ? (
