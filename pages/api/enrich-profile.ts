@@ -151,7 +151,16 @@ Réponds avec ce JSON exact (tous les champs en français) :
     const clean = raw.replace(/```json|```/g, '').trim()
     const suggestions = JSON.parse(clean)
 
-    res.status(200).json({ suggestions, colors, logo_b64: logob64 || '' })
+    // Auto-fetch logo via Clearbit
+    let company_logo = ''
+    try {
+      const cleanDomain = (domain as string).replace(/^https?:\/\//, '').replace(/\/.*$/, '')
+      const logoUrl = `https://logo.clearbit.com/${cleanDomain}`
+      const logoCheck = await fetch(logoUrl, { method: 'HEAD' })
+      if (logoCheck.ok) company_logo = logoUrl
+    } catch {}
+
+    res.status(200).json({ suggestions, colors, logo_b64: logob64 || '', company_logo })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Erreur analyse du site' })

@@ -12,6 +12,7 @@ export type Profile = {
   tech_stack: string
   lang: string
   domain: string
+  company_logo: string
   webhook_url: string
   brand_bg: string
   brand_text: string
@@ -40,6 +41,7 @@ export const DEFAULT_PROFILE: Profile = {
   tech_stack: '',
   lang: 'fr',
   domain: '',
+  company_logo: '',
   webhook_url: '',
   brand_bg: '#F8F6F2',
   brand_text: '#232323',
@@ -110,6 +112,7 @@ export function useProfile() {
         tech_stack: data.tech_stack || '',
         lang: data.lang || 'fr',
         domain: data.domain || '',
+        company_logo: data.company_logo || '',
         webhook_url: data.webhook_url || '',
         brand_bg: data.brand_bg || '#FAF9F7',
         brand_text: data.brand_text || '#1F2421',

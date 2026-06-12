@@ -23,10 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     visualCustomTitle = '',
   } = req.body
 
-  const isPro = profile?.plan === 'pro'
-  const showWatermark = !isPro || !hideWatermark
+  const isPro = profile?.plan === 'pro' || profile?.plan === 'trial'
+  const showWatermark = !(isPro && hideWatermark)
+  const showCompanyLogo = req.body.showCompanyLogo || false
+  const companyLogo = req.body.companyLogo || ''
+  const ecriraX = showCompanyLogo && req.body.companyLogo ? '40' : '850'
   const watermarkLine = showWatermark
-    ? `   Logo Ecrira bas droite : <image x="860" y="1295" width="110" height="44" href="${ECRIRA_LOGO}" xlink:href="${ECRIRA_LOGO}" opacity="0.8" preserveAspectRatio="xMidYMid meet"/>`
+    ? `   Logo Ecrira bas ${showCompanyLogo && req.body.companyLogo ? 'gauche' : 'droite'} : <image x="${ecriraX}" y="1295" width="110" height="44" href="${ECRIRA_LOGO}" xlink:href="${ECRIRA_LOGO}" opacity="0.8" preserveAspectRatio="xMidYMid meet"/>`
     : ''
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
 
@@ -182,9 +185,17 @@ Reponds UNIQUEMENT avec le code SVG complet, commencant par <svg et finissant pa
     // Supprimer les circles dans la zone footer (cy > 1260)
     svgSafe = svgSafe.replace(/<circle[^>]+cy=["']1[3-9]\d{2}["'][^>]*\/>/gi, '')
 
-    // Injecter le logo Ecrira programmatiquement (plus fiable que via le prompt)
-    if (showWatermark) {
-      // Inject logo bottom right, outside any dark footer
+    // Injecter logos en bas
+    if (showCompanyLogo && companyLogo) {
+      // Logo entreprise bas droite + Ecrira bas gauche
+      const companyLogoImg = `<image x="850" y="1270" width="200" height="50" href="${companyLogo}" xlink:href="${companyLogo}" opacity="0.9" preserveAspectRatio="xMaxYMid meet"/>`
+      svgSafe = svgSafe.replace('</svg>', companyLogoImg + '</svg>')
+      if (showWatermark) {
+        const logoImg = `<image x="30" y="1270" width="200" height="50" href="${ECRIRA_LOGO}" xlink:href="${ECRIRA_LOGO}" opacity="0.85" preserveAspectRatio="xMinYMid meet"/>`
+        svgSafe = svgSafe.replace('</svg>', logoImg + '</svg>')
+      }
+    } else if (showWatermark) {
+      // Ecrira seul bas droite
       const logoImg = `<image x="850" y="1270" width="200" height="50" href="${ECRIRA_LOGO}" xlink:href="${ECRIRA_LOGO}" opacity="0.85" preserveAspectRatio="xMidYMid meet"/>`
       svgSafe = svgSafe.replace('</svg>', logoImg + '</svg>')
     }
