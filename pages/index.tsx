@@ -1530,7 +1530,18 @@ export default function Home() {
                       <div style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',display:'flex',flexDirection:'column' as const,gap:8}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                           <span style={{fontSize:12,fontWeight:500,color:'var(--text2)'}}>Visuel généré</span>
-                          <a href={aiVisualUrl} download="visuel-ecrira.svg" style={{fontSize:11,color:'var(--forest)',textDecoration:'none',fontWeight:500,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:8,background:'white'}}>⬇ Télécharger</a>
+                          <button onClick={async()=>{
+                            try {
+                              const svgRes = await authFetch('/api/svg-to-png', { method:'POST', body:JSON.stringify({ svgContent: aiSvgContent }) })
+                              const data = await svgRes.json()
+                              if (data.base64) {
+                                const a = document.createElement('a')
+                                a.href = `data:image/png;base64,${data.base64}`
+                                a.download = 'visuel-ecrira.png'
+                                a.click()
+                              } else { showToast('Erreur conversion PNG') }
+                            } catch { showToast('Erreur téléchargement') }
+                          }} style={{fontSize:11,color:'var(--forest)',fontWeight:500,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:8,background:'white',cursor:'pointer',fontFamily:'inherit'}}>⬇ Télécharger PNG</button>
                         </div>
                         {/* Palette couleurs */}
                         <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap' as const}}>
