@@ -62,7 +62,8 @@ export function useProfile() {
     // Check session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
-        router.replace('/login')
+        setLoading(false)
+        router.replace('/landing')
         return
       }
       setUserId(session.user.id)
@@ -72,7 +73,8 @@ export function useProfile() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT' || !session) {
-        router.replace('/login')
+        setLoading(false)
+        router.replace('/landing')
         return
       }
       if (event === 'SIGNED_IN' && session) {
