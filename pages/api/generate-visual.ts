@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isPro = profile?.plan === 'pro'
   const showWatermark = !isPro || !hideWatermark
   const watermarkLine = showWatermark
-    ? `   Logo Ecrira bas droite : <image x="860" y="1295" width="110" height="44" href="${ECRIRA_LOGO}" opacity="0.8" preserveAspectRatio="xMidYMid meet"/>`
+    ? `   Logo Ecrira bas droite : <image x="860" y="1295" width="110" height="44" href="${ECRIRA_LOGO}" xlink:href="${ECRIRA_LOGO}" opacity="0.8" preserveAspectRatio="xMidYMid meet"/>`
     : ''
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
 
@@ -185,7 +185,7 @@ Reponds UNIQUEMENT avec le code SVG complet, commencant par <svg et finissant pa
     // Injecter le logo Ecrira programmatiquement (plus fiable que via le prompt)
     if (showWatermark) {
       // Inject logo bottom right, outside any dark footer
-      const logoImg = `<image x="850" y="1270" width="200" height="50" href="${ECRIRA_LOGO}" opacity="0.85" preserveAspectRatio="xMidYMid meet"/>`
+      const logoImg = `<image x="850" y="1270" width="200" height="50" href="${ECRIRA_LOGO}" xlink:href="${ECRIRA_LOGO}" opacity="0.85" preserveAspectRatio="xMidYMid meet"/>`
       svgSafe = svgSafe.replace('</svg>', logoImg + '</svg>')
     }
 
