@@ -62,7 +62,9 @@ export default function Login() {
 
   return (
     <>
-      <Head><title>Ecrira · Connexion</title></Head>
+      <Head>
+        <link rel="icon" href="/logo-ecrira-icon.png" type="image/png"/>
+        <link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/><title>Ecrira · Connexion</title></Head>
       <div style={{
         minHeight: '100vh',
         background: '#FAF9F7',

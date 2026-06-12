@@ -88,6 +88,8 @@ export default function Pricing() {
     <>
       <Head>
         <title>{T.tab_title}</title>
+        <link rel="icon" href="/logo-ecrira-icon.png" type="image/png"/>
+        <link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/>
         <script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script>
         <meta name="description" content={lang==='fr'?"Ecrira génère vos posts LinkedIn en quelques secondes grâce à l'IA. Commencez gratuitement.":"Ecrira generates your LinkedIn posts in seconds with AI. Start for free."} />
         <meta property="og:title" content="Ecrira — Générateur de posts LinkedIn par IA" />
@@ -100,7 +102,7 @@ export default function Pricing() {
       {/* Header navigation */}
       <div style={{position:'sticky',top:0,zIndex:100,background:'white',borderBottom:'1px solid #E3DED7',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <a href="/" style={{display:'flex',alignItems:'center',gap:8,textDecoration:'none'}}>
-          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:24,width:'auto'}} />
+          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:36,width:'auto'}} />
         </a>
         <div style={{display:'flex',gap:10}}>
           {user ? (
