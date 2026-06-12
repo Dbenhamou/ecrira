@@ -50,23 +50,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Convertir SVG brut → PNG via resvg
         let pngBuffer: Buffer | null = null
         try {
-          const chromium = await import('@sparticuz/chromium')
-          const puppeteer = await import('puppeteer-core')
-          const browser = await puppeteer.default.launch({
-            args: chromium.default.args,
-            defaultViewport: { width: 1080, height: 1350 },
-            executablePath: await chromium.default.executablePath(),
-            headless: true,
-          })
-          const page = await browser.newPage()
-          await page.setViewport({ width: 1080, height: 1350 })
-          const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0}body{width:1080px;height:1350px;overflow:hidden}</style></head><body>${post.svg_content}</body></html>`
-          await page.setContent(html, { waitUntil: 'load' })
-          const screenshot = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: 1080, height: 1350 } })
-          await browser.close()
-          pngBuffer = Buffer.from(screenshot)
-        } catch (chromiumErr) {
-          console.error('[cron] Chromium conversion failed:', chromiumErr)
+          const apiKey = process.env.BROWSERLESS_API_KEY
+          if (apiKey) {
+            const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0}body{width:1080px;height:1350px;overflow:hidden}</style></head><body>${post.svg_content}</body></html>`
+            const browserlessRes = await fetch(`https://production-sfo.browserless.io/screenshot?token=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                html,
+                options: { type: 'png', clip: { x: 0, y: 0, width: 1080, height: 1350 } },
+                viewport: { width: 1080, height: 1350 },
+                waitForTimeout: 2000,
+              }),
+            })
+            if (browserlessRes.ok) {
+              pngBuffer = Buffer.from(await browserlessRes.arrayBuffer())
+            } else {
+              console.error('[cron] Browserless error:', await browserlessRes.text())
+            }
+          }
+        } catch (browserlessErr) {
+          console.error('[cron] Browserless conversion failed:', browserlessErr)
         }
 
         if (!pngBuffer) {

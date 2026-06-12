@@ -15,25 +15,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const chromium = await import('@sparticuz/chromium')
-    const puppeteer = await import('puppeteer-core')
-
-    const browser = await puppeteer.default.launch({
-      args: chromium.default.args,
-      defaultViewport: { width: 1080, height: 1350 },
-      executablePath: await chromium.default.executablePath(),
-      headless: true,
-    })
-
-    const page = await browser.newPage()
-    await page.setViewport({ width: 1080, height: 1350 })
+    const apiKey = process.env.BROWSERLESS_API_KEY
+    if (!apiKey) return res.status(500).json({ error: 'BROWSERLESS_API_KEY manquant' })
 
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0}body{width:1080px;height:1350px;overflow:hidden}</style></head><body>${svgContent}</body></html>`
-    await page.setContent(html, { waitUntil: 'load' })
 
-    const pngBuffer = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: 1080, height: 1350 } })
-    await browser.close()
+    const browserlessRes = await fetch(`https://production-sfo.browserless.io/screenshot?token=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        html,
+        options: { type: 'png', clip: { x: 0, y: 0, width: 1080, height: 1350 } },
+        viewport: { width: 1080, height: 1350 },
+        waitForTimeout: 2000,
+      }),
+    })
 
+    if (!browserlessRes.ok) {
+      const err = await browserlessRes.text()
+      console.error('[svg-to-png] Browserless error:', err)
+      return res.status(500).json({ error: 'Conversion Browserless échouée' })
+    }
+
+    const pngBuffer = await browserlessRes.arrayBuffer()
     const base64 = Buffer.from(pngBuffer).toString('base64')
     return res.status(200).json({ base64 })
   } catch (err: any) {
