@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     visualCustomTitle = '',
   } = req.body
 
-  const isPro = profile?.plan === 'pro' || profile?.plan === 'trial'
+  const isPro = req.body.isPro || profile?.plan === 'pro' || profile?.plan === 'trial'
   const showWatermark = !(isPro && hideWatermark)
   const showCompanyLogo = req.body.showCompanyLogo || false
   const companyLogo = req.body.companyLogo || ''

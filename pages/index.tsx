@@ -718,6 +718,7 @@ export default function Home() {
           profile,
           visualType,
           hideWatermark,
+          isPro,
           customPoints: visualCustomPoints,
           showCompanyLogo: (profile as any).company_logo ? true : false,
           companyLogo: (profile as any).company_logo || '',
