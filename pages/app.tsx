@@ -561,7 +561,14 @@ export default function Home() {
       const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile: {...profile, lang}}) })
       const data = await res.json()
       if (data.error === 'LIMIT_REACHED') { setShowUpgradeModal(true); setLoadingPost(false); return }
-      if (data.content) { setPostOutput(data.content); setGeneratedCount(c => c + 1) }
+      if (data.content) {
+        setPostOutput(data.content)
+        setGeneratedCount(c => c + 1)
+        // Sauvegarder dans l'onglet batch actif si batch en cours
+        if (batchTopics.length > 1) {
+          setBatchTabOutputs(prev => ({...prev, [activeBatchTab]: data.content}))
+        }
+      }
       else showToast((lang==='en'?'Error: ':'Erreur : ')+(data.error||'unknown'))
     } catch { showToast(lang==='en'?'Network error':'Erreur réseau') }
     setLoadingPost(false)
