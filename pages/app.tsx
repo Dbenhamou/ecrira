@@ -299,6 +299,7 @@ export default function Home() {
   const [showScheduleMenu, setShowScheduleMenu] = useState(false)
   const [scheduleWithVisual, setScheduleWithVisual] = useState(false)
   const [generatingAiVisual, setGeneratingAiVisual] = useState(false)
+  const [generatingByTab, setGeneratingByTab] = useState<Record<number,boolean>>({})
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(0)
   const [newRefPost, setNewRefPost] = useState('')
@@ -770,6 +771,7 @@ export default function Home() {
   const generateAiVisual = async () => {
     if (!postOutput.trim()) { showToast('Génère un post d\'abord'); return }
     setGeneratingAiVisual(true)
+    if (batchTopics.length > 1) setGeneratingByTab(prev=>({...prev,[activeBatchTab]:true}))
     setAiVisualUrl('')
     try {
       const res = await authFetch('/api/generate-visual', {
@@ -805,6 +807,7 @@ export default function Home() {
       } else showToast((lang==='en'?'Error: ':'Erreur : ')+(data.error||'unknown'))
     } catch { showToast(lang==='en'?'Network error':'Erreur réseau') }
     setGeneratingAiVisual(false)
+    if (batchTopics.length > 1) setGeneratingByTab(prev=>({...prev,[activeBatchTab]:false}))
   }
 
   const completeOnboarding = async () => {
@@ -1433,8 +1436,8 @@ export default function Home() {
                   <div style={{border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
                     {/* Toggle config */}
                     <div style={{display:'flex',gap:0}}>
-                      <button className="btn btn-primary" style={{flex:1,fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4,borderRadius:0}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||generatingAiVisual}>
-                        {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>{T('generating_visual')}</>:T('create_visual')}
+                      <button className="btn btn-primary" style={{flex:1,fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4,borderRadius:0}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||(batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual)}>
+                        {(batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual)?<><span className="spinner" style={{borderTopColor:'white'}}/>{T('generating_visual')}</>:T('create_visual')}
                       </button>
                       <button onClick={()=>setShowVisualConfig(v=>!v)} style={{padding:'0 12px',background:'var(--forest)',border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',cursor:'pointer',color:'white',fontSize:16,opacity:postOutput?1:0.4}} disabled={!postOutput}>
                         {showVisualConfig?'▲':'▼'}
@@ -1491,7 +1494,7 @@ export default function Home() {
                         <button
                           className="btn btn-primary"
                           onClick={()=>{ setShowSvgEditor(false); generateAiVisual(); }}
-                          disabled={generatingAiVisual}
+                          disabled={batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual}
                           style={{fontSize:12,justifyContent:'center',background:'var(--forest)',borderRadius:8,marginTop:4}}
                         >
                           {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('regenerate')}
