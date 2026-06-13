@@ -770,8 +770,9 @@ export default function Home() {
 
   const generateAiVisual = async () => {
     if (!postOutput.trim()) { showToast('Génère un post d\'abord'); return }
+    const tabAtVisualStart = activeBatchTab
     setGeneratingAiVisual(true)
-    if (batchTopics.length > 1) setGeneratingByTab(prev=>({...prev,[activeBatchTab]:true}))
+    if (batchTopics.length > 1) setGeneratingByTab(prev=>({...prev,[tabAtVisualStart]:true}))
     setAiVisualUrl('')
     try {
       const res = await authFetch('/api/generate-visual', {
@@ -792,11 +793,17 @@ export default function Home() {
       if (data.svgContent) {
         const blob = new Blob([data.svgContent], { type: 'image/svg+xml' })
         const url = URL.createObjectURL(blob)
-        setAiVisualUrl(url)
-        setAiSvgContent(data.svgContent)
-        // Sauvegarder dans l'onglet batch actif si batch en cours
+        // Sauvegarder dans l'onglet qui a lancé la génération
         if (batchTopics.length > 1) {
-          setBatchTabVisuals(prev => ({...prev, [activeBatchTab]: {svg: data.svgContent, url}}))
+          setBatchTabVisuals(prev => ({...prev, [tabAtVisualStart]: {svg: data.svgContent, url}}))
+          // Mettre à jour l'affichage seulement si on est encore sur ce même onglet
+          if (tabAtVisualStart === activeBatchTab) {
+            setAiVisualUrl(url)
+            setAiSvgContent(data.svgContent)
+          }
+        } else {
+          setAiVisualUrl(url)
+          setAiSvgContent(data.svgContent)
         }
         // Init editor with known values
         setSvgEditTitle(visualCustomTitle || postTopic || '')
@@ -807,7 +814,7 @@ export default function Home() {
       } else showToast((lang==='en'?'Error: ':'Erreur : ')+(data.error||'unknown'))
     } catch { showToast(lang==='en'?'Network error':'Erreur réseau') }
     setGeneratingAiVisual(false)
-    if (batchTopics.length > 1) setGeneratingByTab(prev=>({...prev,[activeBatchTab]:false}))
+    if (batchTopics.length > 1) setGeneratingByTab(prev=>({...prev,[tabAtVisualStart]:false}))
   }
 
   const completeOnboarding = async () => {
