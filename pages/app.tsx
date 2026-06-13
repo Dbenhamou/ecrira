@@ -258,6 +258,7 @@ export default function Home() {
   const [activeBatchTab, setActiveBatchTab] = useState(0)
   const [batchTabOutputs, setBatchTabOutputs] = useState<Record<number,string>>({})
   const [batchTabConfigs, setBatchTabConfigs] = useState<Record<number,{format:string,length:string,tone:string}>>({})
+  const [batchTabVisuals, setBatchTabVisuals] = useState<Record<number,{svg:string,url:string}>>({})
   const [postVariants, setPostVariants] = useState<string[]>([])
   const [activeVariant, setActiveVariant] = useState(0)
   const [usedIdeaIds, setUsedIdeaIds] = useState<Set<string>>(new Set())
@@ -1265,9 +1266,13 @@ export default function Home() {
                     // Sauvegarder config + output de l'onglet actuel
                     setBatchTabOutputs(prev=>({...prev,[activeBatchTab]:postOutput}))
                     setBatchTabConfigs(prev=>({...prev,[activeBatchTab]:{format:postFormat,length:postLength,tone:postTone}}))
-                    // Restaurer config + output de l'onglet cible
+                    setBatchTabVisuals(prev=>({...prev,[activeBatchTab]:{svg:aiSvgContent,url:aiVisualUrl}}))
+                    // Restaurer config + output + visuel de l'onglet cible
                     const savedConfig = batchTabConfigs[i]
                     if (savedConfig) { setPostFormat(savedConfig.format); setPostLength(savedConfig.length); setPostTone(savedConfig.tone) }
+                    const savedVisual = batchTabVisuals[i]
+                    setAiSvgContent(savedVisual?.svg||'')
+                    setAiVisualUrl(savedVisual?.url||'')
                     setActiveBatchTab(i)
                     setPostTopic(topic)
                     setPostOutput(batchTabOutputs[i]||'')
@@ -1277,7 +1282,7 @@ export default function Home() {
                     {batchTabOutputs[i] && <span style={{marginLeft:4,fontSize:9,color:'#27ae60'}}>✓</span>}
                   </button>
                 ))}
-                <button onClick={()=>{setBatchTopics([]);setBatchTabOutputs({});setBatchTabConfigs({});setActiveBatchTab(0)}} style={{fontSize:10,padding:'4px 8px',borderRadius:6,border:'1px solid var(--border)',background:'transparent',color:'var(--text3)',cursor:'pointer',fontFamily:'inherit',marginLeft:'auto'}}>✕ {lang==='en'?'Close':'Fermer'}</button>
+                <button onClick={()=>{setBatchTopics([]);setBatchTabOutputs({});setBatchTabConfigs({});setBatchTabVisuals({});setActiveBatchTab(0);setAiSvgContent('');setAiVisualUrl('')}} style={{fontSize:10,padding:'4px 8px',borderRadius:6,border:'1px solid var(--border)',background:'transparent',color:'var(--text3)',cursor:'pointer',fontFamily:'inherit',marginLeft:'auto'}}>✕ {lang==='en'?'Close':'Fermer'}</button>
               </div>
             )}
             <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:16,alignItems:'start'}} className="rediger-grid">
