@@ -1125,7 +1125,7 @@ export default function Home() {
                   <div className="idea-actions">
                     <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setPage('rediger')}}>{T('develop')}</button>
                     <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+idea.hook)}>{T('copy')}</button>
-                    <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>saveIdea(idea)}>{savedIdeas.some(s=>s.title===idea.title)?'★':'☆'} {lang==='en'?'Save':'Sauver'}</button>
+                    <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>saveIdea(idea)}>{savedIdeas.some(s=>s.title===idea.title)?'★':'☆'} {lang==='en'?'Save':'Sauvegarder'}</button>
                   </div>
                 </div>
               </div>
