@@ -379,7 +379,8 @@ export default function Landing() {
         </div>
 
         {/* FEATURES */}
-        <div style={{padding:'64px 32px',maxWidth:960,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
+        <style>{`@media (max-width: 640px) { .features-grid { grid-template-columns: repeat(2,1fr) !important; padding: 40px 16px !important; } }`}</style>
+        <div className="features-grid" style={{padding:'64px 32px',maxWidth:960,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
           {[
             {icon:'💡',title:'10 idées par jour',desc:"Générées selon votre secteur et l'actualité du moment."},
             {icon:'⚡',title:'Post en 30 secondes',desc:'Rédigez, éditez et publiez directement sur LinkedIn.'},
