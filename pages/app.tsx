@@ -1299,9 +1299,11 @@ export default function Home() {
                     setAiSvgContent(savedVisual?.svg||'')
                     setAiVisualUrl(savedVisual?.url||'')
                     setActiveBatchTab(i)
-                    setPostTopic(topic)
+                    setPostTopic(batchTopics[i])
                     setPostOutput(batchTabOutputs[i]||'')
                     setPostVariants([])
+                    setAiSvgContent(batchTabVisuals[i]?.svg||'')
+                    setAiVisualUrl(batchTabVisuals[i]?.url||'')
                   }} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeBatchTab===i?'var(--forest)':'var(--border)'}`,background:activeBatchTab===i?'rgba(81,103,86,0.08)':'white',color:activeBatchTab===i?'var(--forest)':'var(--text2)',cursor:'pointer',fontWeight:activeBatchTab===i?600:400,maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>
                     {i+1}. {topic.length > 22 ? topic.slice(0,22)+'…' : topic}
                     {batchTabOutputs[i] && <span style={{marginLeft:4,fontSize:9,color:'#27ae60'}}>✓</span>}
