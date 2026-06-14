@@ -538,6 +538,12 @@ export default function Landing() {
           </div>
         </footer>
 
+        {/* ─── STICKY CTA MOBILE ──────────────────────────────────────────── */}
+        <div className="sticky-mobile-cta" style={{position:'fixed',bottom:0,left:0,right:0,zIndex:200,padding:'12px 16px 24px',background:'rgba(250,249,247,0.97)',borderTop:'1px solid #E3DED7',backdropFilter:'blur(8px)',display:'flex',gap:10}}>
+          <button onClick={scrollToDemo} style={{flex:1,padding:'12px',borderRadius:10,border:'1px solid #E3DED7',background:'white',color:'#1F2421',fontSize:13,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>Voir la démo</button>
+          <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{flex:2,padding:'12px',borderRadius:10,background:'#516756',border:'none',color:'white',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>Essai gratuit 7 jours →</button>
+        </div>
+
         {/* ─── AUTH MODAL ──────────────────────────────────────────── */}
         {showAuthModal && (
           <div onClick={()=>setShowAuthModal(false)} style={{position:'fixed',inset:0,zIndex:600,background:'rgba(0,0,0,0.5)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',padding:20}}>
