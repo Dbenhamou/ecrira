@@ -1173,7 +1173,7 @@ export default function Home() {
           </div>
           {/* Notifications bell */}
           <div style={{position:'relative' as const,margin:'0 12px 8px'}}>
-            <button onClick={(e)=>{e.stopPropagation();setShowNotifPanel(v=>!v);if(unreadCount>0)markAllRead()}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderRadius:10,border:'none',background:'transparent',cursor:'pointer',color:'var(--text2)',fontSize:12,fontWeight:500}}>
+            <button onClick={(e)=>{e.stopPropagation();setShowNotifPanel(v=>!v);if(unreadCount>0)markAllRead()}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderRadius:10,border:'none',background:'transparent',cursor:'pointer',color:'rgba(255,255,255,0.5)',fontSize:12,fontWeight:500}}>
               <span style={{position:'relative' as const,display:'inline-flex'}}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{width:18,height:18}}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 {unreadCount>0&&<span style={{position:'absolute' as const,top:-4,right:-4,background:'#c0392b',color:'white',borderRadius:'50%',width:14,height:14,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{unreadCount>9?'9+':unreadCount}</span>}
@@ -1218,8 +1218,8 @@ export default function Home() {
             <div className="user-row" onClick={()=>setPage('profil')}>
               {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:28,height:28,borderRadius:'50%',objectFit:'cover'}} /> : <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}
           <div>
-            <div className="user-name">{profile.name||T('my_account')}</div>
-            <div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:T('complete_profile')}</div>
+            <div className="user-name" style={{color:'rgba(255,255,255,0.85)',fontSize:12,fontWeight:500}}>{profile.name||T('my_account')}</div>
+            <div className="user-role" style={{color:'rgba(255,255,255,0.4)',fontSize:11}}>{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:T('complete_profile')}</div>
           </div>
             </div>
             <div className="theme-row"><span>{T('dark_mode')}</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
@@ -1258,11 +1258,22 @@ export default function Home() {
             </span>
           </div>
           {/* APERÇU */}
+          <div style={{height:52,borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 24px',background:'var(--white)',flexShrink:0}}>
+            <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',letterSpacing:'0.08em',textTransform:'uppercase' as const}}>
+              {navItems.find((n:any)=>n.id===page)?.label||''}
+            </span>
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              {(profile as any).linkedin_picture
+                ? <img src={(profile as any).linkedin_picture} alt="" style={{width:28,height:28,borderRadius:'50%',objectFit:'cover',cursor:'pointer'}} onClick={()=>setPage('profil')}/>
+                : <div style={{width:28,height:28,borderRadius:'50%',background:'var(--forest)',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:10,fontWeight:700,cursor:'pointer'}} onClick={()=>setPage('profil')}>{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
+              }
+            </div>
+          </div>
           <div className={`page ${page==='apercu'?'active':''}`}>
             <div className="eyebrow">{T('dashboard')}</div>
             <div className="page-title">{T('hello')}{profile.name?`, ${profile.name}`:''}.</div>
             <div className="copper-rule"/>
-            <div className="page-sub">{new Date().toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+            <div style={{fontSize:14,color:'var(--text3)',marginBottom:28,marginTop:2}}>{new Date().toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
             <div className="stats-grid">
               <div className="stat-card"><div className="stat-label">{T('saved_posts')}</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">{T('in_library')}</div></div>
               <div className="stat-card">
