@@ -170,6 +170,11 @@ export default function Landing() {
           .card-stagger:nth-child(4) { transition-delay:0.3s; }
           .btn-pulse { animation:pulse 2s infinite; }
           .spinner-white { width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite; }
+          .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+          .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(31,36,33,0.10) !important; }
+          .btn-hover { transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
+          .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(81,103,86,0.3); }
+          .faq-hover:hover { background: rgba(81,103,86,0.03); }
           @media (max-width:640px) { .grid-4 { grid-template-columns:repeat(2,1fr)!important; } .grid-3 { grid-template-columns:1fr!important; } .hero-h1 { font-size:32px!important; } .mockup-wrap { display:none!important; } .story-grid { grid-template-columns:1fr!important; } .story-grid > div:nth-child(2) { display:none; } }
         `}</style>
       </Head>
@@ -205,7 +210,7 @@ export default function Landing() {
             <strong style={{color:CH}}>L'alternative au ghostwriting, en 10x moins cher.</strong>
           </p>
           <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12,marginBottom:16,animation:'fadeUp 0.6s 1.1s both',flexWrap:'wrap' as const}}>
-            <button onClick={scrollToDemo} className="btn-pulse" style={{padding:'14px 32px',borderRadius:12,background:F,border:'none',fontSize:15,color:'white',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Générer mon 1er post gratuit</button>
+            <button onClick={scrollToDemo} className="btn-pulse btn-hover" style={{padding:'14px 32px',borderRadius:12,background:F,border:'none',fontSize:15,color:'white',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Générer mon 1er post gratuit</button>
             <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{padding:'14px 20px',borderRadius:12,border:`1px solid ${BD}`,background:'transparent',fontSize:15,color:CH,cursor:'pointer',fontFamily:'inherit'}}>Créer mon compte freemium</button>
           </div>
           <div style={{animation:'fadeUp 0.6s 1.2s both',display:'flex',alignItems:'center',justifyContent:'center',gap:16,flexWrap:'wrap' as const}}>
@@ -378,7 +383,7 @@ export default function Landing() {
             </div>
             <div id="feats-grid" data-animate style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}} className={`grid-4 animate-up${visibleSections.has('feats-grid')?' visible':''}`}>
               {features.map((f,i)=>(
-                <div key={i} className="card-stagger" style={{padding:20,borderRadius:12,border:`1px solid ${BD}`,background:'white',transition:'opacity 0.4s, transform 0.4s'}}>
+                <div key={i} className="card-stagger card-hover" style={{padding:20,borderRadius:12,border:`1px solid ${BD}`,background:'white',transition:'opacity 0.4s, transform 0.4s, box-shadow 0.2s'}}>
                   <div style={{fontSize:28,marginBottom:12}}>{f.icon}</div>
                   <div style={{fontSize:14,fontWeight:600,color:CH,marginBottom:6}}>{f.title}</div>
                   <div style={{fontSize:13,color:'#6B7069',lineHeight:1.6}}>{f.desc}</div>
@@ -406,7 +411,7 @@ export default function Landing() {
             </div>
             <div id="testi-grid" data-animate style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}} className={`grid-3 animate-up${visibleSections.has('testi-grid')?' visible':''}`}>
               {testimonials.map((t,i)=>(
-                <div key={i} style={{background:'white',borderRadius:16,border:`1px solid ${BD}`,padding:20,boxShadow:'0 2px 12px rgba(31,36,33,0.04)'}}>
+                <div key={i} className="card-hover" style={{background:'white',borderRadius:16,border:`1px solid ${BD}`,padding:20,boxShadow:'0 2px 12px rgba(31,36,33,0.04)'}}>
                   <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
                     <div style={{width:40,height:40,borderRadius:'50%',background:F,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:13,flexShrink:0}}>{t.initials}</div>
                     <div style={{flex:1}}>
@@ -482,7 +487,7 @@ export default function Landing() {
             <div>
               {faqs.map((f,i)=>(
                 <div key={i} style={{borderBottom:`1px solid ${BD}`,overflow:'hidden'}}>
-                  <button onClick={()=>setFaqOpen(faqOpen===i?null:i)} style={{width:'100%',padding:'16px 0',display:'flex',alignItems:'center',justifyContent:'space-between',background:'transparent',border:'none',cursor:'pointer',fontFamily:'inherit',textAlign:'left' as const}}>
+                  <button onClick={()=>setFaqOpen(faqOpen===i?null:i)} className="faq-hover" style={{width:'100%',padding:'16px',margin:'0 -16px',width:'calc(100% + 32px)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'transparent',border:'none',cursor:'pointer',fontFamily:'inherit',textAlign:'left' as const,borderRadius:8,transition:'background 0.15s'}}>
                     <span style={{fontSize:14,fontWeight:500,color:CH}}>{f.q}</span>
                     <span style={{fontSize:18,color:'#9EA39C',transform:faqOpen===i?'rotate(45deg)':'none',transition:'transform 0.2s',flexShrink:0,marginLeft:12}}>+</span>
                   </button>
