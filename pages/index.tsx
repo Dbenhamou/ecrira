@@ -170,7 +170,7 @@ export default function Landing() {
           .card-stagger:nth-child(4) { transition-delay:0.3s; }
           .btn-pulse { animation:pulse 2s infinite; }
           .spinner-white { width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite; }
-          @media (max-width:640px) { .grid-4 { grid-template-columns:repeat(2,1fr)!important; } .grid-3 { grid-template-columns:1fr!important; } .hero-h1 { font-size:32px!important; } .mockup-wrap { display:none!important; } }
+          @media (max-width:640px) { .grid-4 { grid-template-columns:repeat(2,1fr)!important; } .grid-3 { grid-template-columns:1fr!important; } .hero-h1 { font-size:32px!important; } .mockup-wrap { display:none!important; } .story-grid { grid-template-columns:1fr!important; } .story-grid > div:nth-child(2) { display:none; } }
         `}</style>
       </Head>
 
@@ -244,6 +244,54 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* ─── STORYTELLING ──────────────────────────────────────────── */}
+        <section style={{padding:'72px 32px',background:IV,borderTop:`1px solid ${BD}`}}>
+          <div style={{maxWidth:860,margin:'0 auto'}}>
+            <div style={{textAlign:'center',marginBottom:48}}>
+              <h2 style={{fontSize:32,fontWeight:700,color:CH,marginBottom:10,letterSpacing:'-0.5px'}}>Vous avez des idées. Vous ne publiez jamais.</h2>
+              <p style={{fontSize:15,color:'#6B7069',lineHeight:1.7,maxWidth:500,margin:'0 auto'}}>La page blanche. Le manque de temps. La peur du jugement. Résultat : vos concurrents publient, vous regardez.</p>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:24,alignItems:'center'}} className="story-grid">
+              {/* AVANT */}
+              <div style={{background:'#FEF2F2',borderRadius:16,border:'1px solid #FECACA',padding:28}}>
+                <div style={{fontSize:12,fontWeight:700,color:'#EF4444',letterSpacing:'0.08em',marginBottom:16}}>AVANT ECRIRA</div>
+                {[
+                  "3h par semaine à fixer une page blanche",
+                  "Des posts qui restent en brouillon indéfiniment",
+                  "Vos concurrents publient, vous regardez",
+                  "0 leads générés via LinkedIn cette année",
+                ].map((item,i)=>(
+                  <div key={i} style={{display:'flex',gap:10,marginBottom:12,alignItems:'flex-start'}}>
+                    <span style={{color:'#EF4444',flexShrink:0,marginTop:1}}>✕</span>
+                    <span style={{fontSize:13,color:'#7F1D1D',lineHeight:1.5}}>{item}</span>
+                  </div>
+                ))}
+              </div>
+              {/* FLÈCHE */}
+              <div style={{textAlign:'center' as const,fontSize:28,color:BD}}>→</div>
+              {/* APRÈS */}
+              <div style={{background:'rgba(81,103,86,0.06)',borderRadius:16,border:`1px solid rgba(81,103,86,0.2)`,padding:28}}>
+                <div style={{fontSize:12,fontWeight:700,color:F,letterSpacing:'0.08em',marginBottom:16}}>APRÈS ECRIRA</div>
+                {[
+                  "30 secondes par post, 3 posts par semaine",
+                  "Visuels professionnels générés automatiquement",
+                  "Publication planifiée sans y penser",
+                  "+40% de leads inbound en 2 mois en moyenne",
+                ].map((item,i)=>(
+                  <div key={i} style={{display:'flex',gap:10,marginBottom:12,alignItems:'flex-start'}}>
+                    <span style={{color:F,flexShrink:0,marginTop:1}}>✓</span>
+                    <span style={{fontSize:13,color:CH,lineHeight:1.5}}>{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{textAlign:'center' as const,marginTop:36}}>
+              <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{padding:'14px 32px',borderRadius:12,background:F,border:'none',fontSize:15,color:'white',fontWeight:600,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 16px rgba(81,103,86,0.25)'}}>Passer à l'après →</button>
+              <p style={{fontSize:12,color:'#9EA39C',marginTop:8}}>7 jours Pro gratuits · Sans carte bancaire</p>
+            </div>
+          </div>
+        </section>
+
         {/* ─── DEMO ────────────────────────────────────────────────── */}
         <section id="generateur" style={{padding:'72px 32px',background:IV}}>
           <div style={{maxWidth:640,margin:'0 auto'}}>
@@ -283,6 +331,15 @@ export default function Landing() {
                   {(demoPost || demoLoading) && (
                     <div style={{background:IV,border:`1px solid ${BD}`,borderRadius:8,padding:14,minHeight:80,fontSize:13,color:demoPost?CH:'#B7C0B8',lineHeight:1.8,whiteSpace:'pre-line' as const,fontStyle:demoPost?'normal':'italic'}}>
                       {demoPost || 'Génération en cours…'}
+                    </div>
+                  )}
+                  {demoPost && (
+                    <div style={{marginTop:12,background:`rgba(81,103,86,0.06)`,border:`1px solid rgba(81,103,86,0.2)`,borderRadius:10,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap' as const}}>
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:2}}>Vous aimez ce résultat ?</div>
+                        <div style={{fontSize:12,color:'#6B7069'}}>Créez votre compte pour accéder à toutes les fonctionnalités.</div>
+                      </div>
+                      <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{padding:'10px 20px',borderRadius:8,background:F,border:'none',color:'white',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap' as const,flexShrink:0}}>Créer mon compte gratuit →</button>
                     </div>
                   )}
                 </>
