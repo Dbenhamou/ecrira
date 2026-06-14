@@ -487,7 +487,7 @@ export default function Landing() {
             <div>
               {faqs.map((f,i)=>(
                 <div key={i} style={{borderBottom:`1px solid ${BD}`,overflow:'hidden'}}>
-                  <button onClick={()=>setFaqOpen(faqOpen===i?null:i)} className="faq-hover" style={{width:'100%',padding:'16px',margin:'0 -16px',width:'calc(100% + 32px)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'transparent',border:'none',cursor:'pointer',fontFamily:'inherit',textAlign:'left' as const,borderRadius:8,transition:'background 0.15s'}}>
+                  <button onClick={()=>setFaqOpen(faqOpen===i?null:i)} className="faq-hover" style={{width:'100%',padding:'16px 0',display:'flex',alignItems:'center',justifyContent:'space-between',background:'transparent',border:'none',cursor:'pointer',fontFamily:'inherit',textAlign:'left' as const,borderRadius:8,transition:'background 0.15s'}}>
                     <span style={{fontSize:14,fontWeight:500,color:CH}}>{f.q}</span>
                     <span style={{fontSize:18,color:'#9EA39C',transform:faqOpen===i?'rotate(45deg)':'none',transition:'transform 0.2s',flexShrink:0,marginLeft:12}}>+</span>
                   </button>
