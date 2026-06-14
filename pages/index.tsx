@@ -192,13 +192,13 @@ export default function Landing() {
         <section style={{padding:'80px 32px 64px',textAlign:'center',background:IV,maxWidth:800,margin:'0 auto'}}>
           <div style={{display:'inline-block',background:'rgba(81,103,86,0.08)',color:F,fontSize:11,fontWeight:600,padding:'4px 14px',borderRadius:20,letterSpacing:'0.07em',marginBottom:20}}>Générateur LinkedIn · 7 jours Pro gratuits</div>
           <h1 style={{fontSize:'clamp(32px,5vw,52px)',fontWeight:700,color:CH,lineHeight:1.1,marginBottom:18,letterSpacing:'-1.5px'}} className="hero-h1">
-            {'Générez vos posts LinkedIn'.split(' ').map((w,i)=>(
-              <span key={i} className="hero-word" style={{animationDelay:`${i*0.1}s`}}>{w}{' '}</span>
-            ))}
+            <span className="hero-word" style={{animationDelay:'0s'}}>Générez </span>
+            <span className="hero-word" style={{animationDelay:'0.1s'}}>vos </span>
+            <span className="hero-word" style={{animationDelay:'0.2s'}}>posts </span>
+            <span className="hero-word" style={{animationDelay:'0.3s'}}>LinkedIn</span>
             <br/>
-            <span className="hero-word" style={{animationDelay:'0.7s',color:F}}>en 30 secondes.</span>
-            {' '}
-            <span className="hero-word" style={{animationDelay:'0.9s',color:F}}>Gratuitement.</span>
+            <span className="hero-word" style={{animationDelay:'0.5s',color:F}}>en 30 secondes. </span>
+            <span className="hero-word" style={{animationDelay:'0.7s',color:F}}>Gratuitement.</span>
           </h1>
           <p style={{fontSize:16,color:'#6B7069',lineHeight:1.7,maxWidth:520,margin:'0 auto 12px',animation:'fadeUp 0.6s 1s both'}}>
             Ecrira écrit vos posts LinkedIn, crée vos visuels et planifie tout depuis votre activité.<br/>
