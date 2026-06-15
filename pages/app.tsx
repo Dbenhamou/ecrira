@@ -1281,7 +1281,7 @@ export default function Home() {
                 {[
                   {done:!!profile.role, label:lang==='en'?'Complete your profile':'Compléter ton profil', action:()=>setPage('profil'), cta:lang==='en'?'Go →':'Aller →'},
                   {done:linkedinConnected, label:lang==='en'?'Connect LinkedIn':'Connecter LinkedIn', action:connectLinkedIn, cta:lang==='en'?'Connect':'Connecter'},
-                  {done:savedPosts.length>0, label:lang==='en'?'Generate your first post':'Générer ton premier post', action:()=>setPage('rediger'), cta:lang==='en'?'Generate':'Générer'},
+                  {done:generatedCount>0, label:lang==='en'?'Generate your first post':'Générer ton premier post', action:()=>setPage('rediger'), cta:lang==='en'?'Generate':'Générer'},
                 ].map((step,i)=>(
                   <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'8px 0',borderBottom:i<2?'1px solid var(--border)':'none'}}>
                     <div style={{width:22,height:22,borderRadius:'50%',background:step.done?'var(--forest)':'var(--sand)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:11,color:step.done?'white':'var(--text3)',fontWeight:700}}>
