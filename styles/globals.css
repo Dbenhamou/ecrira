@@ -406,6 +406,3 @@ select.form-input { cursor: pointer; }
   display: none !important;
   visibility: hidden !important;
 }
-
-.apercu-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; align-items: start; }
-@media (max-width: 768px) { .apercu-grid { grid-template-columns: 1fr; } }

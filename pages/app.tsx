@@ -1259,8 +1259,6 @@ export default function Home() {
           </div>
           {/* APERÇU */}
           <div className={`page ${page==='apercu'?'active':''}`}>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 340px',gap:24,alignItems:'start'}} className="apercu-grid">
-            <div>
             <div className="eyebrow">{T('dashboard')}</div>
             <div className="page-title">{T('hello')}{profile.name?`, ${profile.name}`:''}.</div>
             <div className="copper-rule"/>
@@ -1296,42 +1294,6 @@ export default function Home() {
               </div>
             )}
             {ideasSection}
-            </div>{/* fin colonne gauche */}
-            {/* Colonne droite */}
-            <div style={{display:'flex',flexDirection:'column' as const,gap:16}}>
-              {/* Card profil */}
-              <div style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:16,padding:20,boxShadow:'var(--shadow)'}}>
-                <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.08em',marginBottom:14}}>MON PROFIL</div>
-                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-                  {(profile as any).linkedin_picture
-                    ? <img src={(profile as any).linkedin_picture} alt="" style={{width:40,height:40,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>
-                    : <div style={{width:40,height:40,borderRadius:'50%',background:'var(--forest)',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:13,fontWeight:700,flexShrink:0}}>{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
-                  }
-                  <div>
-                    <div style={{fontSize:14,fontWeight:600,color:'var(--text1)'}}>{profile.name||'Mon compte'}</div>
-                    <div style={{fontSize:12,color:'var(--text2)'}}>{profile.role||'—'}{profile.company?` · ${profile.company}`:''}</div>
-                  </div>
-                </div>
-                <button onClick={()=>setPage('profil')} className="btn btn-secondary" style={{width:'100%',justifyContent:'center',fontSize:12}}>Modifier mon profil</button>
-              </div>
-              {/* Card LinkedIn */}
-              <div style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:16,padding:20,boxShadow:'var(--shadow)'}}>
-                <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.08em',marginBottom:14}}>LINKEDIN</div>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                  <div style={{width:8,height:8,borderRadius:'50%',background:linkedinConnected?'#27ae60':'#e74c3c',flexShrink:0}}/>
-                  <span style={{fontSize:13,color:'var(--text1)',fontWeight:500}}>{linkedinConnected?'Connecté':'Non connecté'}</span>
-                </div>
-                {!linkedinConnected && <button onClick={connectLinkedIn} className="btn btn-primary" style={{width:'100%',justifyContent:'center',fontSize:12,background:'#0077B5'}}>Connecter LinkedIn</button>}
-                {linkedinConnected && <div style={{fontSize:12,color:'var(--text3)'}}>Publication directe activée</div>}
-              </div>
-              {/* Card action rapide */}
-              <div style={{background:'var(--forest)',borderRadius:16,padding:20}}>
-                <div style={{fontSize:13,fontWeight:600,color:'white',marginBottom:6}}>Prêt à publier ?</div>
-                <div style={{fontSize:12,color:'rgba(255,255,255,0.65)',marginBottom:14,lineHeight:1.5}}>Générez votre prochain post LinkedIn en 30 secondes.</div>
-                <button onClick={()=>setPage('rediger')} style={{width:'100%',padding:'10px',borderRadius:10,background:'#D9C8A3',border:'none',color:'#1F2421',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>✦ Rédiger un post</button>
-              </div>
-            </div>
-            </div>{/* fin apercu-grid */}
           </div>
 
           {/* IDÉES */}
