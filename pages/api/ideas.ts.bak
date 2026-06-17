@@ -6,26 +6,17 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 async function fetchNews(sector: string, isEn: boolean): Promise<string> {
   try {
-    const queryBroad = encodeURIComponent(sector.split(' ').slice(0, 2).join(' '))
-    const querySpecific = encodeURIComponent(sector.split(' ').slice(0, 3).join(' ') + ' 2026')
-    const [resFr, resEn, resFr2, resEn2] = await Promise.all([
-      fetch(`https://newsapi.org/v2/everything?q=${queryBroad}&language=fr&sortBy=publishedAt&pageSize=3&apiKey=${process.env.NEWS_API_KEY}`),
-      fetch(`https://newsapi.org/v2/everything?q=${queryBroad}&language=en&sortBy=publishedAt&pageSize=3&apiKey=${process.env.NEWS_API_KEY}`),
-      fetch(`https://newsapi.org/v2/everything?q=${querySpecific}&language=fr&sortBy=publishedAt&pageSize=2&apiKey=${process.env.NEWS_API_KEY}`),
-      fetch(`https://newsapi.org/v2/everything?q=${querySpecific}&language=en&sortBy=publishedAt&pageSize=2&apiKey=${process.env.NEWS_API_KEY}`),
+    const query = encodeURIComponent(sector.split(' ').slice(0, 3).join(' '))
+    // Fetch FR + EN en parallèle pour plus de fraîcheur
+    const [resFr, resEn] = await Promise.all([
+      fetch(`https://newsapi.org/v2/everything?q=${query}&language=fr&sortBy=publishedAt&pageSize=4&apiKey=${process.env.NEWS_API_KEY}`),
+      fetch(`https://newsapi.org/v2/everything?q=${query}&language=en&sortBy=publishedAt&pageSize=4&apiKey=${process.env.NEWS_API_KEY}`),
     ])
-    const [dataFr, dataEn, dataFr2, dataEn2] = await Promise.all([resFr.json(), resEn.json(), resFr2.json(), resEn2.json()])
-    const seen = new Set<string>()
+    const [dataFr, dataEn] = await Promise.all([resFr.json(), resEn.json()])
     const articles = [
       ...(dataFr.articles || []),
       ...(dataEn.articles || []),
-      ...(dataFr2.articles || []),
-      ...(dataEn2.articles || []),
-    ].filter((a: { title: string }) => {
-      if (seen.has(a.title)) return false
-      seen.add(a.title)
-      return true
-    }).slice(0, 8)
+    ].slice(0, 6)
     if (!articles.length) return ''
     return articles
       .map((a: { title: string; description: string }) => `- ${a.title}: ${a.description || ''}`)
@@ -53,9 +44,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isEn = profile?.lang === 'en'
   const lang = isEn ? 'English' : 'Français'
 
+  // Seed rotatif — varie selon l'heure et le jour pour forcer la diversité
   const now = new Date()
   const seed = `${now.getMonth()}-${now.getDate()}-${Math.floor(now.getHours()/4)}`
 
+  // Angles rotatifs selon le jour de la semaine
   const ANGLES_FR = [
     'controversé / prise de position forte',
     'chiffre clé ou statistique surprenante',
@@ -78,7 +71,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const news = await fetchNews(sector, isEn)
 
+  // Calibrage automatique du niveau de technicité
   const keywords = profile?.keywords || techStack || ''
+  const hasTechnicalKeywords = keywords.length > 0 || sector.length > 10
   const audienceIsExpert = audience.toLowerCase().match(/expert|rssi|dsi|cto|ciso|ingénieur|engineer|developer|technique|msp|mssp|analyst|architect/i)
   const audienceIsDecideur = audience.toLowerCase().match(/directeur|manager|ceo|coo|dg|pme|pmle|dirigeant|decision|business|commercial|vente/i)
 
@@ -129,17 +124,6 @@ ${isEn
 - Ne JAMAIS utiliser des formules génériques comme "voici ce que vous devez savoir"
 - Utiliser les vrais mots-clés du profil : ${keywords || sector}
 - Chaque idée doit sembler faite sur mesure pour ce profil exact`}
-
-RÈGLE DE DIVERSITÉ THÉMATIQUE (obligatoire) :
-${isEn
-  ? `- Maximum 3 ideas out of 10 can use the direct keywords from the profile (${keywords || sector})
-- The other 7 must explore the PERIPHERY of the sector: regulation, macro trends, HR/business challenges, new use cases, cross-sector comparisons, AI impact, field feedback
-- Think about sub-domains adjacent to "${sector}" and draw from them
-- If news articles are provided, use them as starting points for original angles`
-  : `- Maximum 3 idées sur 10 peuvent utiliser les mots-clés directs du profil (${keywords || sector})
-- Les 7 autres doivent explorer les PÉRIPHÉRIES du secteur : réglementation, tendances macro, enjeux RH/business, nouveaux usages, comparaisons sectorielles, impact IA, retours terrain
-- Imagine les sous-domaines connexes au secteur "${sector}" et pioche dedans
-- Si des actualités sont fournies, utilise-les comme point de départ pour des angles inédits`}
 
 Couvre des angles VARIÉS : actualité récente, ${dayAngle}, conseils pratiques, tendances, cas concrets, prises de position.
 Les 2 premières idées doivent être les plus originales et percutantes.
