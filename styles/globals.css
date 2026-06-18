@@ -166,7 +166,7 @@ html, body {
   transition: background 0.3s;
   padding-bottom: 72px;
 }
-.page { padding: 40px 48px; max-width: 1100px; margin: 0 auto; display: none; }
+.page { padding: 40px 60px; max-width: 1300px; margin: 0 auto; display: none; }
 .page.active { display: block; }
 
 /* ── BOTTOM NAV ── */
