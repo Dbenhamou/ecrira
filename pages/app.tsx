@@ -1147,108 +1147,54 @@ export default function Home() {
       {trialBanner}
       <Head><title>Ecrira</title><link rel="icon" href="/favicon-32.png" type="image/png"/><script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script><link rel="icon" href="/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/><meta name="theme-color" content="#516756"/></Head>
       <div className="app">
-        {/* Mobile header */}
-        <div className="mobile-header">
-          <div className="mobile-header-logo" style={{cursor:'pointer'}} onClick={()=>setPage('apercu')}>
-            <img src="/logo-ecrira.png" alt="Ecrira" style={{height:36,width:'auto'}} />
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <div style={{display:'flex',gap:3}}>
-              {['fr','en'].map(l=>(
-                <button key={l} onClick={()=>saveLang(l)} style={{padding:'3px 7px',borderRadius:6,border:`1px solid ${profile.lang===l?'var(--forest)':'var(--border)'}`,background:profile.lang===l?'var(--forest)':'transparent',color:profile.lang===l?'white':'var(--text3)',fontSize:10,cursor:'pointer',fontFamily:'inherit',fontWeight:500}}>
-                  {l==='fr'?'🇫🇷':'🇬🇧'}
-                </button>
-              ))}
-            </div>
-            <span onClick={()=>window.location.href='/pricing'} style={{fontSize:9,fontWeight:700,padding:'2px 7px',borderRadius:20,background:plan==='trial'?'#D9A840':isPro?'var(--forest)':'rgba(0,0,0,0.08)',color:plan==='trial'||isPro?'white':'var(--text2)',letterSpacing:'0.5px',textTransform:'uppercase' as const,cursor:'pointer'}}>{plan==='trial'?`TRIAL ${trialDaysLeft}j`:isPro?'Pro':'Free'}</span>
-            <div className="mobile-header-avatar" onClick={()=>setPage('profil')} style={{overflow:'hidden',padding:0}}>
-              {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'50%'}} /> : profile.name?profile.name.slice(0,2).toUpperCase():'??'}
+        {/* ── TOP HEADER ── */}
+        <header className="app-header">
+          <div className="app-header-left" onClick={()=>setPage('apercu')} style={{cursor:'pointer'}}>
+            <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:32,width:'auto'}} />
+            <div className="app-header-title">
+              <span className="app-header-brand">ECRIRA</span>
+              <span className="app-header-page">{
+                page==='apercu'?'Tableau de bord':
+                page==='idees'?'Inspiration du jour':
+                page==='rediger'?'Atelier de rédaction':
+                page==='calendrier'?'Planning éditorial':
+                page==='bibliotheque'?'Vos archives':
+                page==='profil'?'Mon profil':''
+              }</span>
             </div>
           </div>
-        </div>
-
-        <aside className="sidebar">
-          <div className="sidebar-logo" style={{cursor:'pointer',padding:'18px 16px 14px'}} onClick={()=>setPage('apercu')}>
-            <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:48,width:'auto',display:'block'}} />
-          </div>
-          {/* Notifications bell */}
-          <div style={{position:'relative' as const,margin:'0 12px 8px'}}>
-            <button onClick={(e)=>{e.stopPropagation();setShowNotifPanel(v=>!v);if(unreadCount>0)markAllRead()}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderRadius:10,border:'none',background:'transparent',cursor:'pointer',color:'var(--text2)',fontSize:12,fontWeight:500}}>
-              <span style={{position:'relative' as const,display:'inline-flex'}}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{width:18,height:18}}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                {unreadCount>0&&<span style={{position:'absolute' as const,top:-4,right:-4,background:'#c0392b',color:'white',borderRadius:'50%',width:14,height:14,fontSize:9,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center'}}>{unreadCount>9?'9+':unreadCount}</span>}
-              </span>
-              Notifications
+          <div className="app-header-right">
+            <button className="app-header-btn" onClick={()=>{}} title="Rechercher">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <span>Rechercher</span>
+              <kbd>⌘K</kbd>
             </button>
-            {showNotifPanel && (
-              <div style={{position:'absolute' as const,left:'100%',top:0,marginLeft:8,width:320,background:'var(--white)',border:'1px solid var(--border)',borderRadius:14,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:200,maxHeight:400,overflowY:'auto' as const}} onClick={e=>e.stopPropagation()}>
+            <button className="app-header-icon" onClick={(e)=>{e.stopPropagation();setShowNotifPanel(v=>!v);if(unreadCount>0)markAllRead()}} title="Notifications" style={{position:'relative'}}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              {unreadCount>0&&<span className="notif-badge">{unreadCount>9?'9+':unreadCount}</span>}
+            </button>
+            {showNotifPanel&&(
+              <div className="notif-panel" onClick={e=>e.stopPropagation()}>
                 <div style={{padding:'12px 14px',borderBottom:'1px solid var(--border)',fontSize:12,fontWeight:600,color:'var(--text1)'}}>{T('notifications')}</div>
-                {notifications.length===0 ? (
+                {notifications.length===0?(
                   <div style={{padding:24,textAlign:'center' as const,fontSize:12,color:'var(--text3)'}}>{T('no_notifications')}</div>
-                ) : notifications.map((n:any)=>(
+                ):notifications.map((n:any)=>(
                   <div key={n.id} style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',background:n.read?'transparent':'rgba(81,103,86,0.04)'}}>
                     <div style={{fontSize:12,fontWeight:n.read?400:600,color:'var(--text1)',marginBottom:2}}>{n.title}</div>
-                    {n.body&&<div style={{fontSize:11,color:'var(--text2)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const,fontStyle:'italic'}}>{n.body.substring(0,60)}{n.body.length>60?'…':''}</div>}
+                    {n.body&&<div style={{fontSize:11,color:'var(--text2)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{n.body.substring(0,60)}{n.body.length>60?'…':''}</div>}
                     <div style={{fontSize:10,color:'var(--text3)',marginTop:3}}>{new Date(n.created_at).toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
                   </div>
                 ))}
               </div>
             )}
+            <div className="app-header-avatar" onClick={()=>setPage('profil')}>
+              {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
+            </div>
+            <span onClick={()=>window.location.href='/pricing'} className="plan-badge" data-plan={plan==='trial'?'trial':isPro?'pro':'free'}>
+              {plan==='trial'?`TRIAL ${trialDaysLeft}j`:isPro?'PRO':'FREE'}
+            </span>
           </div>
-          <nav className="sidebar-nav">{navItems.map(item=>(<button key={item.id} className={`nav-link ${page===item.id?'active':''}`} onClick={()=>{ if(item.id==="calendrier"&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>{item.icon}{item.label}</button>))}</nav>
-          {/* Checklist sidebar persistante */}
-          {(!profile.role || !linkedinConnected || generatedCount === 0) && (
-            <div style={{margin:'0 12px 12px',padding:'12px',background:'rgba(81,103,86,0.06)',borderRadius:12,border:'1px solid rgba(81,103,86,0.12)'}}>
-              <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',textTransform:'uppercase' as const,letterSpacing:'0.08em',marginBottom:8}}>{lang==='en'?'Getting started':'Premiers pas'}</div>
-              {[
-                {done:!!profile.role,label:lang==='en'?'Complete profile':'Compléter profil',action:()=>setPage('profil')},
-                {done:linkedinConnected,label:'Connecter LinkedIn',action:connectLinkedIn},
-                {done:generatedCount>0,label:lang==='en'?'First post':'Premier post',action:()=>setPage('rediger')},
-              ].map((item,i)=>(
-                <div key={i} onClick={!item.done?item.action:undefined} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',cursor:item.done?'default':'pointer',opacity:item.done?0.5:1}}>
-                  <div style={{width:16,height:16,borderRadius:'50%',border:`1.5px solid ${item.done?'var(--forest)':'var(--border)'}`,background:item.done?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    {item.done&&<svg viewBox="0 0 10 10" width="8" height="8"><path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
-                  </div>
-                  <span style={{fontSize:11,color:item.done?'var(--text3)':'var(--text1)',textDecoration:item.done?'line-through':'none'}}>{item.label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="sidebar-footer">
-            <div className="user-row" onClick={()=>setPage('profil')}>
-              {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:28,height:28,borderRadius:'50%',objectFit:'cover'}} /> : <div className="user-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}
-          <div>
-            <div className="user-name">{profile.name||T('my_account')}</div>
-            <div className="user-role">{profile.role?`${profile.role.split(' ')[0]} · ${profile.company}`:T('complete_profile')}</div>
-          </div>
-            </div>
-            <div className="theme-row"><span>{T('dark_mode')}</span><div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div></div>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'4px 10px 0',fontSize:11,color:'var(--text3)'}}>
-              <span>{T('language')}</span>
-              <div style={{display:'flex',gap:4}}>
-                {['fr','en'].map(l=>(
-                  <button key={l} onClick={()=>saveLang(l)} style={{padding:'2px 8px',borderRadius:6,border:`1px solid ${profile.lang===l?'var(--forest)':'var(--border)'}`,background:profile.lang===l?'var(--forest)':'transparent',color:profile.lang===l?'white':'var(--text3)',fontSize:10,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>
-                    {l==='fr'?'🇫🇷 FR':'🇬🇧 EN'}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {!linkedinConnected && (
-              <div style={{margin:'0 10px 4px',padding:'8px 10px',background:'rgba(0,119,181,0.08)',border:'1px solid rgba(0,119,181,0.2)',borderRadius:8,fontSize:11,color:'#0077B5',cursor:'pointer'}} onClick={connectLinkedIn}>
-                {T('connect_linkedin_publish')}
-              </div>
-            )}
-            <div style={{padding:'4px 10px'}}><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11,color:'var(--text3)'}} onClick={signOut}>{T('sign_out')}</button></div>
-            <div style={{padding:'4px 10px 8px',display:'flex',justifyContent:'center',gap:12,borderTop:'1px solid var(--border)',marginTop:4,paddingTop:8}}>
-              <a href="/cgu" style={{fontSize:10,color:'var(--text3)',textDecoration:'none'}}>CGU</a>
-              <a href="/mentions-legales" style={{fontSize:10,color:'var(--text3)',textDecoration:'none'}}>{lang==='en'?'Legal':'Mentions'}</a>
-              <a href="https://www.linkedin.com/company/ecrira/" target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:'var(--text3)',textDecoration:'none',display:'flex',alignItems:'center',gap:3}}>
-                <svg viewBox="0 0 24 24" fill="currentColor" style={{width:10,height:10}}><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-                LinkedIn
-              </a>
-            </div>
-          </div>
-        </aside>
+        </header>
 
         <div className="main">
           {/* Badge plan — haut droite sur toutes les pages */}
@@ -2167,20 +2113,25 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Mobile bottom nav */}
-      <nav className="mobile-nav">
+      {/* ── BOTTOM NAV ── */}
+      <nav className="bottom-nav">
         {[
-          {id:'apercu',label:T('nav_apercu'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
-          {id:'idees',label:T('nav_idees_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
-          {id:'rediger',label:T('nav_rediger'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
-{id:'calendrier',label:T('nav_calendrier'),icon:<CalIcon/>},
-          {id:'bibliotheque',label:T('nav_bibliotheque_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
-          {id:'profil',label:T('nav_profil_short'),icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
-          {id:'__pricing',label:isPro?'Pro ✦':'Passer Pro',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>},
+          {id:'apercu',label:'Aperçu',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
+          {id:'idees',label:'Idées',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
+          {id:'rediger',label:'Rédiger',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
+          {id:'calendrier',label:'Calendrier',icon:<CalIcon/>},
+          {id:'bibliotheque',label:'Bibliothèque',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
+          {id:'__cmd',label:'Commandes',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>},
         ].map(item=>(
-          <button key={item.id} className={`mobile-nav-item ${page===item.id?'active':''}`} style={item.id==='__pricing'?{color:'var(--forest)',fontWeight:700}:{}} onClick={()=>{ if(item.id==="__pricing"){ window.location.href='/pricing'; return; } if((item.id==="calendrier"||item.id==="visuels")&&!isPro){ setShowUpgradeModal(true); return; } setPage(item.id); }}>
-            {item.icon}
-            <span>{item.label}</span>
+          <button key={item.id} className={`bottom-nav-item${page===item.id?' active':''}`}
+            onClick={()=>{
+              if(item.id==='__cmd') return
+              if((item.id==='calendrier'||item.id==='visuels')&&!isPro){ setShowUpgradeModal(true); return; }
+              setPage(item.id)
+            }}
+          >
+            <span className="bottom-nav-icon">{item.icon}</span>
+            <span className="bottom-nav-label">{item.label}</span>
           </button>
         ))}
       </nav>
