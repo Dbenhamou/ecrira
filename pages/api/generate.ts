@@ -135,13 +135,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const content = (message.content[0] as { text: string }).text
 
-    // Incrémenter le compteur si Free
-    if (!isPro) {
-      await supabaseAdmin
-        .from('profiles')
-        .update({ posts_count_this_month: postsCount + 1 })
-        .eq('id', userId)
-    }
+    // Incrémenter le compteur pour tous les users
+    await supabaseAdmin
+      .from('profiles')
+      .update({ posts_count_this_month: postsCount + 1 })
+      .eq('id', userId)
 
     res.status(200).json({ content })
   } catch (err) {
