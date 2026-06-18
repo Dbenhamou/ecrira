@@ -227,6 +227,7 @@ export default function Home() {
   }
   const [page, setPage] = useState('apercu')
   const [dark, setDark] = useState(false)
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [ideasGeneratedAt, setIdeasGeneratedAt] = useState<Date | null>(null)
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
@@ -488,6 +489,12 @@ export default function Home() {
   }
 
   const showToast = (msg: string) => { setToast(msg); setToastVisible(true); setTimeout(()=>setToastVisible(false), 2600) }
+  useEffect(()=>{
+    const close = ()=>setShowAvatarMenu(false)
+    document.addEventListener('click', close)
+    return ()=>document.removeEventListener('click', close)
+  },[])
+
   const toggleDark = () => { const n=!dark; setDark(n); document.documentElement.dataset.theme=n?'dark':''; localStorage.setItem('ecrira_dark',n?'1':'0') }
 
   // Auto-save brouillon sujet
@@ -1187,12 +1194,52 @@ export default function Home() {
                 ))}
               </div>
             )}
-            <div className="app-header-avatar" onClick={()=>setPage('profil')}>
-              {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
+            <div style={{position:'relative' as const}}>
+              <div className="app-header-avatar" onClick={(e)=>{e.stopPropagation();setShowAvatarMenu(v=>!v)}} style={{cursor:'pointer'}}>
+                {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
+              </div>
+              <span onClick={()=>window.location.href='/pricing'} className="plan-badge" data-plan={plan==='trial'?'trial':isPro?'pro':'free'} style={{cursor:'pointer',marginLeft:6}}>
+                {plan==='trial'?`TRIAL ${trialDaysLeft}j`:isPro?'PRO':'FREE'}
+              </span>
+              {showAvatarMenu&&(
+                <div onClick={e=>e.stopPropagation()} style={{position:'absolute' as const,top:48,right:0,width:220,background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:14,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:300,overflow:'hidden'}}>
+                  <div style={{padding:'12px 14px',borderBottom:'1px solid var(--border)'}}>
+                    <div style={{fontSize:12,fontWeight:600,color:'var(--text1)'}}>{profile.name||'Mon compte'}</div>
+                    <div style={{fontSize:11,color:'var(--text3)'}}>{profile.role?`${profile.role} · ${profile.company}`:''}</div>
+                  </div>
+                  {[
+                    {label:lang==='en'?'My profile':'Mon profil',action:()=>{setPage('profil');setShowAvatarMenu(false)},icon:'👤'},
+                    {label:lang==='en'?'Visuals':'Visuels',action:()=>{setPage('visuels');setShowAvatarMenu(false)},icon:'🎨'},
+                  ].map((item,i)=>(
+                    <button key={i} onClick={item.action} style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'10px 14px',border:'none',background:'transparent',cursor:'pointer',fontSize:12,color:'var(--text1)',textAlign:'left' as const,fontFamily:'inherit',borderBottom:'0.5px solid var(--border)'}}>
+                      <span>{item.icon}</span>{item.label}
+                    </button>
+                  ))}
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',borderBottom:'0.5px solid var(--border)'}}>
+                    <span style={{fontSize:12,color:'var(--text1)'}}>{lang==='en'?'Dark mode':'Mode sombre'}</span>
+                    <div className={`toggle ${dark?'on':''}`} onClick={toggleDark}><div className="toggle-dot"/></div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',borderBottom:'0.5px solid var(--border)'}}>
+                    <span style={{fontSize:12,color:'var(--text1)'}}>{lang==='en'?'Language':'Langue'}</span>
+                    <div style={{display:'flex',gap:4}}>
+                      {['fr','en'].map(l=>(
+                        <button key={l} onClick={()=>saveLang(l)} style={{padding:'2px 8px',borderRadius:6,border:`1px solid ${(profile as any).lang===l?'var(--forest)':'var(--border)'}`,background:(profile as any).lang===l?'var(--forest)':'transparent',color:(profile as any).lang===l?'white':'var(--text3)',fontSize:10,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>
+                          {l==='fr'?'🇫🇷 FR':'🇬🇧 EN'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{display:'flex',gap:12,padding:'8px 14px',borderBottom:'0.5px solid var(--border)'}}>
+                    <a href="/cgu" style={{fontSize:10,color:'var(--text3)',textDecoration:'none'}}>CGU</a>
+                    <a href="/mentions-legales" style={{fontSize:10,color:'var(--text3)',textDecoration:'none'}}>{lang==='en'?'Legal':'Mentions légales'}</a>
+                    <a href="https://www.linkedin.com/company/ecrira/" target="_blank" rel="noopener noreferrer" style={{fontSize:10,color:'var(--text3)',textDecoration:'none'}}>LinkedIn</a>
+                  </div>
+                  <button onClick={()=>{signOut();setShowAvatarMenu(false)}} style={{width:'100%',padding:'10px 14px',border:'none',background:'transparent',cursor:'pointer',fontSize:12,color:'#c0392b',textAlign:'left' as const,fontFamily:'inherit'}}>
+                    {lang==='en'?'Sign out':'Se déconnecter'}
+                  </button>
+                </div>
+              )}
             </div>
-            <span onClick={()=>window.location.href='/pricing'} className="plan-badge" data-plan={plan==='trial'?'trial':isPro?'pro':'free'}>
-              {plan==='trial'?`TRIAL ${trialDaysLeft}j`:isPro?'PRO':'FREE'}
-            </span>
           </div>
         </header>
 
