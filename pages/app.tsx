@@ -1266,7 +1266,7 @@ export default function Home() {
                         const{data:u}=await supabase.auth.getUser()
                         if(!u?.user)return
                         await supabase.from('saved_ideas').insert({user_id:u.user.id,topic:idea.topic,title:idea.title,hook:idea.hook})
-                      }}>☆ {T('save_idea')}</button>
+                      }}>☆ 'Sauvegarder'</button>
                     </div>
                   </div>
                 ))}
