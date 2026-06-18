@@ -1246,7 +1246,7 @@ export default function Home() {
           {/* Badge plan — haut droite sur toutes les pages */}
 
           {/* APERÇU */}
-          <div className={`page ${page==='apercu'?'active':''}`} style={{maxWidth:'100%',padding:'32px 40px'}}>
+          <div className={`page ${page==='apercu'?'active':''}`}>
             {/* Header */}
             <div className="eyebrow">{T('dashboard')}</div>
             <div className="page-title" style={{fontFamily:"Georgia,'Times New Roman',serif",fontSize:36,fontWeight:400,marginBottom:4}}>{T('hello')}{profile.name?`, ${profile.name}`:''}.</div>
