@@ -1198,9 +1198,7 @@ export default function Home() {
               <div className="app-header-avatar" onClick={(e)=>{e.stopPropagation();setShowAvatarMenu(v=>!v)}} style={{cursor:'pointer'}}>
                 {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
               </div>
-              <span onClick={()=>window.location.href='/pricing'} className="plan-badge" data-plan={plan==='trial'?'trial':isPro?'pro':'free'} style={{cursor:'pointer',marginLeft:6}}>
-                {plan==='trial'?`TRIAL ${trialDaysLeft}j`:isPro?'PRO':'FREE'}
-              </span>
+
               {showAvatarMenu&&(
                 <div onClick={e=>e.stopPropagation()} style={{position:'absolute' as const,top:48,right:0,width:220,background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:14,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:300,overflow:'hidden'}}>
                   <div style={{padding:'12px 14px',borderBottom:'1px solid var(--border)'}}>
