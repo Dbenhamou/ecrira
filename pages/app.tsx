@@ -1282,7 +1282,7 @@ export default function Home() {
             </div>
 
             {/* Checklist premiers pas */}
-            {(!profile.role || !linkedinConnected || generatedCount===0) && (
+            {(!profile.role || !linkedinConnected || generatedCount===0) && !(!!profile.role && linkedinConnected && generatedCount>0) && (
               <div style={{background:'rgba(81,103,86,0.04)',border:'0.5px solid rgba(81,103,86,0.15)',borderRadius:12,padding:'14px 18px',marginBottom:20}}>
                 <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',textTransform:'uppercase' as const,letterSpacing:'0.1em',marginBottom:10}}>{lang==='en'?'Getting started':'Premiers pas'}</div>
                 {[
