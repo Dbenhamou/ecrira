@@ -2259,20 +2259,31 @@ export default function Home() {
 
       {/* ── BOTTOM NAV ── */}
       <nav style={{position:'fixed' as const,bottom:20,left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',alignItems:'center',gap:4,background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:40,padding:'6px 10px',boxShadow:'0 4px 20px rgba(0,0,0,0.1)'}}>
-        {(['apercu','idees','rediger'] as const).map(id=>(
-          <button key={id} onClick={()=>setPage(id)} title={id==='apercu'?'Aperçu':id==='idees'?'Idées':id==='rediger'?'Rédiger':id} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page===id?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page===id?'white':'var(--text3)'}}>
-            {id==='apercu'&&<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>}
-            {id==='idees'&&<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>}
-            {id==='rediger'&&<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>}
-          </button>
+        {([
+          {id:'apercu' as const, label:'Aperçu', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
+          {id:'idees' as const, label:'Idées', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
+          {id:'rediger' as const, label:'Rédiger', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
+        ]).map(item=>(
+          <div key={item.id} className="pill-btn-wrap">
+            <span className="pill-tooltip">{item.label}</span>
+            <button onClick={()=>setPage(item.id)} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page===item.id?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page===item.id?'white':'var(--text3)'}}>
+              {item.icon}
+            </button>
+          </div>
         ))}
         <div style={{width:'0.5px',height:20,background:'var(--border)',margin:'0 2px'}}/>
-        <button title='Calendrier' onClick={()=>{ if(!isPro){setShowUpgradeModal(true);return;} setPage('calendrier') }} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page==='calendrier'?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='calendrier'?'white':'var(--text3)'}}>
-          <CalIcon/>
-        </button>
-        <button title='Bibliothèque' onClick={()=>setPage('bibliotheque')} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page==='bibliotheque'?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='bibliotheque'?'white':'var(--text3)'}}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
-        </button>
+        <div className="pill-btn-wrap">
+          <span className="pill-tooltip">Calendrier</span>
+          <button onClick={()=>{ if(!isPro){setShowUpgradeModal(true);return;} setPage('calendrier') }} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page==='calendrier'?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='calendrier'?'white':'var(--text3)'}}>
+            <CalIcon/>
+          </button>
+        </div>
+        <div className="pill-btn-wrap">
+          <span className="pill-tooltip">Bibliothèque</span>
+          <button onClick={()=>setPage('bibliotheque')} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page==='bibliotheque'?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='bibliotheque'?'white':'var(--text3)'}}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+          </button>
+        </div>
       </nav>
 
 

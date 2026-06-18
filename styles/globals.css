@@ -446,3 +446,9 @@ select.form-input { cursor: pointer; }
 /* Cards textes plus lisibles */
 .stat-label { font-size: 13px !important; }
 .stat-note { font-size: 12px !important; }
+
+/* Pill tooltips */
+.pill-btn-wrap { position: relative; display: inline-flex; }
+.pill-btn-wrap:hover .pill-tooltip { opacity: 1; transform: translateY(0); pointer-events: none; }
+.pill-tooltip { position: absolute; bottom: 46px; left: 50%; transform: translateX(-50%) translateY(4px); background: var(--text1); color: var(--white); font-size: 11px; font-weight: 500; padding: 4px 8px; border-radius: 6px; white-space: nowrap; opacity: 0; transition: opacity 0.15s, transform 0.15s; pointer-events: none; z-index: 500; }
+.pill-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: var(--text1); }
