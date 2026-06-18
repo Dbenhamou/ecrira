@@ -1303,7 +1303,7 @@ export default function Home() {
 
             {/* Idées du jour — 2 recommandées */}
             <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:4}}>
-              <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,cursor:'pointer'}} onClick={()=>setPage('idees')}>Idées du jour →</div>
+              <div style={{fontSize:12,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,cursor:'pointer'}} onClick={()=>setPage('idees')}>Idées du jour →</div>
               <span style={{fontSize:10,color:'var(--forest)',cursor:'pointer',fontWeight:500}} onClick={()=>setPage('idees')}>{lang==='en'?'See all ideas →':'Voir toutes les idées →'}</span>
             </div>
             {ideasGeneratedAt&&<div style={{fontSize:10,color:'var(--text3)',marginBottom:12}}>{lang==='en'?'Generated':'Générées'} {ideasGeneratedAt.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{day:'numeric',month:'long'})}{lang==='en'?' at ':' à '}{ideasGeneratedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>}
@@ -1321,8 +1321,8 @@ export default function Home() {
                       <span style={{fontSize:9,fontWeight:600,color:'var(--forest)',background:'rgba(81,103,86,0.08)',borderRadius:20,padding:'2px 8px',textTransform:'uppercase' as const,letterSpacing:'0.06em'}}>{idea.topic}</span>
                       <span style={{marginLeft:4,fontSize:9,fontWeight:600,color:'#B7956A',background:'rgba(217,200,163,0.3)',borderRadius:20,padding:'2px 7px'}}>★ Recommandé</span>
                     </div>
-                    <div style={{fontSize:12,fontWeight:500,color:'var(--text1)',lineHeight:1.4,marginBottom:4}}>{idea.title}</div>
-                    <div style={{fontSize:10,color:'var(--text2)',lineHeight:1.4,marginBottom:10}}>{idea.hook}</div>
+                    <div style={{fontSize:15,fontWeight:500,color:'var(--text1)',lineHeight:1.4,marginBottom:6}}>{idea.title}</div>
+                    <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5,marginBottom:12}}>{idea.hook}</div>
                     <div style={{display:'flex',gap:6}}>
                       <button className="btn btn-primary" style={{fontSize:10,padding:'5px 12px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setPage('rediger')}}>{T('develop')}</button>
                       <button className="btn btn-ghost" style={{fontSize:10,padding:'5px 12px'}} onClick={async()=>{
@@ -1361,7 +1361,7 @@ export default function Home() {
                             {dayPosts.length>0?(
                               <div>
                                 <div style={{fontSize:8,color:'#B7956A',fontWeight:600,marginBottom:2}}>{new Date(dayPosts[0].scheduled_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
-                                <div style={{fontSize:9,color:'var(--text1)',lineHeight:1.3,fontWeight:500,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as const,overflow:'hidden'}}>{dayPosts[0].topic||dayPosts[0].content?.slice(0,40)}</div>
+                                <div style={{fontSize:11,color:'var(--text1)',lineHeight:1.3,fontWeight:500,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as const,overflow:'hidden'}}>{dayPosts[0].topic||dayPosts[0].content?.slice(0,40)}</div>
                               </div>
                             ):(
                               <span style={{fontSize:14,color:'var(--border)'}}>+</span>
