@@ -1195,9 +1195,10 @@ export default function Home() {
               </div>
             )}
             <div style={{position:'relative' as const}}>
-              <div className="app-header-avatar" onClick={(e)=>{e.stopPropagation();setShowAvatarMenu(v=>!v)}} style={{cursor:'pointer'}}>
+              <div className="app-header-avatar" onClick={(e)=>{e.stopPropagation();setShowAvatarMenu(v=>!v)}} style={{cursor:'pointer',outline:isPro?'2px solid var(--forest)':'2px solid var(--border)',outlineOffset:1}}>
                 {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
               </div>
+              {(isPro||plan==='trial')&&<span style={{position:'absolute' as const,bottom:-4,right:-4,background:plan==='trial'?'#D9A840':'var(--forest)',color:'white',fontSize:7,fontWeight:700,padding:'1px 4px',borderRadius:6,letterSpacing:'0.04em',border:'1.5px solid var(--ivory)',zIndex:1}}>{plan==='trial'?`${trialDaysLeft}j`:'PRO'}</span>}
 
               {showAvatarMenu&&(
                 <div onClick={e=>e.stopPropagation()} style={{position:'absolute' as const,top:48,right:0,width:220,background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:14,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:300,overflow:'hidden'}}>
@@ -1257,10 +1258,31 @@ export default function Home() {
             <div className="page-sub" style={{marginBottom:24}}>{new Date().toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
 
             {/* Stats */}
-            <div className="stats-grid" style={{marginBottom:20}}>
-              <div className="stat-card"><div className="stat-label">{T('saved_posts')}</div><div className="stat-value" style={{fontFamily:"Georgia,serif"}}>{savedPosts.length}</div><div className="stat-note">{T('in_library')}</div></div>
-              <div className="stat-card"><div className="stat-label">{T('generated_posts')}</div><div className="stat-value" style={{fontFamily:"Georgia,serif"}}>{generatedCount}</div><div className="stat-note">{generatedCount===0?(lang==='en'?'Generate your first!':'Génère ton premier !'):T('in_total')}</div></div>
-              <div className="stat-card"><div className="stat-label">{T('active_sector')}</div><div className="stat-value" style={{fontSize:18,paddingTop:6,fontFamily:"Georgia,serif"}}>{profile.sector?.split(' ')[0]||'Cyber'}</div><div className="stat-note">{profile.company||T('my_company')}</div></div>
+            <div className="stats-grid" style={{marginBottom:28}}>
+              <div className="stat-card">
+                <div className="stat-icon" style={{background:'rgba(81,103,86,0.08)'}}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#516756" strokeWidth="1.5" width="16" height="16"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z"/></svg>
+                </div>
+                <div className="stat-label">{T('saved_posts')}</div>
+                <div className="stat-value" style={{fontFamily:"Georgia,serif"}}>{savedPosts.length}</div>
+                <div className="stat-note">{T('in_library')}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{background:'rgba(217,200,163,0.2)'}}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#B7956A" strokeWidth="1.5" width="16" height="16"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg>
+                </div>
+                <div className="stat-label">{T('generated_posts')}</div>
+                <div className="stat-value" style={{fontFamily:"Georgia,serif"}}>{generatedCount}</div>
+                <div className="stat-note">{generatedCount===0?(lang==='en'?'Generate your first!':'Génère ton premier !'):T('in_total')}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-icon" style={{background:'rgba(81,103,86,0.06)'}}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#516756" strokeWidth="1.5" width="16" height="16"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                </div>
+                <div className="stat-label">{T('active_sector')}</div>
+                <div className="stat-value" style={{fontSize:18,paddingTop:4,fontFamily:"Georgia,serif"}}>{profile.sector?.split(' ')[0]||'Cyber'}</div>
+                <div className="stat-note">{profile.company||T('my_company')}</div>
+              </div>
             </div>
 
             {/* Checklist premiers pas */}
@@ -2245,13 +2267,16 @@ export default function Home() {
           {id:'apercu',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
           {id:'idees',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
           {id:'rediger',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
+          {id:'sep',icon:null},
           {id:'calendrier',icon:<CalIcon/>},
           {id:'bibliotheque',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
-        ] as {id:string,icon:React.ReactNode}[]).map((item,idx)=>(
-          <button key={item.id} onClick={()=>{ if((item.id==='calendrier')&&!isPro){setShowUpgradeModal(true);return;} setPage(item.id as any) }} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page===item.id?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s'}}>
-            <span style={{display:'flex',alignItems:'center',justifyContent:'center',color:page===item.id?'white':'var(--text3)'}}>{item.icon}</span>
-          </button>
-        ))}
+        ] as {id:string,icon:React.ReactNode|null}[]).map((item,idx)=>
+          item.id==='sep'
+            ? <div key="sep" style={{width:'0.5px',height:20,background:'var(--border)',margin:'0 2px'}}/>
+            : <button key={item.id} onClick={()=>{ if((item.id==='calendrier')&&!isPro){setShowUpgradeModal(true);return;} setPage(item.id as any) }} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page===item.id?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s'}}>
+                <span style={{display:'flex',alignItems:'center',justifyContent:'center',color:page===item.id?'white':'var(--text3)'}}>{item.icon}</span>
+              </button>
+        )}
         </nav>
 
 
