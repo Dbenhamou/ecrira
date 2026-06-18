@@ -1266,7 +1266,7 @@ export default function Home() {
                         const{data:u}=await supabase.auth.getUser()
                         if(!u?.user)return
                         await supabase.from('saved_ideas').insert({user_id:u.user.id,topic:idea.topic,title:idea.title,hook:idea.hook})
-                      }}>☆ 'Sauvegarder'</button>
+                      }}>☆ Sauvegarder</button>
                     </div>
                   </div>
                 ))}
@@ -2195,27 +2195,22 @@ export default function Home() {
       </div>
 
       {/* ── BOTTOM NAV ── */}
-      <nav className="bottom-nav">
+      <nav style={{position:'fixed' as const,bottom:20,left:'50%',transform:'translateX(-50%)',zIndex:200,display:'flex',alignItems:'center',gap:4,background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:40,padding:'6px 10px',boxShadow:'0 4px 20px rgba(0,0,0,0.1)'}}>
         {[
-          {id:'apercu',label:'Aperçu',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
-          {id:'idees',label:'Idées',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
-          {id:'rediger',label:'Rédiger',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
-          {id:'calendrier',label:'Calendrier',icon:<CalIcon/>},
-          {id:'bibliotheque',label:'Bibliothèque',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
-          {id:'__cmd',label:'Commandes',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18"/></svg>},
-        ].map(item=>(
-          <button key={item.id} className={`bottom-nav-item${page===item.id?' active':''}`}
-            onClick={()=>{
-              if(item.id==='__cmd') return
-              if((item.id==='calendrier'||item.id==='visuels')&&!isPro){ setShowUpgradeModal(true); return; }
-              setPage(item.id)
-            }}
-          >
-            <span className="bottom-nav-icon">{item.icon}</span>
-            <span className="bottom-nav-label">{item.label}</span>
-          </button>
-        ))}
+          {id:'apercu',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>},
+          {id:'idees',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
+          {id:'rediger',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
+          {id:'sep'},
+          {id:'calendrier',icon:<CalIcon/>},
+          {id:'bibliotheque',icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>},
+        ].map((item,idx)=> item.id==='sep'
+          ? <div key={idx} style={{width:'0.5px',height:20,background:'var(--border)',margin:'0 2px'}}/>
+          : <button key={item.id} onClick={()=>{ if((item.id==='calendrier'||item.id==='visuels')&&!isPro){setShowUpgradeModal(true);return;} setPage(item.id as any) }} style={{width:36,height:36,borderRadius:'50%',border:'none',background:page===item.id?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page===item.id?'white':'var(--text3)'}}>
+              <span style={{display:'flex',alignItems:'center',justifyContent:'center',color:page===item.id?'white':'var(--text3)'}}>{item.icon}</span>
+            </button>
+        )}
       </nav>
+
 
       {showOnboarding&&(
         <div style={{position:'fixed',inset:0,zIndex:600,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(6px)',padding:20}}>
