@@ -1204,42 +1204,123 @@ export default function Home() {
             </span>
           </div>
           {/* APERÇU */}
-          <div className={`page ${page==='apercu'?'active':''}`}>
+          <div className={`page ${page==='apercu'?'active':''}`} style={{maxWidth:'100%',padding:'32px 40px'}}>
+            {/* Header */}
             <div className="eyebrow">{T('dashboard')}</div>
-            <div className="page-title">{T('hello')}{profile.name?`, ${profile.name}`:''}.</div>
+            <div className="page-title" style={{fontFamily:"Georgia,'Times New Roman',serif",fontSize:36,fontWeight:400,marginBottom:4}}>{T('hello')}{profile.name?`, ${profile.name}`:''} .</div>
             <div className="copper-rule"/>
-            <div className="page-sub">{new Date().toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
-            <div className="stats-grid">
-              <div className="stat-card"><div className="stat-label">{T('saved_posts')}</div><div className="stat-value">{savedPosts.length}</div><div className="stat-note">{T('in_library')}</div></div>
-              <div className="stat-card">
-                <div className="stat-label">{T('generated_posts')}</div>
-                <div className="stat-value">{generatedCount}</div>
-                <div className="stat-note">{generatedCount===0?(lang==='en'?'Generate your first!':'Génère ton premier !'):T('in_total')}</div>
-              </div>
-              <div className="stat-card"><div className="stat-label">{T('active_sector')}</div><div className="stat-value" style={{fontSize:18,paddingTop:6}}>{profile.sector?.split(' ')[0]||'Cyber'}</div><div className="stat-note">{profile.company||T('my_company')}</div></div>
+            <div className="page-sub" style={{marginBottom:24}}>{new Date().toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+
+            {/* Stats */}
+            <div className="stats-grid" style={{marginBottom:20}}>
+              <div className="stat-card"><div className="stat-label">{T('saved_posts')}</div><div className="stat-value" style={{fontFamily:"Georgia,serif"}}>{savedPosts.length}</div><div className="stat-note">{T('in_library')}</div></div>
+              <div className="stat-card"><div className="stat-label">{T('generated_posts')}</div><div className="stat-value" style={{fontFamily:"Georgia,serif"}}>{generatedCount}</div><div className="stat-note">{generatedCount===0?(lang==='en'?'Generate your first!':'Génère ton premier !'):T('in_total')}</div></div>
+              <div className="stat-card"><div className="stat-label">{T('active_sector')}</div><div className="stat-value" style={{fontSize:18,paddingTop:6,fontFamily:"Georgia,serif"}}>{profile.sector?.split(' ')[0]||'Cyber'}</div><div className="stat-note">{profile.company||T('my_company')}</div></div>
             </div>
+
             {/* Checklist premiers pas */}
-            {(!profile.role || !linkedinConnected || savedPosts.length === 0) && (
-              <div style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:16,padding:'18px 20px',marginBottom:20,boxShadow:'var(--shadow-sm)'}}>
-                <div style={{fontSize:11,fontWeight:600,color:'var(--text3)',textTransform:'uppercase' as const,letterSpacing:'0.08em',marginBottom:12}}>
-                  {lang==='en'?'Getting started':'Premiers pas'}
-                </div>
+            {(!profile.role || !linkedinConnected || generatedCount===0) && (
+              <div style={{background:'rgba(81,103,86,0.04)',border:'0.5px solid rgba(81,103,86,0.15)',borderRadius:12,padding:'14px 18px',marginBottom:20}}>
+                <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',textTransform:'uppercase' as const,letterSpacing:'0.1em',marginBottom:10}}>{lang==='en'?'Getting started':'Premiers pas'}</div>
                 {[
                   {done:!!profile.role, label:lang==='en'?'Complete your profile':'Compléter ton profil', action:()=>setPage('profil'), cta:lang==='en'?'Go →':'Aller →'},
                   {done:linkedinConnected, label:lang==='en'?'Connect LinkedIn':'Connecter LinkedIn', action:connectLinkedIn, cta:lang==='en'?'Connect':'Connecter'},
                   {done:generatedCount>0, label:lang==='en'?'Generate your first post':'Générer ton premier post', action:()=>setPage('rediger'), cta:lang==='en'?'Generate':'Générer'},
                 ].map((step,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'8px 0',borderBottom:i<2?'1px solid var(--border)':'none'}}>
-                    <div style={{width:22,height:22,borderRadius:'50%',background:step.done?'var(--forest)':'var(--sand)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:11,color:step.done?'white':'var(--text3)',fontWeight:700}}>
-                      {step.done?'✓':(i+1)}
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'7px 0',borderBottom:i<2?'0.5px solid rgba(81,103,86,0.1)':'none'}}>
+                    <div style={{width:20,height:20,borderRadius:'50%',background:step.done?'var(--forest)':'transparent',border:step.done?'none':'1.5px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      {step.done&&<svg viewBox="0 0 10 10" width="10" height="10"><path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
                     </div>
-                    <span style={{flex:1,fontSize:13,color:step.done?'var(--text3)':'var(--text1)',textDecoration:step.done?'line-through':'none'}}>{step.label}</span>
-                    {!step.done && <button onClick={step.action} className="btn btn-secondary" style={{fontSize:11,padding:'4px 10px'}}>{step.cta}</button>}
+                    <span style={{flex:1,fontSize:12,color:step.done?'var(--text3)':'var(--text1)',textDecoration:step.done?'line-through':'none'}}>{step.label}</span>
+                    {!step.done&&<button onClick={step.action} style={{fontSize:11,color:'var(--forest)',fontWeight:500,background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>{step.cta}</button>}
                   </div>
                 ))}
               </div>
             )}
-            {ideasSection}
+
+            {/* Idées du jour — 2 recommandées */}
+            <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:4}}>
+              <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,cursor:'pointer'}} onClick={()=>setPage('idees')}>Idées du jour →</div>
+              <span style={{fontSize:10,color:'var(--forest)',cursor:'pointer',fontWeight:500}} onClick={()=>setPage('idees')}>{lang==='en'?'See all ideas →':'Voir toutes les idées →'}</span>
+            </div>
+            {ideasGeneratedAt&&<div style={{fontSize:10,color:'var(--text3)',marginBottom:12}}>{lang==='en'?'Generated':'Générées'} {ideasGeneratedAt.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{day:'numeric',month:'long'})}{lang==='en'?' at ':' à '}{ideasGeneratedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>}
+            {ideas.filter(i=>i.recommended).length===0&&(
+              <div style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'20px',textAlign:'center' as const,marginBottom:20}}>
+                <div style={{fontSize:12,color:'var(--text3)',marginBottom:10}}>{lang==='en'?'No ideas yet — generate your first batch!':'Pas encore d\'idées — génère ton premier batch !'}</div>
+                <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>setPage('idees')}>{lang==='en'?'Generate ideas':'Générer les idées'}</button>
+              </div>
+            )}
+            {ideas.filter(i=>i.recommended).length>0&&(
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
+                {ideas.filter(i=>i.recommended).slice(0,2).map((idea,idx)=>(
+                  <div key={idx} style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'14px 16px'}}>
+                    <div style={{marginBottom:6}}>
+                      <span style={{fontSize:9,fontWeight:600,color:'var(--forest)',background:'rgba(81,103,86,0.08)',borderRadius:20,padding:'2px 8px',textTransform:'uppercase' as const,letterSpacing:'0.06em'}}>{idea.topic}</span>
+                      <span style={{marginLeft:4,fontSize:9,fontWeight:600,color:'#B7956A',background:'rgba(217,200,163,0.3)',borderRadius:20,padding:'2px 7px'}}>★ Recommandé</span>
+                    </div>
+                    <div style={{fontSize:12,fontWeight:500,color:'var(--text1)',lineHeight:1.4,marginBottom:4}}>{idea.title}</div>
+                    <div style={{fontSize:10,color:'var(--text2)',lineHeight:1.4,marginBottom:10}}>{idea.hook}</div>
+                    <div style={{display:'flex',gap:6}}>
+                      <button className="btn btn-primary" style={{fontSize:10,padding:'5px 12px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setPage('rediger')}}>{T('develop')}</button>
+                      <button className="btn btn-ghost" style={{fontSize:10,padding:'5px 12px'}} onClick={async()=>{
+                        const{data:u}=await supabase.auth.getUser()
+                        if(!u?.user)return
+                        await supabase.from('saved_ideas').insert({user_id:u.user.id,topic:idea.topic,title:idea.title,hook:idea.hook})
+                      }}>☆ {T('save_idea')}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Planning semaine */}
+            <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>{lang==='en'?'This week':'Cette semaine'}</div>
+            <div style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'16px 20px',marginBottom:20}}>
+              {(()=>{
+                const today=new Date()
+                const dow=today.getDay()===0?6:today.getDay()-1
+                const monday=new Date(today); monday.setDate(today.getDate()-dow)
+                const days=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
+                return(
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
+                    {days.map((d,i)=>{
+                      const date=new Date(monday); date.setDate(monday.getDate()+i)
+                      const isToday=date.toDateString()===today.toDateString()
+                      const dayPosts=scheduledPosts.filter(p=>{
+                        const pd=new Date(p.scheduled_at)
+                        return pd.toDateString()===date.toDateString()
+                      })
+                      return(
+                        <div key={i} style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:6}}>
+                          <span style={{fontSize:9,color:'var(--text3)',fontWeight:500,textTransform:'uppercase' as const,letterSpacing:'0.05em'}}>{d}</span>
+                          <div style={{width:28,height:28,borderRadius:'50%',background:isToday?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:500,color:isToday?'white':'var(--text2)'}}>{date.getDate()}</div>
+                          <div style={{width:'100%',minHeight:54,borderRadius:8,border:dayPosts.length>0?'0.5px solid rgba(81,103,86,0.2)':'0.5px dashed var(--border)',background:dayPosts.length>0?'rgba(81,103,86,0.06)':'transparent',padding:dayPosts.length>0?'6px 6px':'0',display:'flex',alignItems:dayPosts.length>0?'flex-start':'center',justifyContent:'center'}}>
+                            {dayPosts.length>0?(
+                              <div>
+                                <div style={{fontSize:8,color:'#B7956A',fontWeight:600,marginBottom:2}}>{new Date(dayPosts[0].scheduled_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
+                                <div style={{fontSize:9,color:'var(--text1)',lineHeight:1.3,fontWeight:500,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as const,overflow:'hidden'}}>{dayPosts[0].topic||dayPosts[0].content?.slice(0,40)}</div>
+                              </div>
+                            ):(
+                              <span style={{fontSize:14,color:'var(--border)'}}>+</span>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+              {scheduledPosts.filter(p=>{const today=new Date();const dow=today.getDay()===0?6:today.getDay()-1;const mon=new Date(today);mon.setDate(today.getDate()-dow);const sun=new Date(mon);sun.setDate(mon.getDate()+6);const pd=new Date(p.scheduled_at);return pd>=mon&&pd<=sun}).length===0&&(
+                <div style={{textAlign:'center' as const,marginTop:10,fontSize:10,color:'var(--text3)'}}>{lang==='en'?'No posts scheduled this week':'Aucun post planifié cette semaine'} · <span style={{color:'var(--forest)',cursor:'pointer'}} onClick={()=>setPage('calendrier')}>{lang==='en'?'Schedule →':'Planifier →'}</span></div>
+              )}
+            </div>
+
+            {/* Conseil du jour */}
+            <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>{lang==='en'?'Tip of the day':'Conseil du jour'}</div>
+            <div style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'16px 20px',marginBottom:20}}>
+              <div style={{fontSize:9,fontWeight:600,color:'#B7956A',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>✦ Personal branding</div>
+              <div style={{fontSize:13,color:'var(--text1)',lineHeight:1.6,fontStyle:'italic'}}>{["Un bon hook LinkedIn commence par une statistique surprenante ou une affirmation contre-intuitive. Les 3 premières lignes décident de tout.","Postez le mardi ou mercredi matin entre 8h et 10h. L'algorithme LinkedIn favorise les posts publiés en début de semaine.","Un post sans question finale perd 40% d'engagement. Terminez toujours par une question ouverte à votre audience.","La règle des 3 lignes : votre hook doit tenir en 3 lignes maximum avant le bouton 'voir plus'. Au-delà, vous perdez le lecteur.","Les posts avec une image personnelle génèrent 3x plus d'impressions que les posts texte seuls.","Répondez à chaque commentaire dans les 60 premières minutes. C'est la fenêtre où l'algorithme décide de booster votre post.","Un post qui raconte un échec personnel performe souvent mieux qu'un post sur un succès. L'authenticité crée la connexion."][new Date().getDay()]}</div>
+            </div>
           </div>
 
           {/* IDÉES */}
