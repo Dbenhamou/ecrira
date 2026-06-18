@@ -200,14 +200,14 @@ html, body {
 
 /* Page headers */
 .eyebrow {
-  font-size: 11px; font-weight: 500;
-  color: var(--sage); letter-spacing: 0.12em;
+  font-size: 12px; font-weight: 600;
+  color: var(--forest); letter-spacing: 0.14em;
   text-transform: uppercase; margin-bottom: 6px;
 }
 .page-title {
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 36px; font-weight: 400;
-  color: var(--text1); line-height: 1.15; margin-bottom: 4px;
+  font-size: 48px; font-weight: 400;
+  color: var(--text1); line-height: 1.1; margin-bottom: 4px;
 }
 .page-sub { font-size: 13px; color: var(--text2); margin-bottom: 28px; line-height: 1.6; }
 .copper-rule { width: 28px; height: 2px; background: var(--champagne); border-radius: 1px; margin: 8px 0 18px; }
@@ -234,7 +234,7 @@ html, body {
 .stats-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 28px; }
 .stat-card { background: var(--white); border: 0.5px solid var(--border); border-radius: 14px; padding: 22px 24px; display: flex; flex-direction: column; }
 .stat-label { font-size: 12px; color: var(--text3); font-weight: 500; margin-bottom: 8px; letter-spacing: 0.02em; }
-.stat-value { font-family: Georgia, 'Times New Roman', serif; font-size: 36px; font-weight: 400; color: var(--text1); line-height: 1; margin-bottom: 6px; }
+.stat-value { font-family: Georgia, 'Times New Roman', serif; font-size: 40px; font-weight: 400; color: var(--text1); line-height: 1; margin-bottom: 6px; }
 .stat-note { font-size: 11px; color: var(--text3); }
 .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; flex-shrink: 0; }
 
@@ -436,3 +436,9 @@ select.form-input { cursor: pointer; }
   display: none !important;
   visibility: hidden !important;
 }
+
+/* Toggle dark mode */
+.toggle { width: 32px; height: 18px; background: var(--border); border-radius: 9px; position: relative; cursor: pointer; transition: background 0.2s; flex-shrink: 0; }
+.toggle.on { background: var(--forest); }
+.toggle-dot { position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; background: white; border-radius: 50%; transition: transform 0.2s; }
+.toggle.on .toggle-dot { transform: translateX(14px); }
