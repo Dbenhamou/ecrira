@@ -378,7 +378,7 @@ select.form-input { cursor: pointer; }
   .grid2 { grid-template-columns: 1fr; gap: 12px; }
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
   .stat-card { padding: 14px 16px; }
-  .stat-value { font-size: 26px; }
+  .stat-value { font-size: 32px; }
   .card { padding: 16px; }
   .post-editor { min-height: 180px; font-size: 14px; }
   .idea-card { padding: 14px 16px; }
