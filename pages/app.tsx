@@ -1345,7 +1345,7 @@ export default function Home() {
                 const monday=new Date(today); monday.setDate(today.getDate()-dow)
                 const days=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim']
                 return(
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
+                  <div className="week-grid-dash" style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
                     {days.map((d,i)=>{
                       const date=new Date(monday); date.setDate(monday.getDate()+i)
                       const isToday=date.toDateString()===today.toDateString()

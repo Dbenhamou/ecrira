@@ -463,3 +463,18 @@ select.form-input { cursor: pointer; }
   .app-header-btn kbd { display: none; }
   .app-header-btn { padding: 6px 10px; min-width: unset; }
 }
+
+@media (max-width: 430px) {
+  .page { padding: 16px 12px 120px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+
+@media (max-width: 430px) {
+  .week-grid-dash { gap: 2px !important; }
+  .week-grid-dash .day-name { font-size: 7px; }
+  .week-grid-dash .day-num { width: 20px; height: 20px; font-size: 9px; }
+}
+
+@media (max-width: 430px) {
+  .week-grid-dash { gap: 3px !important; overflow-x: auto; }
+}
