@@ -1314,7 +1314,7 @@ export default function Home() {
               </div>
             )}
             {ideas.filter(i=>i.recommended).length>0&&(
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
+              <div className='ideas-grid' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
                 {ideas.filter(i=>i.recommended).slice(0,2).map((idea,idx)=>(
                   <div key={idx} style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'14px 16px'}}>
                     <div style={{marginBottom:6}}>
