@@ -235,7 +235,7 @@ export default function Home() {
   const [libraryTab, setLibraryTab] = useState<'posts'|'ideas'>('posts')
   const [generatedCount, setGeneratedCount] = useState(0)
   const [scheduledPosts, setScheduledPosts] = useState<any[]>([])
-  const [calView, setCalView] = useState<'semaine'|'mois'|'annee'>('mois')
+  const [calView, setCalView] = useState<'semaine'|'mois'|'annee'>('semaine')
   const [calDate, setCalDate] = useState(new Date())
   const [selectedCalPost, setSelectedCalPost] = useState<any>(null)
   const [scheduling, setScheduling] = useState(false)
@@ -1438,26 +1438,32 @@ export default function Home() {
                   <label className="form-label">{T('subject_label')}</label>
                   <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopicWithSave(e.target.value)} placeholder={T('subject_placeholder')}/>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:10}}>
-                  <div className="form-group" style={{marginBottom:0}}>
+                <div className="form-group" style={{marginBottom:10}}>
                     <label className="form-label">{T('format_label')}</label>
-                    <select className="form-input" style={{fontSize:12}} value={postFormat} onChange={e=>setPostFormat(e.target.value)}>
-                      <option value="educational">{T('fmt_educational_long')}</option>
-                      <option value="alert">{T('fmt_alert_long')}</option>
-                      <option value="opinion">{T('fmt_opinion_long')}</option>
-                      <option value="story">{T('fmt_story_long')}</option>
-                      <option value="list">{T('fmt_list_long')}</option>
-                    </select>
+                    <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
+                      {([
+                        {value:'educational',label:lang==='en'?'Advice':'Conseil'},
+                        {value:'alert',label:lang==='en'?'Alert':'Alerte'},
+                        {value:'opinion',label:lang==='en'?'Opinion':'Opinion'},
+                        {value:'story',label:lang==='en'?'Story':'Storytelling'},
+                        {value:'list',label:lang==='en'?'List':'Liste'},
+                      ]).map(f=>(
+                        <span key={f.value} className={`chip ${postFormat===f.value?'on':''}`} onClick={()=>setPostFormat(f.value)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{f.label}</span>
+                      ))}
+                    </div>
                   </div>
-                  <div className="form-group" style={{marginBottom:0}}>
+                <div className="form-group" style={{marginBottom:10}}>
                     <label className="form-label">{T('length_label')}</label>
-                    <select className="form-input" style={{fontSize:12}} value={postLength} onChange={e=>setPostLength(e.target.value)}>
-                      <option value="short">{T('len_short')}</option>
-                      <option value="medium">{T('len_medium')}</option>
-                      <option value="long">{T('len_long')}</option>
-                    </select>
+                    <div style={{display:'flex',gap:4,marginTop:4}}>
+                      {([
+                        {value:'short',label:lang==='en'?'Short':'Court'},
+                        {value:'medium',label:lang==='en'?'Medium':'Moyen'},
+                        {value:'long',label:lang==='en'?'Long':'Long'},
+                      ]).map(l=>(
+                        <span key={l.value} className={`chip ${postLength===l.value?'on':''}`} onClick={()=>setPostLength(l.value)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{l.label}</span>
+                      ))}
+                    </div>
                   </div>
-                </div>
                 <div className="form-group" style={{marginBottom:12}}>
                   <label className="form-label">{T('tone_label')}</label>
                   <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
