@@ -60,8 +60,8 @@ export default function Landing() {
         <meta property="og:image" content="https://ecrira.com/og-image.png" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <link rel="icon" href="/logo-ecrira-icon.png" type="image/png"/>
-        <link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/>
+        <link rel="icon" href="/logo-ecrira-icon-bleu.png" type="image/png"/>
+        <link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
         <script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script>
       </Head>
@@ -70,7 +70,7 @@ export default function Landing() {
 
         {/* NAV */}
         <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(250,249,247,0.95)',backdropFilter:'blur(8px)',borderBottom:'1px solid #E3DED7',padding:'14px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:46,width:'auto'}}/>
+          <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{height:46,width:'auto'}}/>
           <div style={{display:'flex',gap:10}}>
             <button onClick={()=>router.push('/login')} style={{padding:'7px 16px',borderRadius:8,border:'1px solid rgba(61,82,160,0.3)',background:'transparent',color:'#3D52A0',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Se connecter</button>
             <button onClick={()=>router.push('/login')} style={{padding:'7px 16px',borderRadius:8,background:'#3D52A0',border:'none',fontSize:13,color:'white',cursor:'pointer',fontWeight:500,fontFamily:'inherit'}}>Essai gratuit 7 jours →</button>
@@ -97,7 +97,7 @@ export default function Landing() {
           <div style={{borderRadius:16,border:'1px solid #E3DED7',overflow:'hidden',boxShadow:'0 20px 60px rgba(31,36,33,0.1)',display:'flex',height:520}}>
             <div style={{width:200,background:'#1F2421',display:'flex',flexDirection:'column',flexShrink:0}}>
               <div style={{padding:'18px 16px 14px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',gap:8}}>
-                <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{width:28,height:28,borderRadius:7}}/>
+                <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{width:28,height:28,borderRadius:7}}/>
                 <span style={{fontSize:14,fontWeight:600,color:'white',letterSpacing:'-0.2px'}}>Ecrira</span>
               </div>
               <div style={{padding:'12px 8px',flex:1}}>
@@ -320,7 +320,7 @@ export default function Landing() {
 
         {/* FOOTER */}
         <div style={{padding:'20px 32px',borderTop:'1px solid #E3DED7',background:'#FAF9F7',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:20,width:'auto'}}/>
+          <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{height:20,width:'auto'}}/>
           <div style={{display:'flex',gap:20,fontSize:11,color:'#9EA39C'}}>
             <a href="/cgu" style={{color:'#9EA39C',textDecoration:'none'}}>CGU</a>
             <a href="/mentions-legales" style={{color:'#9EA39C',textDecoration:'none'}}>Mentions légales</a>
