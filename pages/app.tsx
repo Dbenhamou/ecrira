@@ -1152,7 +1152,7 @@ export default function Home() {
   return (
     <>
       {trialBanner}
-      <Head><title>Ecrira</title><link rel="icon" href="/favicon-32-bleu.png" type="image/png"/><script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script><link rel="icon" href="/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/><meta name="theme-color" content="#3D52A0"/></Head>
+      <Head><title>Ecrira</title><link rel="icon" href="/favicon-32-bleu.png" type="image/png"/><script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script><link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/><meta name="theme-color" content="#3D52A0"/></Head>
       <div className="app">
         {/* ── TOP HEADER ── */}
         <header className="app-header">
@@ -1208,7 +1208,7 @@ export default function Home() {
                   </div>
                   {[
                     {label:lang==='en'?'My profile':'Mon profil',action:()=>{setPage('profil');setShowAvatarMenu(false)},icon:'👤'},
-                    {label:lang==='en'?'Visuals':'Visuels',action:()=>{setPage('visuels');setShowAvatarMenu(false)},icon:'🎨'},
+                    {label:lang==='en'?'Visuals':'Visuels',action:()=>{setPage('visuels');setShowAvatarMenu(false)},icon:''},
                   ].map((item,i)=>(
                     <button key={i} onClick={item.action} style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'10px 14px',border:'none',background:'transparent',cursor:'pointer',fontSize:12,color:'var(--text1)',textAlign:'left' as const,fontFamily:'inherit',borderBottom:'0.5px solid var(--border)'}}>
                       <span>{item.icon}</span>{item.label}
@@ -1661,7 +1661,7 @@ export default function Home() {
                     {/* Planifier dropdown */}
                     <div style={{position:'relative' as const,flex:1}}>
                       <button className="btn" onClick={(e)=>{e.stopPropagation();setShowScheduleMenu(m=>!m);setShowPublishMenu(false);}} disabled={!postOutput} style={{width:'100%',background:'var(--indigo)',color:'white',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',opacity:postOutput?1:0.5}}>
-                        📅 Planifier ▾
+                        Planifier ▾
                       </button>
                       {showScheduleMenu && (
                         <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:'100%',overflow:'hidden'}}>
@@ -2335,7 +2335,7 @@ export default function Home() {
                     {[
                       {icon:'💡',color:'#f59e0b',title:T('onb_feat1_title'),desc:T('onb_feat1_desc')},
                       {icon:'⚡',color:'#3D52A0',title:T('onb_feat2_title'),desc:T('onb_feat2_desc')},
-                      {icon:'🖼',color:'#6366f1',title:T('onb_feat3_title'),desc:T('onb_feat3_desc')}
+                      {icon:'',color:'#6366f1',title:T('onb_feat3_title'),desc:T('onb_feat3_desc')}
                     ].map((f,i)=>(
                       <div key={i} style={{display:'flex',gap:12,marginBottom:i<2?12:0,alignItems:'flex-start'}}>
                         <div style={{width:34,height:34,background:`${f.color}15`,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0,border:`1px solid ${f.color}25`}}>{f.icon}</div>
@@ -2606,7 +2606,7 @@ export default function Home() {
                 </div>
                 {/* Actions */}
                 <div style={{display:'flex',justifyContent:'space-around',paddingTop:4}}>
-                  {["👍 J'aime","💬 Commenter","🔁 Republier","📤 Envoyer"].map((a,i)=>(
+                  {["👍 J'aime","💬 Commenter","🔁 Republier"," Envoyer"].map((a,i)=>(
                     <button key={i} style={{background:'none',border:'none',cursor:'default',fontSize:12,color:'#666',padding:'6px 8px',borderRadius:4,display:'flex',alignItems:'center',gap:4,fontFamily:'inherit'}}>{a}</button>
                   ))}
                 </div>
