@@ -39,8 +39,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const role = profile?.role || ''
   const brandBg = profile?.brand_bg || '#FAF9F7'
   const brandText = profile?.brand_text || '#1F2421'
-  const brandAccent = profile?.brand_accent || '#516756'
-  const brandPrimary = profile?.brand_accent || '#516756'
+  const brandAccent = profile?.brand_accent || '#3D52A0'
+  const brandPrimary = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || brandPrimary
   const brandAccentColor = profile?.brand_color3 || brandPrimary
   const paletteDesc = `Palette marque : fond=${brandBg}, texte=${brandText}, primaire=${brandPrimary}, secondaire=${brandSecondary}, accent=${brandAccentColor}`

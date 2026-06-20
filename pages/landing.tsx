@@ -95,28 +95,25 @@ export default function Landing() {
         <div style={{padding:'0 24px 72px',maxWidth:960,margin:'0 auto'}}>
           <div style={{textAlign:'center',fontSize:11,fontWeight:600,color:'#B7C0B8',letterSpacing:'0.1em',marginBottom:16}}>APERÇU DE LA PLATEFORME — CLIQUEZ POUR NAVIGUER</div>
           <div style={{borderRadius:16,border:'1px solid #E3DED7',overflow:'hidden',boxShadow:'0 20px 60px rgba(31,36,33,0.1)',display:'flex',height:520}}>
-            <div style={{width:200,background:'#1F2421',display:'flex',flexDirection:'column',flexShrink:0}}>
-              <div style={{padding:'18px 16px 14px',borderBottom:'1px solid rgba(255,255,255,0.06)',display:'flex',alignItems:'center',gap:8}}>
-                <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{width:28,height:28,borderRadius:7}}/>
-                <span style={{fontSize:14,fontWeight:600,color:'white',letterSpacing:'-0.2px'}}>Ecrira</span>
-              </div>
-              <div style={{padding:'12px 8px',flex:1}}>
-                {navItems.map(item => (
-                  <div key={item.id} onClick={()=>handleNav(item.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',borderRadius:8,marginBottom:2,fontSize:12,color:activePage===item.id?'white':'rgba(255,255,255,0.45)',background:activePage===item.id?'rgba(61,82,160,0.3)':'transparent',cursor:'pointer',transition:'all 0.15s'}}>
-                    <div style={{width:6,height:6,borderRadius:'50%',background:activePage===item.id?'#3D52A0':'rgba(255,255,255,0.2)',flexShrink:0}}/>
-                    {item.label}
-                  </div>
-                ))}
-              </div>
-              <div style={{padding:'12px',borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+
+
+            <div style={{flex:1,background:'#FAF9F7',overflow:'hidden',position:'relative',display:'flex',flexDirection:'column' as const}}>
+              {/* Mini header */}
+              <div style={{height:44,background:'#FAF9F7',borderBottom:'0.5px solid #E3DED7',display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 16px',flexShrink:0}}>
                 <div style={{display:'flex',alignItems:'center',gap:8}}>
-                  <div style={{width:28,height:28,borderRadius:'50%',background:'#3D52A0',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:11,fontWeight:700,flexShrink:0}}>AB</div>
-                  <div style={{fontSize:11,color:'rgba(255,255,255,0.5)',lineHeight:1.4}}>Antoine B.<br/>Plan Pro</div>
+                  <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{width:22,height:22,borderRadius:5}}/>
+                  <div>
+                    <div style={{fontSize:8,fontWeight:600,color:'#3D52A0',letterSpacing:'0.1em'}}>ECRIRA</div>
+                    <div style={{fontSize:9,color:'#9A9490',fontStyle:'italic'}}>{activePage==='apercu'?'Tableau de bord':activePage==='idees'?'Idées du jour':activePage==='rediger'?'Rédiger':activePage==='calendrier'?'Calendrier':'Profil'}</div>
+                  </div>
+                </div>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  <div style={{padding:'3px 8px',borderRadius:20,border:'0.5px solid #E3DED7',fontSize:9,color:'#9A9490',background:'white'}}>Rechercher ⌘K</div>
+                  <div style={{width:22,height:22,borderRadius:'50%',background:'#3D52A0',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontSize:9,fontWeight:700}}>AB</div>
+                  <div style={{fontSize:7,fontWeight:700,padding:'2px 5px',borderRadius:10,background:'#3D52A0',color:'white'}}>PRO</div>
                 </div>
               </div>
-            </div>
-
-            <div style={{flex:1,background:'#FAF9F7',overflow:'hidden',padding:24,position:'relative'}}>
+              <div style={{flex:1,overflow:'hidden',padding:20,position:'relative'}}>
               {showTooltip && <div style={{position:'absolute',bottom:12,left:'50%',transform:'translateX(-50%)',background:'#1F2421',color:'white',fontSize:11,padding:'6px 14px',borderRadius:20,whiteSpace:'nowrap',zIndex:10}}>Navigation uniquement — créez un compte pour agir</div>}
 
               {activePage === 'apercu' && (
@@ -254,6 +251,17 @@ export default function Landing() {
                   </div>
                 </div>
               )}
+              </div>
+              {/* Floating pill */}
+              <div style={{display:'flex',justifyContent:'center',padding:'8px 0',borderTop:'0.5px solid #E3DED7',background:'#FAF9F7',flexShrink:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:3,background:'white',border:'0.5px solid #E3DED7',borderRadius:30,padding:'4px 7px',boxShadow:'0 2px 8px rgba(0,0,0,0.08)'}}>
+                  {navItems.map((item,i)=>(
+                    <div key={item.id} onClick={()=>handleNav(item.id)} style={{width:28,height:28,borderRadius:'50%',background:activePage===item.id?'#3D52A0':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s'}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:activePage===item.id?'white':'#B7C0B8'}}/>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
