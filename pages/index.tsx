@@ -101,7 +101,7 @@ export default function Landing() {
     setDemoLoading(false)
   }
 
-  const F = '#516756'
+  const F = '#3D52A0'
   const C = '#D9C8A3'
   const CH = '#1F2421'
   const IV = '#FAF9F7'
@@ -152,14 +152,14 @@ export default function Landing() {
         <meta property="og:image" content="https://ecrira.com/og-image.png" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
-        <link rel="icon" href="/logo-ecrira-icon.png" type="image/png"/>
-        <link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/>
+        <link rel="icon" href="/logo-ecrira-icon-bleu.png" type="image/png"/>
+        <link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
         <script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script>
         <style>{`
           @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
           @keyframes wordIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-          @keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(81,103,86,0.4); } 70% { box-shadow:0 0 0 8px rgba(81,103,86,0); } }
+          @keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(61,82,160,0.4); } 70% { box-shadow:0 0 0 8px rgba(81,103,86,0); } }
           @keyframes spin { to { transform:rotate(360deg); } }
           .hero-word { display:inline; opacity:0; animation:wordIn 0.4s forwards; }
           .animate-up { opacity:0; transform:translateY(24px); transition:opacity 0.5s, transform 0.5s; }
@@ -173,7 +173,7 @@ export default function Landing() {
           .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
           .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(31,36,33,0.10) !important; }
           .btn-hover { transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
-          .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(81,103,86,0.3); }
+          .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(61,82,160,0.3); }
           .faq-hover:hover { background: rgba(81,103,86,0.03); }
           @media (max-width:640px) { .grid-4 { grid-template-columns:repeat(2,1fr)!important; } .grid-3 { grid-template-columns:1fr!important; } .hero-h1 { font-size:32px!important; } .mockup-wrap { display:none!important; } .story-grid { grid-template-columns:1fr!important; } .story-grid > div:nth-child(2) { display:none; } .nav-links { display:none!important; } .nav-btn-connect { display:none!important; } .nav-btn-trial { font-size:12px!important; padding:7px 10px!important; } }
         `}</style>
@@ -183,18 +183,18 @@ export default function Landing() {
 
         {/* ─── NAV ─────────────────────────────────────────────────── */}
         <nav style={{position:'sticky',top:0,zIndex:100,background:'rgba(250,249,247,0.95)',backdropFilter:'blur(8px)',borderBottom:`1px solid ${BD}`,padding:'0 32px',display:'flex',alignItems:'center',justifyContent:'space-between',height:60}}>
-          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:46,width:'auto'}}/>
+          <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{height:46,width:'auto'}}/>
           <div style={{display:'flex',alignItems:'center',gap:16}}>
             <a href="#tarifs" className="nav-links" style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>Tarifs</a>
             <a href="#faq" className="nav-links" style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>FAQ</a>
-            <button onClick={()=>setShowAuthModal(true)} className="nav-btn-connect" style={{padding:'7px 16px',borderRadius:8,border:`1px solid rgba(81,103,86,0.3)`,background:'transparent',color:F,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Se connecter</button>
+            <button onClick={()=>setShowAuthModal(true)} className="nav-btn-connect" style={{padding:'7px 16px',borderRadius:8,border:`1px solid rgba(61,82,160,0.3)`,background:'transparent',color:F,fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Se connecter</button>
             <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} className="nav-btn-trial" style={{padding:'7px 14px',borderRadius:8,background:F,border:'none',fontSize:13,color:'white',cursor:'pointer',fontWeight:500,fontFamily:'inherit',whiteSpace:'nowrap' as const}}>Essai gratuit 7 jours →</button>
           </div>
         </nav>
 
         {/* ─── HERO ────────────────────────────────────────────────── */}
         <section style={{padding:'80px 32px 64px',textAlign:'center',background:IV,maxWidth:800,margin:'0 auto'}}>
-          <div style={{display:'inline-block',background:'rgba(81,103,86,0.08)',color:F,fontSize:11,fontWeight:600,padding:'4px 14px',borderRadius:20,letterSpacing:'0.07em',marginBottom:20}}>Générateur LinkedIn · 7 jours Pro gratuits</div>
+          <div style={{display:'inline-block',background:'rgba(61,82,160,0.08)',color:F,fontSize:11,fontWeight:600,padding:'4px 14px',borderRadius:20,letterSpacing:'0.07em',marginBottom:20}}>Générateur LinkedIn · 7 jours Pro gratuits</div>
           <h1 style={{fontSize:'clamp(32px,5vw,52px)',fontWeight:700,color:CH,lineHeight:1.1,marginBottom:18,letterSpacing:'-1.5px'}} className="hero-h1">
             <span className="hero-word" style={{animationDelay:'0s'}}>Générez </span>
             <span className="hero-word" style={{animationDelay:'0.1s'}}>vos </span>
@@ -274,7 +274,7 @@ export default function Landing() {
               {/* FLÈCHE */}
               <div style={{textAlign:'center' as const,fontSize:28,color:BD}}>→</div>
               {/* APRÈS */}
-              <div style={{background:'rgba(81,103,86,0.06)',borderRadius:16,border:`1px solid rgba(81,103,86,0.2)`,padding:28}}>
+              <div style={{background:'rgba(61,82,160,0.06)',borderRadius:16,border:`1px solid rgba(61,82,160,0.2)`,padding:28}}>
                 <div style={{fontSize:12,fontWeight:700,color:F,letterSpacing:'0.08em',marginBottom:16}}>APRÈS ECRIRA</div>
                 {[
                   "30 secondes par post, 3 posts par semaine",
@@ -290,7 +290,7 @@ export default function Landing() {
               </div>
             </div>
             <div style={{textAlign:'center' as const,marginTop:36}}>
-              <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{padding:'14px 32px',borderRadius:12,background:F,border:'none',fontSize:15,color:'white',fontWeight:600,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 16px rgba(81,103,86,0.25)'}}>Passer à l'après →</button>
+              <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{padding:'14px 32px',borderRadius:12,background:F,border:'none',fontSize:15,color:'white',fontWeight:600,cursor:'pointer',fontFamily:'inherit',boxShadow:'0 4px 16px rgba(61,82,160,0.25)'}}>Passer à l'après →</button>
               <p style={{fontSize:12,color:'#9EA39C',marginTop:8}}>7 jours Pro gratuits · Sans carte bancaire</p>
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function Landing() {
         <section id="generateur" style={{padding:'72px 32px',background:IV}}>
           <div style={{maxWidth:640,margin:'0 auto'}}>
             <div id="demo-section" data-animate style={{textAlign:'center',marginBottom:40}} className={`animate-up${visibleSections.has('demo-section')?' visible':''}`}>
-              <div style={{display:'inline-block',background:'rgba(81,103,86,0.08)',color:F,fontSize:11,fontWeight:600,padding:'4px 14px',borderRadius:20,letterSpacing:'0.07em',marginBottom:16}}>Essai immédiat · sans inscription</div>
+              <div style={{display:'inline-block',background:'rgba(61,82,160,0.08)',color:F,fontSize:11,fontWeight:600,padding:'4px 14px',borderRadius:20,letterSpacing:'0.07em',marginBottom:16}}>Essai immédiat · sans inscription</div>
               <h2 style={{fontSize:32,fontWeight:700,color:CH,marginBottom:10,letterSpacing:'-0.5px'}}>Testez le générateur.</h2>
               <p style={{fontSize:14,color:'#6B7069',lineHeight:1.6}}>Décrivez votre activité. Ecrira écrit un post LinkedIn prêt à publier.</p>
             </div>
@@ -323,7 +323,7 @@ export default function Landing() {
                   <div style={{fontSize:11,fontWeight:600,color:'#9EA39C',letterSpacing:'0.07em',marginBottom:8}}>TON DU POST</div>
                   <div style={{display:'flex',gap:8,marginBottom:16,flexWrap:'wrap' as const}}>
                     {tones.map(t=>(
-                      <button key={t.id} onClick={()=>setDemoTone(t.id)} style={{flex:1,padding:'8px 12px',borderRadius:8,border:`1px solid ${demoTone===t.id?F:BD}`,background:demoTone===t.id?'rgba(81,103,86,0.06)':'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left' as const,minWidth:90}}>
+                      <button key={t.id} onClick={()=>setDemoTone(t.id)} style={{flex:1,padding:'8px 12px',borderRadius:8,border:`1px solid ${demoTone===t.id?F:BD}`,background:demoTone===t.id?'rgba(61,82,160,0.06)':'transparent',cursor:'pointer',fontFamily:'inherit',textAlign:'left' as const,minWidth:90}}>
                         <div style={{fontSize:12,fontWeight:600,color:demoTone===t.id?F:CH}}>{t.label}</div>
                         <div style={{fontSize:11,color:'#9EA39C'}}>{t.desc}</div>
                       </button>
@@ -338,7 +338,7 @@ export default function Landing() {
                     </div>
                   )}
                   {demoPost && (
-                    <div style={{marginTop:12,background:`rgba(81,103,86,0.06)`,border:`1px solid rgba(81,103,86,0.2)`,borderRadius:10,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap' as const}}>
+                    <div style={{marginTop:12,background:`rgba(61,82,160,0.06)`,border:`1px solid rgba(61,82,160,0.2)`,borderRadius:10,padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:12,flexWrap:'wrap' as const}}>
                       <div>
                         <div style={{fontSize:13,fontWeight:600,color:CH,marginBottom:2}}>Vous aimez ce résultat ?</div>
                         <div style={{fontSize:12,color:'#6B7069'}}>Créez votre compte pour accéder à toutes les fonctionnalités.</div>
@@ -510,7 +510,7 @@ export default function Landing() {
         <footer style={{padding:'32px',borderTop:`1px solid ${BD}`,background:IV}}>
           <div style={{maxWidth:960,margin:'0 auto',display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:32,marginBottom:32}} className="grid-4">
             <div>
-              <img src="/logo-ecrira.png" alt="Ecrira" style={{height:28,width:'auto',marginBottom:12}}/>
+              <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{height:28,width:'auto',marginBottom:12}}/>
               <p style={{fontSize:12,color:'#9EA39C',lineHeight:1.6,maxWidth:240}}>Générez, illustrez et planifiez vos posts LinkedIn en quelques minutes.</p>
             </div>
             <div>
@@ -541,7 +541,7 @@ export default function Landing() {
         {/* ─── STICKY CTA MOBILE ──────────────────────────────────────────── */}
         <div className="sticky-mobile-cta" style={{position:'fixed',bottom:0,left:0,right:0,zIndex:200,padding:'12px 16px 24px',background:'rgba(250,249,247,0.97)',borderTop:'1px solid #E3DED7',backdropFilter:'blur(8px)',display:'flex',gap:10}}>
           <button onClick={scrollToDemo} style={{flex:1,padding:'12px',borderRadius:10,border:'1px solid #E3DED7',background:'white',color:'#1F2421',fontSize:13,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>Voir la démo</button>
-          <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{flex:2,padding:'12px',borderRadius:10,background:'#516756',border:'none',color:'white',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>Essai gratuit 7 jours →</button>
+          <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{flex:2,padding:'12px',borderRadius:10,background:'#3D52A0',border:'none',color:'white',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',whiteSpace:'nowrap'}}>Essai gratuit 7 jours →</button>
         </div>
 
         {/* ─── AUTH MODAL ──────────────────────────────────────────── */}
@@ -551,7 +551,7 @@ export default function Landing() {
               <div style={{background:F,padding:'24px 28px 20px'}}>
                 <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
                   <div style={{background:'white',borderRadius:10,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:22,width:'auto'}}/>
+                    <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{height:22,width:'auto'}}/>
                   </div>
                   <span style={{fontSize:15,fontWeight:600,color:'white'}}>Ecrira</span>
                 </div>

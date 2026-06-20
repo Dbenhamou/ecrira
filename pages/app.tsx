@@ -10,11 +10,11 @@ type Idea = { topic: string; title: string; hook: string; recommended?: boolean 
 type Post = { id: string; topic: string; content: string; format: string; created_at: string }
 
 const PALETTES = [
-  { name:'Ivory', bg:'#FAF9F7', text:'#1F2421', accent:'#516756' },
-  { name:'Forest Sage', bg:'#516756', text:'#FAF9F7', accent:'#D9C8A3' },
+  { name:'Ivory', bg:'#FAF9F7', text:'#1F2421', accent:'#3D52A0' },
+  { name:'Forest Sage', bg:'#3D52A0', text:'#FAF9F7', accent:'#D9C8A3' },
   { name:'Charcoal', bg:'#1F2421', text:'#FAF9F7', accent:'#B7C0B8' },
-  { name:'Champagne', bg:'#D9C8A3', text:'#1F2421', accent:'#516756' },
-  { name:'Soft Sage', bg:'#B7C0B8', text:'#1F2421', accent:'#516756' },
+  { name:'Champagne', bg:'#D9C8A3', text:'#1F2421', accent:'#3D52A0' },
+  { name:'Soft Sage', bg:'#B7C0B8', text:'#1F2421', accent:'#3D52A0' },
   { name:'Blue Pro', bg:'#1B2A4A', text:'#F0F4FF', accent:'#4A90E2' },
   { name:'Slate', bg:'#F4F6F8', text:'#1A1A2E', accent:'#6C5CE7' },
   { name:'Warm Noir', bg:'#1C1410', text:'#F5ECD7', accent:'#D4A853' },
@@ -66,7 +66,7 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
 
   const [s, setS] = useState<any>({
     tpl:'quote', fmt:'square',
-    colors:{ bg:brandBg||'#FAF9F7', text:brandText||'#1F2421', accent:brandAccent||'#516756' },
+    colors:{ bg:brandBg||'#FAF9F7', text:brandText||'#1F2421', accent:brandAccent||'#3D52A0' },
     font:'playfair', textSize:'L', align:'left', accentStyle:'bar', bgPattern:'none',
     sectorIcon:'cyber', logoUrl:null, logoPos:'tl', logoSize:36, showWatermark:true,
     qText:extractHook(postContent),
@@ -136,7 +136,7 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
 
   const S_BASE=1080; const H_BASE=s.fmt==='portrait'?Math.round(S_BASE*1.25):S_BASE
   const previewW=Math.round(S_BASE*zoom/100); const previewH=Math.round(H_BASE*zoom/100)
-  const QUICK_COLORS=['#FFFFFF','#1F2421','#FAF9F7','#EDE9E3','#516756','#A8784F','#2563EB','#DC2626','#D97706','#7C3AED']
+  const QUICK_COLORS=['#FFFFFF','#1F2421','#FAF9F7','#EDE9E3','#3D52A0','#A8784F','#2563EB','#DC2626','#D97706','#7C3AED']
   const POS_GRID=[['tl','tc','tr'],['ml','mc','mr'],['bl','bc','br']]
   const POS_LABELS:Record<string,string>={tl:'↖',tc:'↑',tr:'↗',ml:'←',mc:'·',mr:'→',bl:'↙',bc:'↓',br:'↘'}
 
@@ -144,24 +144,24 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
     <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(0,0,0,0.55)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',padding:20}} onClick={e=>{if(e.target===e.currentTarget)onClose()}}>
       <div style={{background:'var(--ivory)',borderRadius:20,width:'100%',maxWidth:1100,maxHeight:'92vh',display:'flex',flexDirection:'column',boxShadow:'0 24px 80px rgba(0,0,0,0.25)',overflow:'hidden'}}>
         <div style={{padding:'16px 24px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between',background:'var(--white)',flexShrink:0}}>
-          <div><div style={{fontSize:11,fontWeight:600,color:'var(--forest)',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:2}}>Visuel du post</div><div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:16,fontWeight:500,color:'var(--text1)'}}>Générateur de visuel</div></div>
+          <div><div style={{fontSize:11,fontWeight:600,color:'var(--indigo)',letterSpacing:'.08em',textTransform:'uppercase',marginBottom:2}}>Visuel du post</div><div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:16,fontWeight:500,color:'var(--text1)'}}>Générateur de visuel</div></div>
           <div style={{display:'flex',gap:8}}><button className="btn btn-primary" style={{fontSize:12}} onClick={()=>exportPNG()}>↓ Télécharger PNG</button><button className="btn btn-ghost" style={{fontSize:12}} onClick={onClose}>✕ Fermer</button></div>
         </div>
         <div style={{display:'flex',flex:1,overflow:'hidden'}}>
           <div style={{width:264,flexShrink:0,overflowY:'auto',padding:16,borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',gap:10,background:'var(--white)'}}>
-            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Template</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:5}}>{[{id:'quote',icon:'❝',label:'Quote'},{id:'stat',icon:'◎',label:'Stat'},{id:'alert',icon:'⚡',label:'Alerte'}].map(t=>(<button key={t.id} onClick={()=>upd({tpl:t.id})} style={{padding:'7px 4px',borderRadius:8,border:`1px solid ${s.tpl===t.id?'var(--forest)':'var(--border)'}`,background:s.tpl===t.id?'var(--forest)':'var(--ivory)',color:s.tpl===t.id?'white':'var(--text2)',fontSize:10,fontWeight:500,cursor:'pointer',textAlign:'center' as const,fontFamily:'inherit'}}><span style={{display:'block',fontSize:14,marginBottom:1}}>{t.icon}</span>{t.label}</button>))}</div></div>
-            <div style={{display:'flex',gap:5}}>{(['basic','advanced'] as const).map(id=>(<button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${tab===id?'var(--forest)':'var(--border)'}`,background:tab===id?'var(--forest)':'var(--ivory)',color:tab===id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>{id==='basic'?'Basique':'Avancé'}</button>))}</div>
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Template</div><div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:5}}>{[{id:'quote',icon:'❝',label:'Quote'},{id:'stat',icon:'◎',label:'Stat'},{id:'alert',icon:'⚡',label:'Alerte'}].map(t=>(<button key={t.id} onClick={()=>upd({tpl:t.id})} style={{padding:'7px 4px',borderRadius:8,border:`1px solid ${s.tpl===t.id?'var(--indigo)':'var(--border)'}`,background:s.tpl===t.id?'var(--indigo)':'var(--ivory)',color:s.tpl===t.id?'white':'var(--text2)',fontSize:10,fontWeight:500,cursor:'pointer',textAlign:'center' as const,fontFamily:'inherit'}}><span style={{display:'block',fontSize:14,marginBottom:1}}>{t.icon}</span>{t.label}</button>))}</div></div>
+            <div style={{display:'flex',gap:5}}>{(['basic','advanced'] as const).map(id=>(<button key={id} onClick={()=>setTab(id)} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${tab===id?'var(--indigo)':'var(--border)'}`,background:tab===id?'var(--indigo)':'var(--ivory)',color:tab===id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>{id==='basic'?'Basique':'Avancé'}</button>))}</div>
             {tab==='basic'&&<><div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Couleurs</div>{([['Fond','bg'],['Texte','text'],['Accent','accent']] as [string,string][]).map(([label,key])=>(<div key={key} style={{display:'flex',alignItems:'center',gap:7,marginBottom:7}}><span style={{fontSize:10,color:'var(--text2)',width:40,flexShrink:0}}>{label}</span><input type="color" value={(s.colors as any)[key]} onChange={e=>updC(key,e.target.value)} style={{width:26,height:26,borderRadius:6,border:'1px solid var(--border)',cursor:'pointer',padding:2}}/><input className="form-input" value={(s.colors as any)[key]} onChange={e=>updC(key,e.target.value)} style={{fontSize:10,fontFamily:'monospace',padding:'3px 7px',flex:1}}/></div>))}<div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>{QUICK_COLORS.map((c,i)=>(<div key={i} onClick={()=>updC('accent',c)} style={{width:20,height:20,borderRadius:'50%',background:c,border:`2px solid ${c==='#FFFFFF'?'#e0ddd8':'transparent'}`,cursor:'pointer',boxShadow:'0 1px 3px rgba(0,0,0,.15)'}}/>))}</div><div style={{display:'flex',gap:4,flexWrap:'wrap' as const,marginTop:6}}>{PALETTES.map((p:any,i:number)=>(<div key={i} onClick={()=>upd({colors:{bg:p.bg,text:p.text,accent:p.accent}})} title={p.name} style={{width:20,height:20,borderRadius:5,background:p.bg,border:`2px solid ${p.accent}`,cursor:'pointer'}}/>))}</div></div>
             <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Contenu</div>
               {s.tpl==='quote'&&<><div className="form-group" style={{marginBottom:10}}><label className="form-label">Citation</label><textarea className="form-input" rows={4} value={s.qText} onChange={(e:any)=>upd({qText:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Auteur</label><input className="form-input" value={s.qAuthor} onChange={(e:any)=>upd({qAuthor:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Tag</label><input className="form-input" value={s.qTag} onChange={(e:any)=>upd({qTag:e.target.value})} style={{fontSize:11}}/></div></>}
               {s.tpl==='stat'&&<><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div className="form-group" style={{marginBottom:10}}><label className="form-label">Chiffre</label><input className="form-input" value={s.sNum} onChange={(e:any)=>upd({sNum:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Unité</label><input className="form-input" value={s.sUnit} onChange={(e:any)=>upd({sUnit:e.target.value})} style={{fontSize:11}}/></div></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Label</label><input className="form-input" value={s.sLabel} onChange={(e:any)=>upd({sLabel:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Contexte</label><textarea className="form-input" rows={3} value={s.sCtx} onChange={(e:any)=>upd({sCtx:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Source</label><input className="form-input" value={s.sSrc} onChange={(e:any)=>upd({sSrc:e.target.value})} style={{fontSize:11}}/></div></>}
               {s.tpl==='alert'&&<><div className="form-group" style={{marginBottom:10}}><label className="form-label">Référence</label><input className="form-input" value={s.aRef} onChange={(e:any)=>upd({aRef:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Titre</label><input className="form-input" value={s.aTitle} onChange={(e:any)=>upd({aTitle:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Description</label><textarea className="form-input" rows={2} value={s.aDesc} onChange={(e:any)=>upd({aDesc:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Actions (1/ligne)</label><textarea className="form-input" rows={3} value={s.aItems} onChange={(e:any)=>upd({aItems:e.target.value})} style={{fontSize:11}}/></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Sévérité</label><select className="form-input" value={s.aSev} onChange={(e:any)=>upd({aSev:e.target.value})} style={{fontSize:11}}><option>CRITIQUE</option><option>ÉLEVÉE</option><option>MODÉRÉE</option></select></div></>}
             </div></>}
-            {tab==='advanced'&&<><div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Typographie</div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Police</label><select className="form-input" value={s.font} onChange={(e:any)=>upd({font:e.target.value})} style={{fontSize:11}}>{FONTS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Taille</label><div style={{display:'flex',gap:4}}>{['S','M','L','XL'].map(sz=>(<button key={sz} onClick={()=>upd({textSize:sz})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.textSize===sz?'var(--forest)':'var(--border)'}`,background:s.textSize===sz?'var(--forest)':'var(--ivory)',color:s.textSize===sz?'white':'var(--text2)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>{sz}</button>))}</div></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Alignement</label><div style={{display:'flex',gap:4}}>{[{id:'left',l:'Gauche'},{id:'center',l:'Centré'}].map(a=>(<button key={a.id} onClick={()=>upd({align:a.id})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.align===a.id?'var(--forest)':'var(--border)'}`,background:s.align===a.id?'var(--forest)':'var(--ivory)',color:s.align===a.id?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{a.l}</button>))}</div></div></div>
+            {tab==='advanced'&&<><div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Typographie</div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Police</label><select className="form-input" value={s.font} onChange={(e:any)=>upd({font:e.target.value})} style={{fontSize:11}}>{FONTS.map(f=><option key={f.id} value={f.id}>{f.label}</option>)}</select></div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Taille</label><div style={{display:'flex',gap:4}}>{['S','M','L','XL'].map(sz=>(<button key={sz} onClick={()=>upd({textSize:sz})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.textSize===sz?'var(--indigo)':'var(--border)'}`,background:s.textSize===sz?'var(--indigo)':'var(--ivory)',color:s.textSize===sz?'white':'var(--text2)',fontSize:11,cursor:'pointer',fontFamily:'inherit'}}>{sz}</button>))}</div></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Alignement</label><div style={{display:'flex',gap:4}}>{[{id:'left',l:'Gauche'},{id:'center',l:'Centré'}].map(a=>(<button key={a.id} onClick={()=>upd({align:a.id})} style={{flex:1,padding:'6px',borderRadius:7,border:`1px solid ${s.align===a.id?'var(--indigo)':'var(--border)'}`,background:s.align===a.id?'var(--indigo)':'var(--ivory)',color:s.align===a.id?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{a.l}</button>))}</div></div></div>
             <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Décoration</div><div className="form-group" style={{marginBottom:10}}><label className="form-label">Accent</label><select className="form-input" value={s.accentStyle} onChange={(e:any)=>upd({accentStyle:e.target.value})} style={{fontSize:11}}><option value="bar">Barre verticale gauche</option><option value="top">Barre horizontale haut</option><option value="gradient">Gradient latéral</option><option value="none">Aucun</option></select></div><div className="form-group" style={{marginBottom:0}}><label className="form-label">Motif de fond</label><select className="form-input" value={s.bgPattern} onChange={(e:any)=>upd({bgPattern:e.target.value})} style={{fontSize:11}}><option value="none">Aucun</option><option value="dots">Points</option><option value="grid">Grille</option><option value="diag">Diagonales</option><option value="circles">Cercles</option></select></div></div>
-            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Logo & icône</div><input ref={fileRef} type="file" accept="image/*" onChange={(e:any)=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>upd({logoUrl:ev.target?.result});r.readAsDataURL(f)}} style={{display:'none'}}/><div style={{display:'flex',gap:6,marginBottom:10}}><button onClick={()=>fileRef.current?.click()} className="btn btn-ghost" style={{fontSize:11,flex:1,justifyContent:'center'}}>{s.logoUrl?'✓ Logo chargé':'↑ Choisir'}</button>{s.logoUrl&&<button onClick={()=>upd({logoUrl:null})} className="btn btn-ghost" style={{fontSize:10,color:'#c0392b',borderColor:'transparent'}}>✕</button>}</div>{!s.logoUrl&&<div className="form-group" style={{marginBottom:10}}><label className="form-label">Icône sectorielle</label><select className="form-input" value={s.sectorIcon} onChange={(e:any)=>upd({sectorIcon:e.target.value})} style={{fontSize:11}}><option value="cyber">🔒 Cybersécurité</option><option value="finance">💳 Finance</option><option value="tech">💻 Tech</option><option value="marketing">📣 Marketing</option><option value="rh">👥 RH</option><option value="sante">❤️ Santé</option><option value="conseil">📋 Conseil</option><option value="none">Aucune</option></select></div>}<div className="form-group" style={{marginBottom:8}}><label className="form-label">Position</label><div style={{display:'inline-grid',gridTemplateColumns:'repeat(3,26px)',gap:3}}>{POS_GRID.map(row=>row.map(pos=>(<button key={pos} onClick={()=>upd({logoPos:pos})} style={{width:26,height:26,borderRadius:5,border:`1px solid ${s.logoPos===pos?'var(--forest)':'var(--border)'}`,background:s.logoPos===pos?'var(--forest)':'var(--ivory)',color:s.logoPos===pos?'white':'var(--text2)',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>{POS_LABELS[pos]}</button>)))}</div></div><div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span style={{fontSize:11,color:'var(--text2)'}}>Watermark</span><div className={`toggle ${s.showWatermark?'on':''}`} onClick={()=>upd({showWatermark:!s.showWatermark})}><div className="toggle-dot"/></div></div>
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Logo & icône</div><input ref={fileRef} type="file" accept="image/*" onChange={(e:any)=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>upd({logoUrl:ev.target?.result});r.readAsDataURL(f)}} style={{display:'none'}}/><div style={{display:'flex',gap:6,marginBottom:10}}><button onClick={()=>fileRef.current?.click()} className="btn btn-ghost" style={{fontSize:11,flex:1,justifyContent:'center'}}>{s.logoUrl?'✓ Logo chargé':'↑ Choisir'}</button>{s.logoUrl&&<button onClick={()=>upd({logoUrl:null})} className="btn btn-ghost" style={{fontSize:10,color:'#c0392b',borderColor:'transparent'}}>✕</button>}</div>{!s.logoUrl&&<div className="form-group" style={{marginBottom:10}}><label className="form-label">Icône sectorielle</label><select className="form-input" value={s.sectorIcon} onChange={(e:any)=>upd({sectorIcon:e.target.value})} style={{fontSize:11}}><option value="cyber">🔒 Cybersécurité</option><option value="finance">💳 Finance</option><option value="tech">💻 Tech</option><option value="marketing">📣 Marketing</option><option value="rh">👥 RH</option><option value="sante">❤️ Santé</option><option value="conseil">📋 Conseil</option><option value="none">Aucune</option></select></div>}<div className="form-group" style={{marginBottom:8}}><label className="form-label">Position</label><div style={{display:'inline-grid',gridTemplateColumns:'repeat(3,26px)',gap:3}}>{POS_GRID.map(row=>row.map(pos=>(<button key={pos} onClick={()=>upd({logoPos:pos})} style={{width:26,height:26,borderRadius:5,border:`1px solid ${s.logoPos===pos?'var(--indigo)':'var(--border)'}`,background:s.logoPos===pos?'var(--indigo)':'var(--ivory)',color:s.logoPos===pos?'white':'var(--text2)',fontSize:12,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>{POS_LABELS[pos]}</button>)))}</div></div><div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span style={{fontSize:11,color:'var(--text2)'}}>Watermark</span><div className={`toggle ${s.showWatermark?'on':''}`} onClick={()=>upd({showWatermark:!s.showWatermark})}><div className="toggle-dot"/></div></div>
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:8}}><span style={{fontSize:11,color:'var(--text2)'}}>Logo entreprise</span><div className={`toggle ${s.showCompanyLogo?'on':''}`} onClick={()=>upd({showCompanyLogo:!s.showCompanyLogo})}><div className="toggle-dot"/></div></div></div></>}
-            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Format</div><div style={{display:'flex',gap:5,marginBottom:10}}>{['square','portrait'].map(f=>(<button key={f} onClick={()=>upd({fmt:f})} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${s.fmt===f?'var(--forest)':'var(--border)'}`,background:s.fmt===f?'var(--forest)':'var(--ivory)',color:s.fmt===f?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{f==='square'?'1080×1080':'1080×1350'}</button>))}</div><div style={{marginBottom:10}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><label style={{fontSize:10,color:'var(--text2)',fontWeight:500}}>Zoom</label><span style={{fontSize:10,color:'var(--text3)',fontFamily:'monospace'}}>{zoom}%</span></div><input type="range" min={30} max={100} value={zoom} onChange={(e:any)=>setZoom(parseInt(e.target.value))} style={{width:'100%',accentColor:'var(--forest)'}}/></div><button className="btn btn-primary" style={{width:'100%',justifyContent:'center',fontSize:12,marginBottom:5}} onClick={()=>exportPNG()}>↓ PNG</button><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11}} onClick={async()=>{await exportPNG('square');await new Promise(r=>setTimeout(r,400));await exportPNG('portrait')}}>↓ Les 2 formats</button></div>
+            <div className="card-sm" style={{padding:'12px 14px'}}><div className="section-label">Format</div><div style={{display:'flex',gap:5,marginBottom:10}}>{['square','portrait'].map(f=>(<button key={f} onClick={()=>upd({fmt:f})} style={{flex:1,padding:'7px',borderRadius:8,border:`1px solid ${s.fmt===f?'var(--indigo)':'var(--border)'}`,background:s.fmt===f?'var(--indigo)':'var(--ivory)',color:s.fmt===f?'white':'var(--text2)',fontSize:10,cursor:'pointer',fontFamily:'inherit'}}>{f==='square'?'1080×1080':'1080×1350'}</button>))}</div><div style={{marginBottom:10}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}><label style={{fontSize:10,color:'var(--text2)',fontWeight:500}}>Zoom</label><span style={{fontSize:10,color:'var(--text3)',fontFamily:'monospace'}}>{zoom}%</span></div><input type="range" min={30} max={100} value={zoom} onChange={(e:any)=>setZoom(parseInt(e.target.value))} style={{width:'100%',accentColor:'var(--indigo)'}}/></div><button className="btn btn-primary" style={{width:'100%',justifyContent:'center',fontSize:12,marginBottom:5}} onClick={()=>exportPNG()}>↓ PNG</button><button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',fontSize:11}} onClick={async()=>{await exportPNG('square');await new Promise(r=>setTimeout(r,400));await exportPNG('portrait')}}>↓ Les 2 formats</button></div>
           </div>
           <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--sand)',overflow:'auto',padding:24}}>
             <div style={{fontSize:10,color:'var(--text3)',marginBottom:12,fontWeight:500,textTransform:'uppercase' as const,letterSpacing:'.08em'}}>Aperçu {zoom}% — {s.fmt==='square'?'1080 × 1080':'1080 × 1350'}</div>
@@ -200,9 +200,9 @@ function UpgradeModal({ onClose, lang }: { onClose: () => void, lang: 'fr'|'en' 
       <div style={{background:"#FAF9F7",borderRadius:20,padding:"40px 32px",maxWidth:400,width:"90%",textAlign:"center"}} onClick={e=>e.stopPropagation()}>
         <div style={{fontSize:32,marginBottom:12}}>⚡</div>
         <h2 style={{fontFamily:"Clash Display,sans-serif",fontSize:22,fontWeight:700,color:"#1F2421",marginBottom:8}}>{TU('upgrade_title')}</h2>
-        <p style={{color:"#516756",fontSize:14,marginBottom:24,lineHeight:1.6}}>{TU('upgrade_body')}</p>
+        <p style={{color:"#3D52A0",fontSize:14,marginBottom:24,lineHeight:1.6}}>{TU('upgrade_body')}</p>
         <button onClick={()=>router.push("/pricing")} style={{width:"100%",padding:"14px",borderRadius:12,border:"none",background:"#1F2421",color:"#FAF9F7",fontFamily:"Clash Display,sans-serif",fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:8}}>{TU('see_offers')}</button>
-        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #B7C0B8",background:"transparent",color:"#516756",fontSize:14,cursor:"pointer"}}>{TU('cancel_btn')}</button>
+        <button onClick={onClose} style={{width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #B7C0B8",background:"transparent",color:"#3D52A0",fontSize:14,cursor:"pointer"}}>{TU('cancel_btn')}</button>
       </div>
     </div>
   )
@@ -837,7 +837,7 @@ export default function Home() {
         // Init editor with known values
         setSvgEditTitle(visualCustomTitle || postTopic || '')
         setSvgEditPoints(visualCustomPoints ? visualCustomPoints.split('\n').filter((p:string)=>p.trim()).slice(0,3) : [])
-        setSvgEditAccent(profile?.brand_accent||'#516756')
+        setSvgEditAccent(profile?.brand_accent||'#3D52A0')
         setShowSvgEditor(false)
         showToast('Visuel généré ✓')
       } else showToast((lang==='en'?'Error: ':'Erreur : ')+(data.error||'unknown'))
@@ -1069,7 +1069,7 @@ export default function Home() {
   if (loading) return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'#FAF9F7',fontFamily:"'Inter',sans-serif"}}>
       <div style={{textAlign:'center' as const}}>
-        <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{width:60,height:'auto',margin:'0 auto 16px',display:'block'}} />
+        <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{width:60,height:'auto',margin:'0 auto 16px',display:'block'}} />
         <div style={{fontSize:13,color:'#6B7069'}}>{T('loading')}</div>
       </div>
     </div>
@@ -1084,7 +1084,7 @@ export default function Home() {
             <div style={{fontSize:11,color:'var(--text3)'}}>
               {lang==='en'?'Generated on':'Générées le'} {formatIdeasDate(ideasGeneratedAt)}
               {ideasRefreshCountdown !== null && ideasRefreshCountdown > 0 && (
-                <span style={{marginLeft:8,color:'var(--forest)'}}>{lang==='en'?'· Refresh in':'· Refresh dans'} {formatCountdown(ideasRefreshCountdown)}</span>
+                <span style={{marginLeft:8,color:'var(--indigo)'}}>{lang==='en'?'· Refresh in':'· Refresh dans'} {formatCountdown(ideasRefreshCountdown)}</span>
               )}
             </div>
           )}
@@ -1099,8 +1099,8 @@ export default function Home() {
       ) : (
         <>
           {selectedIdeaIds.size > 0 && (
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'rgba(81,103,86,0.06)',borderRadius:10,border:'1px solid rgba(81,103,86,0.15)',marginBottom:12}}>
-              <span style={{fontSize:13,color:'var(--forest)',fontWeight:500}}>{selectedIdeaIds.size} {lang==='en'?'idea(s) selected':'idée(s) sélectionnée(s)'}</span>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',background:'rgba(61,82,160,0.06)',borderRadius:10,border:'1px solid rgba(61,82,160,0.15)',marginBottom:12}}>
+              <span style={{fontSize:13,color:'var(--indigo)',fontWeight:500}}>{selectedIdeaIds.size} {lang==='en'?'idea(s) selected':'idée(s) sélectionnée(s)'}</span>
               <div style={{display:'flex',gap:8}}>
                 <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>setSelectedIdeaIds(new Set())}>{lang==='en'?'Deselect all':'Tout désélectionner'}</button>
                 <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>{
@@ -1118,14 +1118,14 @@ export default function Home() {
             </div>
           )}
           {ideas.map((idea, i) => (
-            <div key={i} className="idea-card fade" style={{animationDelay:`${i*.06}s`,border:selectedIdeaIds.has(i)?'1px solid var(--forest)':idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined,background:selectedIdeaIds.has(i)?'rgba(81,103,86,0.04)':idea.recommended?'rgba(168,120,79,0.04)':undefined,opacity:usedIdeaIds.has(idea.title)?0.55:1,position:'relative' as const}}>
+            <div key={i} className="idea-card fade" style={{animationDelay:`${i*.06}s`,border:selectedIdeaIds.has(i)?'1px solid var(--indigo)':idea.recommended?'1px solid rgba(168,120,79,0.4)':undefined,background:selectedIdeaIds.has(i)?'rgba(61,82,160,0.04)':idea.recommended?'rgba(168,120,79,0.04)':undefined,opacity:usedIdeaIds.has(idea.title)?0.55:1,position:'relative' as const}}>
               {usedIdeaIds.has(idea.title)&&<div style={{position:'absolute' as const,top:10,right:10,fontSize:9,fontWeight:600,padding:'2px 7px',borderRadius:20,background:'var(--sand)',color:'var(--text3)',letterSpacing:'0.04em',textTransform:'uppercase' as const}}>{lang==='en'?'Used':'Développée'}</div>}
               <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
-                <input type="checkbox" checked={selectedIdeaIds.has(i)} onChange={e=>{const s=new Set(selectedIdeaIds);e.target.checked?s.add(i):s.delete(i);setSelectedIdeaIds(s)}} style={{marginTop:3,accentColor:'var(--forest)',width:14,height:14,flexShrink:0,cursor:'pointer'}}/>
+                <input type="checkbox" checked={selectedIdeaIds.has(i)} onChange={e=>{const s=new Set(selectedIdeaIds);e.target.checked?s.add(i):s.delete(i);setSelectedIdeaIds(s)}} style={{marginTop:3,accentColor:'var(--indigo)',width:14,height:14,flexShrink:0,cursor:'pointer'}}/>
                 <div style={{flex:1}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                     <span className="idea-tag">{idea.topic}</span>
-                    {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--forest)',border:'1px solid rgba(168,120,79,0.25)'}}>{T('recommended')}</span>}
+                    {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--indigo)',border:'1px solid rgba(168,120,79,0.25)'}}>{T('recommended')}</span>}
                   </div>
                   <div className="idea-title">{idea.title}</div>
                   <div className="idea-hook">{idea.hook}</div>
@@ -1152,12 +1152,12 @@ export default function Home() {
   return (
     <>
       {trialBanner}
-      <Head><title>Ecrira</title><link rel="icon" href="/favicon-32.png" type="image/png"/><script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script><link rel="icon" href="/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/><meta name="theme-color" content="#516756"/></Head>
+      <Head><title>Ecrira</title><link rel="icon" href="/favicon-32-bleu.png" type="image/png"/><script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script><link rel="icon" href="/favicon.ico" type="image/x-icon"/><link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/><meta name="theme-color" content="#3D52A0"/></Head>
       <div className="app">
         {/* ── TOP HEADER ── */}
         <header className="app-header">
           <div className="app-header-left" onClick={()=>setPage('apercu')} style={{cursor:'pointer'}}>
-            <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:32,width:'auto'}} />
+            <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{height:32,width:'auto'}} />
             <div className="app-header-title">
               <span className="app-header-brand">ECRIRA</span>
               <span className="app-header-page">{
@@ -1186,7 +1186,7 @@ export default function Home() {
                 {notifications.length===0?(
                   <div style={{padding:24,textAlign:'center' as const,fontSize:12,color:'var(--text3)'}}>{T('no_notifications')}</div>
                 ):notifications.map((n:any)=>(
-                  <div key={n.id} style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',background:n.read?'transparent':'rgba(81,103,86,0.04)'}}>
+                  <div key={n.id} style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',background:n.read?'transparent':'rgba(61,82,160,0.04)'}}>
                     <div style={{fontSize:12,fontWeight:n.read?400:600,color:'var(--text1)',marginBottom:2}}>{n.title}</div>
                     {n.body&&<div style={{fontSize:11,color:'var(--text2)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{n.body.substring(0,60)}{n.body.length>60?'…':''}</div>}
                     <div style={{fontSize:10,color:'var(--text3)',marginTop:3}}>{new Date(n.created_at).toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
@@ -1198,7 +1198,7 @@ export default function Home() {
               <div className="app-header-avatar" onClick={(e)=>{e.stopPropagation();setShowAvatarMenu(v=>!v)}} style={{cursor:'pointer'}}>
                 {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
               </div>
-              {(isPro||plan==='trial')&&<span style={{position:'absolute' as const,bottom:-4,right:-4,background:plan==='trial'?'#D9A840':'var(--forest)',color:'white',fontSize:7,fontWeight:700,padding:'1px 4px',borderRadius:6,letterSpacing:'0.04em',border:'1.5px solid var(--ivory)',zIndex:1}}>{plan==='trial'?`${trialDaysLeft}j`:'PRO'}</span>}
+              {(isPro||plan==='trial')&&<span style={{position:'absolute' as const,bottom:-4,right:-4,background:plan==='trial'?'#D9A840':'var(--indigo)',color:'white',fontSize:7,fontWeight:700,padding:'1px 4px',borderRadius:6,letterSpacing:'0.04em',border:'1.5px solid var(--ivory)',zIndex:1}}>{plan==='trial'?`${trialDaysLeft}j`:'PRO'}</span>}
 
               {showAvatarMenu&&(
                 <div onClick={e=>e.stopPropagation()} style={{position:'absolute' as const,top:48,right:0,width:220,background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:14,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:300,overflow:'hidden'}}>
@@ -1222,7 +1222,7 @@ export default function Home() {
                     <span style={{fontSize:12,color:'var(--text1)'}}>{lang==='en'?'Language':'Langue'}</span>
                     <div style={{display:'flex',gap:4}}>
                       {['fr','en'].map(l=>(
-                        <button key={l} onClick={()=>saveLang(l)} style={{padding:'2px 8px',borderRadius:6,border:`1px solid ${(profile as any).lang===l?'var(--forest)':'var(--border)'}`,background:(profile as any).lang===l?'var(--forest)':'transparent',color:(profile as any).lang===l?'white':'var(--text3)',fontSize:10,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>
+                        <button key={l} onClick={()=>saveLang(l)} style={{padding:'2px 8px',borderRadius:6,border:`1px solid ${(profile as any).lang===l?'var(--indigo)':'var(--border)'}`,background:(profile as any).lang===l?'var(--indigo)':'transparent',color:(profile as any).lang===l?'white':'var(--text3)',fontSize:10,fontWeight:500,cursor:'pointer',fontFamily:'inherit'}}>
                           {l==='fr'?'🇫🇷 FR':'🇬🇧 EN'}
                         </button>
                       ))}
@@ -1256,8 +1256,8 @@ export default function Home() {
             {/* Stats */}
             <div className="stats-grid" style={{marginBottom:28}}>
               <div className="stat-card">
-                <div className="stat-icon" style={{background:'rgba(81,103,86,0.08)'}}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#516756" strokeWidth="1.5" width="16" height="16"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z"/></svg>
+                <div className="stat-icon" style={{background:'rgba(61,82,160,0.08)'}}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#3D52A0" strokeWidth="1.5" width="16" height="16"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z"/></svg>
                 </div>
                 <div className="stat-label">{T('saved_posts')}</div>
                 <div className="stat-value" style={{fontFamily:"Georgia,serif"}}>{savedPosts.length}</div>
@@ -1272,8 +1272,8 @@ export default function Home() {
                 <div className="stat-note">{generatedCount===0?(lang==='en'?'Generate your first!':'Génère ton premier !'):T('in_total')}</div>
               </div>
               <div className="stat-card">
-                <div className="stat-icon" style={{background:'rgba(81,103,86,0.06)'}}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#516756" strokeWidth="1.5" width="16" height="16"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                <div className="stat-icon" style={{background:'rgba(61,82,160,0.06)'}}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#3D52A0" strokeWidth="1.5" width="16" height="16"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                 </div>
                 <div className="stat-label">{T('active_sector')}</div>
                 <div className="stat-value" style={{fontSize:18,paddingTop:4,fontFamily:"Georgia,serif"}}>{profile.sector?.split(' ')[0]||'Cyber'}</div>
@@ -1283,19 +1283,19 @@ export default function Home() {
 
             {/* Checklist premiers pas */}
             {(!profile.role || !linkedinConnected || generatedCount===0) && !(!!profile.role && linkedinConnected && generatedCount>0) && (
-              <div style={{background:'rgba(81,103,86,0.04)',border:'0.5px solid rgba(81,103,86,0.15)',borderRadius:12,padding:'14px 18px',marginBottom:20}}>
-                <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',textTransform:'uppercase' as const,letterSpacing:'0.1em',marginBottom:10}}>{lang==='en'?'Getting started':'Premiers pas'}</div>
+              <div style={{background:'rgba(61,82,160,0.04)',border:'0.5px solid rgba(61,82,160,0.15)',borderRadius:12,padding:'14px 18px',marginBottom:20}}>
+                <div style={{fontSize:10,fontWeight:600,color:'var(--indigo)',textTransform:'uppercase' as const,letterSpacing:'0.1em',marginBottom:10}}>{lang==='en'?'Getting started':'Premiers pas'}</div>
                 {[
                   {done:!!profile.role, label:lang==='en'?'Complete your profile':'Compléter ton profil', action:()=>setPage('profil'), cta:lang==='en'?'Go →':'Aller →'},
                   {done:linkedinConnected, label:lang==='en'?'Connect LinkedIn':'Connecter LinkedIn', action:connectLinkedIn, cta:lang==='en'?'Connect':'Connecter'},
                   {done:generatedCount>0, label:lang==='en'?'Generate your first post':'Générer ton premier post', action:()=>setPage('rediger'), cta:lang==='en'?'Generate':'Générer'},
                 ].map((step,i)=>(
-                  <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'7px 0',borderBottom:i<2?'0.5px solid rgba(81,103,86,0.1)':'none'}}>
-                    <div style={{width:20,height:20,borderRadius:'50%',background:step.done?'var(--forest)':'transparent',border:step.done?'none':'1.5px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                  <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'7px 0',borderBottom:i<2?'0.5px solid rgba(61,82,160,0.1)':'none'}}>
+                    <div style={{width:20,height:20,borderRadius:'50%',background:step.done?'var(--indigo)':'transparent',border:step.done?'none':'1.5px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                       {step.done&&<svg viewBox="0 0 10 10" width="10" height="10"><path d="M2 5l2 2 4-4" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>}
                     </div>
                     <span style={{flex:1,fontSize:12,color:step.done?'var(--text3)':'var(--text1)',textDecoration:step.done?'line-through':'none'}}>{step.label}</span>
-                    {!step.done&&<button onClick={step.action} style={{fontSize:11,color:'var(--forest)',fontWeight:500,background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>{step.cta}</button>}
+                    {!step.done&&<button onClick={step.action} style={{fontSize:11,color:'var(--indigo)',fontWeight:500,background:'none',border:'none',cursor:'pointer',fontFamily:'inherit'}}>{step.cta}</button>}
                   </div>
                 ))}
               </div>
@@ -1303,8 +1303,8 @@ export default function Home() {
 
             {/* Idées du jour — 2 recommandées */}
             <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:4}}>
-              <div style={{fontSize:12,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,cursor:'pointer'}} onClick={()=>setPage('idees')}>Idées du jour →</div>
-              <span style={{fontSize:10,color:'var(--forest)',cursor:'pointer',fontWeight:500}} onClick={()=>setPage('idees')}>{lang==='en'?'See all ideas →':'Voir toutes les idées →'}</span>
+              <div style={{fontSize:12,fontWeight:600,color:'var(--indigo)',letterSpacing:'0.1em',textTransform:'uppercase' as const,cursor:'pointer'}} onClick={()=>setPage('idees')}>Idées du jour →</div>
+              <span style={{fontSize:10,color:'var(--indigo)',cursor:'pointer',fontWeight:500}} onClick={()=>setPage('idees')}>{lang==='en'?'See all ideas →':'Voir toutes les idées →'}</span>
             </div>
             {ideasGeneratedAt&&<div style={{fontSize:10,color:'var(--text3)',marginBottom:12}}>{lang==='en'?'Generated':'Générées'} {ideasGeneratedAt.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{day:'numeric',month:'long'})}{lang==='en'?' at ':' à '}{ideasGeneratedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>}
             {ideas.filter(i=>i.recommended).length===0&&(
@@ -1318,7 +1318,7 @@ export default function Home() {
                 {ideas.filter(i=>i.recommended).slice(0,2).map((idea,idx)=>(
                   <div key={idx} style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'14px 16px'}}>
                     <div style={{marginBottom:6}}>
-                      <span style={{fontSize:9,fontWeight:600,color:'var(--forest)',background:'rgba(81,103,86,0.08)',borderRadius:20,padding:'2px 8px',textTransform:'uppercase' as const,letterSpacing:'0.06em'}}>{idea.topic}</span>
+                      <span style={{fontSize:9,fontWeight:600,color:'var(--indigo)',background:'rgba(61,82,160,0.08)',borderRadius:20,padding:'2px 8px',textTransform:'uppercase' as const,letterSpacing:'0.06em'}}>{idea.topic}</span>
                       <span style={{marginLeft:4,fontSize:9,fontWeight:600,color:'#B7956A',background:'rgba(217,200,163,0.3)',borderRadius:20,padding:'2px 7px'}}>★ Recommandé</span>
                     </div>
                     <div style={{fontSize:15,fontWeight:500,color:'var(--text1)',lineHeight:1.4,marginBottom:6}}>{idea.title}</div>
@@ -1337,7 +1337,7 @@ export default function Home() {
             )}
 
             {/* Planning semaine */}
-            <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>{lang==='en'?'This week':'Cette semaine'}</div>
+            <div style={{fontSize:10,fontWeight:600,color:'var(--indigo)',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>{lang==='en'?'This week':'Cette semaine'}</div>
             <div style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'16px 20px',marginBottom:20}}>
               {(()=>{
                 const today=new Date()
@@ -1356,8 +1356,8 @@ export default function Home() {
                       return(
                         <div key={i} style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:6}}>
                           <span style={{fontSize:9,color:'var(--text3)',fontWeight:500,textTransform:'uppercase' as const,letterSpacing:'0.05em'}}>{d}</span>
-                          <div style={{width:28,height:28,borderRadius:'50%',background:isToday?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:500,color:isToday?'white':'var(--text2)'}}>{date.getDate()}</div>
-                          <div style={{width:'100%',minHeight:54,borderRadius:8,border:dayPosts.length>0?'0.5px solid rgba(81,103,86,0.2)':'0.5px dashed var(--border)',background:dayPosts.length>0?'rgba(81,103,86,0.06)':'transparent',padding:dayPosts.length>0?'6px 6px':'0',display:'flex',alignItems:dayPosts.length>0?'flex-start':'center',justifyContent:'center'}}>
+                          <div style={{width:28,height:28,borderRadius:'50%',background:isToday?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:500,color:isToday?'white':'var(--text2)'}}>{date.getDate()}</div>
+                          <div style={{width:'100%',minHeight:54,borderRadius:8,border:dayPosts.length>0?'0.5px solid rgba(61,82,160,0.2)':'0.5px dashed var(--border)',background:dayPosts.length>0?'rgba(61,82,160,0.06)':'transparent',padding:dayPosts.length>0?'6px 6px':'0',display:'flex',alignItems:dayPosts.length>0?'flex-start':'center',justifyContent:'center'}}>
                             {dayPosts.length>0?(
                               <div>
                                 <div style={{fontSize:8,color:'#B7956A',fontWeight:600,marginBottom:2}}>{new Date(dayPosts[0].scheduled_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
@@ -1374,12 +1374,12 @@ export default function Home() {
                 )
               })()}
               {scheduledPosts.filter(p=>{const today=new Date();const dow=today.getDay()===0?6:today.getDay()-1;const mon=new Date(today);mon.setDate(today.getDate()-dow);const sun=new Date(mon);sun.setDate(mon.getDate()+6);const pd=new Date(p.scheduled_at);return pd>=mon&&pd<=sun}).length===0&&(
-                <div style={{textAlign:'center' as const,marginTop:10,fontSize:10,color:'var(--text3)'}}>{lang==='en'?'No posts scheduled this week':'Aucun post planifié cette semaine'} · <span style={{color:'var(--forest)',cursor:'pointer'}} onClick={()=>setPage('calendrier')}>{lang==='en'?'Schedule →':'Planifier →'}</span></div>
+                <div style={{textAlign:'center' as const,marginTop:10,fontSize:10,color:'var(--text3)'}}>{lang==='en'?'No posts scheduled this week':'Aucun post planifié cette semaine'} · <span style={{color:'var(--indigo)',cursor:'pointer'}} onClick={()=>setPage('calendrier')}>{lang==='en'?'Schedule →':'Planifier →'}</span></div>
               )}
             </div>
 
             {/* Conseil du jour */}
-            <div style={{fontSize:10,fontWeight:600,color:'var(--forest)',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>{lang==='en'?'Tip of the day':'Conseil du jour'}</div>
+            <div style={{fontSize:10,fontWeight:600,color:'var(--indigo)',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>{lang==='en'?'Tip of the day':'Conseil du jour'}</div>
             <div style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'16px 20px',marginBottom:20}}>
               <div style={{fontSize:9,fontWeight:600,color:'#B7956A',letterSpacing:'0.1em',textTransform:'uppercase' as const,marginBottom:8}}>✦ Personal branding</div>
               <div style={{fontSize:13,color:'var(--text1)',lineHeight:1.6,fontStyle:'italic'}}>{["Un bon hook LinkedIn commence par une statistique surprenante ou une affirmation contre-intuitive. Les 3 premières lignes décident de tout.","Postez le mardi ou mercredi matin entre 8h et 10h. L'algorithme LinkedIn favorise les posts publiés en début de semaine.","Un post sans question finale perd 40% d'engagement. Terminez toujours par une question ouverte à votre audience.","La règle des 3 lignes : votre hook doit tenir en 3 lignes maximum avant le bouton 'voir plus'. Au-delà, vous perdez le lecteur.","Les posts avec une image personnelle génèrent 3x plus d'impressions que les posts texte seuls.","Répondez à chaque commentaire dans les 60 premières minutes. C'est la fenêtre où l'algorithme décide de booster votre post.","Un post qui raconte un échec personnel performe souvent mieux qu'un post sur un succès. L'authenticité crée la connexion."][new Date().getDay()]}</div>
@@ -1403,7 +1403,7 @@ export default function Home() {
             </div>
             {/* ONGLETS BATCH — AU-DESSUS DE LA GRILLE */}
             {batchTopics.length > 1 && (
-              <div style={{marginBottom:12,display:'flex',gap:6,flexWrap:'wrap' as const,padding:'10px 14px',background:'rgba(81,103,86,0.04)',borderRadius:10,border:'1px solid rgba(81,103,86,0.12)'}}>
+              <div style={{marginBottom:12,display:'flex',gap:6,flexWrap:'wrap' as const,padding:'10px 14px',background:'rgba(61,82,160,0.04)',borderRadius:10,border:'1px solid rgba(61,82,160,0.12)'}}>
                 <span style={{fontSize:11,fontWeight:600,color:'var(--text3)',alignSelf:'center',marginRight:4,flexShrink:0}}>{lang==='en'?'Ideas:':'Idées :'}</span>
                 {batchTopics.map((topic,i)=>(
                   <button key={i} onClick={()=>{
@@ -1423,7 +1423,7 @@ export default function Home() {
                     setPostVariants([])
                     setAiSvgContent(batchTabVisuals[i]?.svg||'')
                     setAiVisualUrl(batchTabVisuals[i]?.url||'')
-                  }} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeBatchTab===i?'var(--forest)':'var(--border)'}`,background:activeBatchTab===i?'rgba(81,103,86,0.08)':'white',color:activeBatchTab===i?'var(--forest)':'var(--text2)',cursor:'pointer',fontWeight:activeBatchTab===i?600:400,maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>
+                  }} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeBatchTab===i?'var(--indigo)':'var(--border)'}`,background:activeBatchTab===i?'rgba(61,82,160,0.08)':'white',color:activeBatchTab===i?'var(--indigo)':'var(--text2)',cursor:'pointer',fontWeight:activeBatchTab===i?600:400,maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>
                     {i+1}. {topic.length > 22 ? topic.slice(0,22)+'…' : topic}
                     {batchTabOutputs[i] && <span style={{marginLeft:4,fontSize:9,color:'#27ae60'}}>✓</span>}
                   </button>
@@ -1489,7 +1489,7 @@ export default function Home() {
               </div>
                 {postVariants.length > 1 && (
                   <div style={{display:'flex',gap:6,marginBottom:6}}>
-                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--forest)':'var(--border)'}`,background:activeVariant===i?'rgba(81,103,86,0.08)':'transparent',color:activeVariant===i?'var(--forest)':'var(--text2)',cursor:'pointer',fontWeight:activeVariant===i?600:400}}>Post {i+1}</button>))}
+                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--indigo)':'var(--border)'}`,background:activeVariant===i?'rgba(61,82,160,0.08)':'transparent',color:activeVariant===i?'var(--indigo)':'var(--text2)',cursor:'pointer',fontWeight:activeVariant===i?600:400}}>Post {i+1}</button>))}
                   </div>
                 )}
                 {/* Hashtags suggérés */}
@@ -1499,7 +1499,7 @@ export default function Home() {
                     {suggestedHashtags.map((tag,i)=>(
                       <button key={i} onClick={()=>{
                         if(!postOutput.includes(tag)) setPostOutput(p=>p+'\n'+tag)
-                      }} style={{fontSize:11,padding:'2px 8px',borderRadius:20,border:'1px solid rgba(81,103,86,0.3)',background:'rgba(81,103,86,0.06)',color:'var(--forest)',cursor:'pointer',fontFamily:'inherit'}}>
+                      }} style={{fontSize:11,padding:'2px 8px',borderRadius:20,border:'1px solid rgba(61,82,160,0.3)',background:'rgba(61,82,160,0.06)',color:'var(--indigo)',cursor:'pointer',fontFamily:'inherit'}}>
                         {tag}
                       </button>
                     ))}
@@ -1510,7 +1510,7 @@ export default function Home() {
                   <div style={{marginTop:6,marginBottom:2,display:'flex',justifyContent:'flex-end'}}>
                     <button
                       onClick={()=>{setShowPreviewModal(true);setPreviewExpanded(false)}}
-                      style={{fontSize:11,color:'var(--forest)',background:'none',border:'1px solid rgba(81,103,86,0.3)',borderRadius:8,padding:'4px 10px',cursor:'pointer',display:'flex',alignItems:'center',gap:4}}
+                      style={{fontSize:11,color:'var(--indigo)',background:'none',border:'1px solid rgba(61,82,160,0.3)',borderRadius:8,padding:'4px 10px',cursor:'pointer',display:'flex',alignItems:'center',gap:4}}
                     >
                       {'👁 ' + T('linkedin_preview')}
                     </button>
@@ -1520,8 +1520,8 @@ export default function Home() {
                 {/* Zone amélioration post */}
                 {postOutput && (
                   <div style={{marginTop:8,border:'1px solid var(--border)',borderRadius:12,overflow:'hidden',background:'white'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderBottom:'1px solid var(--border)',background:'rgba(81,103,86,0.04)'}}>
-                      <span style={{fontSize:11,fontWeight:600,color:'var(--forest)'}}>{T('improve_post')}</span>
+                    <div style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderBottom:'1px solid var(--border)',background:'rgba(61,82,160,0.04)'}}>
+                      <span style={{fontSize:11,fontWeight:600,color:'var(--indigo)'}}>{T('improve_post')}</span>
                     </div>
                     <div style={{padding:'10px 12px',display:'flex',gap:8,alignItems:'flex-end'}}>
                       <textarea
@@ -1535,7 +1535,7 @@ export default function Home() {
                         className="btn btn-primary"
                         onClick={improvePost}
                         disabled={improving||!improvementNote.trim()}
-                        style={{fontSize:11,padding:'7px 12px',background:'var(--forest)',flexShrink:0,borderRadius:8}}
+                        style={{fontSize:11,padding:'7px 12px',background:'var(--indigo)',flexShrink:0,borderRadius:8}}
                       >
                         {improving?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('apply_arrow')}
                       </button>
@@ -1547,7 +1547,7 @@ export default function Home() {
                 <div style={{marginTop:16,display:'flex',flexDirection:'column' as const,gap:10}}>
 
                   {/* Import visuel custom */}
-                  <label style={{display:'flex',alignItems:'center',gap:6,padding:'9px 14px',borderRadius:10,border:'1px solid var(--border)',background:customVisualBase64?'var(--forest)':'white',cursor:'pointer',fontSize:12,fontWeight:500,color:customVisualBase64?'white':'var(--text2)',justifyContent:'center'}}>
+                  <label style={{display:'flex',alignItems:'center',gap:6,padding:'9px 14px',borderRadius:10,border:'1px solid var(--border)',background:customVisualBase64?'var(--indigo)':'white',cursor:'pointer',fontSize:12,fontWeight:500,color:customVisualBase64?'white':'var(--text2)',justifyContent:'center'}}>
                     <input type="file" accept="image/png,image/jpeg,image/svg+xml" style={{display:'none'}} onChange={handleVisualUpload}/>
                     {customVisualBase64 ? `✓ ${customVisualName||T('visual_imported_label')}` : T('import_visual')}
                     {customVisualBase64 && <span onClick={(e)=>{e.preventDefault();e.stopPropagation();setCustomVisualBase64(null);setCustomVisualName('')}} style={{marginLeft:6,background:'rgba(255,255,255,0.3)',borderRadius:4,color:'white',cursor:'pointer',fontSize:10,padding:'1px 5px'}}>✕</span>}
@@ -1563,10 +1563,10 @@ export default function Home() {
                   <div style={{border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
                     {/* Toggle config */}
                     <div style={{display:'flex',gap:0}}>
-                      <button className="btn btn-primary" style={{flex:1,fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#516756,#B7C0B8)',opacity:postOutput?1:0.4,borderRadius:0}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||(batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual)}>
+                      <button className="btn btn-primary" style={{flex:1,fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#3D52A0,#B7C0B8)',opacity:postOutput?1:0.4,borderRadius:0}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||(batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual)}>
                         {(batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual)?<><span className="spinner" style={{borderTopColor:'white'}}/>{T('generating_visual')}</>:T('create_visual')}
                       </button>
-                      <button onClick={()=>setShowVisualConfig(v=>!v)} style={{padding:'0 12px',background:'var(--forest)',border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',cursor:'pointer',color:'white',fontSize:16,opacity:postOutput?1:0.4}} disabled={!postOutput}>
+                      <button onClick={()=>setShowVisualConfig(v=>!v)} style={{padding:'0 12px',background:'var(--indigo)',border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',cursor:'pointer',color:'white',fontSize:16,opacity:postOutput?1:0.4}} disabled={!postOutput}>
                         {showVisualConfig?'▲':'▼'}
                       </button>
                     </div>
@@ -1580,7 +1580,7 @@ export default function Home() {
                           <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:6}}>{T('visual_type_label')}</div>
                           <div style={{display:'flex',gap:5,flexWrap:'wrap' as const}}>
                             {[{id:'classique',label:'📰 Classique'},{id:'timeline',label:'🕓 Timeline'},{id:'stat',label:'📊 Stat'},{id:'citation',label:'💬 Citation'},{id:'liste',label:'📋 Liste'}].map(t=>(
-                              <button key={t.id} onClick={()=>setVisualType(t.id)} style={{padding:'5px 10px',borderRadius:20,border:'1.5px solid',borderColor:visualType===t.id?'var(--forest)':'var(--border)',background:visualType===t.id?'var(--forest)':'transparent',color:visualType===t.id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer'}}>
+                              <button key={t.id} onClick={()=>setVisualType(t.id)} style={{padding:'5px 10px',borderRadius:20,border:'1.5px solid',borderColor:visualType===t.id?'var(--indigo)':'var(--border)',background:visualType===t.id?'var(--indigo)':'transparent',color:visualType===t.id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer'}}>
                                 {t.label}
                               </button>
                             ))}
@@ -1602,13 +1602,13 @@ export default function Home() {
                         {/* Masquer mention Ecrira (Pro) */}
                         {isPro && (
                           <div style={{display:'flex',alignItems:'center',gap:8}}>
-                            <input type="checkbox" id="hideWm" checked={hideWatermark} onChange={e=>setHideWatermark(e.target.checked)} style={{accentColor:'var(--forest)',width:14,height:14}}/>
+                            <input type="checkbox" id="hideWm" checked={hideWatermark} onChange={e=>setHideWatermark(e.target.checked)} style={{accentColor:'var(--indigo)',width:14,height:14}}/>
                             <label htmlFor="hideWm" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer la mention "ecrira.com"</label>
                           </div>
                         )}
                         {(profile as any).company_logo && (
                           <div style={{display:'flex',alignItems:'center',gap:8,marginTop:4}}>
-                            <input type="checkbox" id="hideCompanyLogo" checked={hideCompanyLogo} onChange={e=>setHideCompanyLogo(e.target.checked)} style={{accentColor:'var(--forest)',width:14,height:14}}/>
+                            <input type="checkbox" id="hideCompanyLogo" checked={hideCompanyLogo} onChange={e=>setHideCompanyLogo(e.target.checked)} style={{accentColor:'var(--indigo)',width:14,height:14}}/>
                             <label htmlFor="hideCompanyLogo" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer le logo entreprise</label>
                           </div>
                         )}
@@ -1622,7 +1622,7 @@ export default function Home() {
                           className="btn btn-primary"
                           onClick={()=>{ setShowSvgEditor(false); generateAiVisual(); }}
                           disabled={batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual}
-                          style={{fontSize:12,justifyContent:'center',background:'var(--forest)',borderRadius:8,marginTop:4}}
+                          style={{fontSize:12,justifyContent:'center',background:'var(--indigo)',borderRadius:8,marginTop:4}}
                         >
                           {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('regenerate')}
                         </button>
@@ -1660,7 +1660,7 @@ export default function Home() {
 
                     {/* Planifier dropdown */}
                     <div style={{position:'relative' as const,flex:1}}>
-                      <button className="btn" onClick={(e)=>{e.stopPropagation();setShowScheduleMenu(m=>!m);setShowPublishMenu(false);}} disabled={!postOutput} style={{width:'100%',background:'var(--forest)',color:'white',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',opacity:postOutput?1:0.5}}>
+                      <button className="btn" onClick={(e)=>{e.stopPropagation();setShowScheduleMenu(m=>!m);setShowPublishMenu(false);}} disabled={!postOutput} style={{width:'100%',background:'var(--indigo)',color:'white',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',opacity:postOutput?1:0.5}}>
                         📅 Planifier ▾
                       </button>
                       {showScheduleMenu && (
@@ -1709,7 +1709,7 @@ export default function Home() {
                             const isToday=date.toDateString()===new Date().toDateString()
                             const isPast=date<new Date(new Date().setHours(0,0,0,0))
                             cells.push(
-                              <button key={d} onClick={()=>{if(!isPast){setScheduleDateTime(dateStr+'T'+(scheduleDateTime.split('T')[1]||getNextQuarterHour()))}}} style={{padding:'5px 0',borderRadius:8,border:'none',cursor:isPast?'not-allowed':'pointer',background:selected?'var(--forest)':isToday?'rgba(81,103,86,0.1)':'transparent',color:isPast?'var(--text3)':selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,opacity:isPast?0.4:1}}>
+                              <button key={d} onClick={()=>{if(!isPast){setScheduleDateTime(dateStr+'T'+(scheduleDateTime.split('T')[1]||getNextQuarterHour()))}}} style={{padding:'5px 0',borderRadius:8,border:'none',cursor:isPast?'not-allowed':'pointer',background:selected?'var(--indigo)':isToday?'rgba(61,82,160,0.1)':'transparent',color:isPast?'var(--text3)':selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,opacity:isPast?0.4:1}}>
                                 {d}
                               </button>
                             )
@@ -1732,7 +1732,7 @@ export default function Home() {
                                 const t=`${h}:${m}`
                                 const selected=scheduleDateTime.split('T')[1]===t
                                 return (
-                                  <button key={t} onClick={()=>{setScheduleDateTime((scheduleDateTime.split('T')[0]||new Date().toISOString().split('T')[0])+'T'+t);setShowTimePicker(false);}} style={{display:'block',width:'100%',padding:'6px 12px',border:'none',borderRadius:8,cursor:'pointer',background:selected?'var(--forest)':'transparent',color:selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,textAlign:'left' as const}}>
+                                  <button key={t} onClick={()=>{setScheduleDateTime((scheduleDateTime.split('T')[0]||new Date().toISOString().split('T')[0])+'T'+t);setShowTimePicker(false);}} style={{display:'block',width:'100%',padding:'6px 12px',border:'none',borderRadius:8,cursor:'pointer',background:selected?'var(--indigo)':'transparent',color:selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,textAlign:'left' as const}}>
                                     {t}
                                   </button>
                                 )
@@ -1740,7 +1740,7 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <button className="btn btn-primary" style={{background:'var(--forest)',fontSize:12,flexShrink:0}} onClick={schedulePost} disabled={scheduling||!scheduleDateTime.split('T')[0]}>
+                        <button className="btn btn-primary" style={{background:'var(--indigo)',fontSize:12,flexShrink:0}} onClick={schedulePost} disabled={scheduling||!scheduleDateTime.split('T')[0]}>
                           {scheduling?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('schedule_arrow')}
                         </button>
                       </div>
@@ -1765,18 +1765,18 @@ export default function Home() {
                                 a.click()
                               } else { showToast('Erreur conversion PNG') }
                             } catch { showToast('Erreur téléchargement') }
-                          }} style={{fontSize:11,color:'var(--forest)',fontWeight:500,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:8,background:'white',cursor:'pointer',fontFamily:'inherit'}}>⬇ Télécharger PNG</button>
+                          }} style={{fontSize:11,color:'var(--indigo)',fontWeight:500,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:8,background:'white',cursor:'pointer',fontFamily:'inherit'}}>⬇ Télécharger PNG</button>
                         </div>
                         {/* Palette couleurs */}
                         <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap' as const}}>
                           <span style={{fontSize:10,color:'var(--text3)',flexShrink:0}}>Couleur :</span>
                           {[
-                            '#516756','#0077B5','#1F2421','#8B4513','#2C3E50',
+                            '#3D52A0','#0077B5','#1F2421','#8B4513','#2C3E50',
                             '#C0392B','#8E44AD','#16A085','#E67E22','#2980B9',
                             '#27AE60','#D35400','#7F8C8D','#2C2C54','#B71C1C',
                           ].map(c=>(
                             <button key={c} onClick={()=>{
-                              const prev = svgEditAccent || profile?.brand_accent || '#516756'
+                              const prev = svgEditAccent || profile?.brand_accent || '#3D52A0'
                               const dark = darkenColor(c, 18)
                               setAiSvgContent(svg=>{
                                 let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
@@ -1787,9 +1787,9 @@ export default function Home() {
                               setSvgEditAccent(c)
                             }} style={{width:20,height:20,borderRadius:'50%',border:c===svgEditAccent?'3px solid #1F2421':'2px solid transparent',background:c,cursor:'pointer',padding:0,flexShrink:0}}/>
                           ))}
-                          <input type="color" value={svgEditAccent||'#516756'} onChange={e=>{
+                          <input type="color" value={svgEditAccent||'#3D52A0'} onChange={e=>{
                             const c=e.target.value
-                            const prev = svgEditAccent || profile?.brand_accent || '#516756'
+                            const prev = svgEditAccent || profile?.brand_accent || '#3D52A0'
                             const dark = darkenColor(c, 18)
                             setAiSvgContent(svg=>{
                               let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
@@ -1843,11 +1843,11 @@ export default function Home() {
                   const isToday = day.toDateString()===new Date().toDateString()
                   return (
                     <div key={i}
-                      onDragOver={e=>{e.preventDefault();e.currentTarget.style.background='rgba(81,103,86,0.06)';e.currentTarget.style.borderColor='var(--forest)'}}
-                      onDragLeave={e=>{e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)'}}
-                      onDrop={e=>{e.preventDefault();e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)';handleDrop(day)}}
-                      style={{minHeight:120,background:'var(--white)',border:`1px solid ${isToday?'var(--forest)':'var(--border)'}`,borderRadius:12,padding:'8px 10px',transition:'background 0.15s,border-color 0.15s'}}>
-                      <div style={{fontSize:11,fontWeight:600,color:isToday?'var(--forest)':'var(--text3)',marginBottom:6,textTransform:'uppercase' as const}}>
+                      onDragOver={e=>{e.preventDefault();e.currentTarget.style.background='rgba(61,82,160,0.06)';e.currentTarget.style.borderColor='var(--indigo)'}}
+                      onDragLeave={e=>{e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--indigo)':'var(--border)'}}
+                      onDrop={e=>{e.preventDefault();e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--indigo)':'var(--border)';handleDrop(day)}}
+                      style={{minHeight:120,background:'var(--white)',border:`1px solid ${isToday?'var(--indigo)':'var(--border)'}`,borderRadius:12,padding:'8px 10px',transition:'background 0.15s,border-color 0.15s'}}>
+                      <div style={{fontSize:11,fontWeight:600,color:isToday?'var(--indigo)':'var(--text3)',marginBottom:6,textTransform:'uppercase' as const}}>
                         {day.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'short'})} {day.getDate()}
                       </div>
                       {dayPosts.map((p:any)=>(
@@ -1856,11 +1856,11 @@ export default function Home() {
                           onDragStart={e=>{e.stopPropagation();setDraggedPostId(p.id);e.dataTransfer.effectAllowed='move'}}
                           onDragEnd={()=>setDraggedPostId(null)}
                           onClick={()=>setSelectedCalPost(p)}
-                          style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${draggedPostId===p.id?'var(--forest)':p.status==='published'?'rgba(81,103,86,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:p.status!=='published'?'grab':'pointer',fontSize:11,overflow:'hidden',opacity:draggedPostId===p.id?0.5:1,transition:'opacity 0.15s'}}>
+                          style={{background:p.status==='published'?'rgba(61,82,160,0.1)':'rgba(217,200,163,0.2)',border:`1px solid ${draggedPostId===p.id?'var(--indigo)':p.status==='published'?'rgba(61,82,160,0.3)':'rgba(217,200,163,0.4)'}`,borderRadius:6,padding:'4px 7px',marginBottom:4,cursor:p.status!=='published'?'grab':'pointer',fontSize:11,overflow:'hidden',opacity:draggedPostId===p.id?0.5:1,transition:'opacity 0.15s'}}>
                           {p.svg_content && (p.svg_content.trimStart().startsWith('<') ? <div style={{width:'100%',height:48,overflow:'hidden',borderRadius:4,marginBottom:3,pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(p.svg_content).replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} /> : <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:48,objectFit:'cover',borderRadius:4,marginBottom:3,display:'block'}} />)}
                           <div style={{fontWeight:500,color:'var(--text1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           <div style={{fontSize:10,color:'var(--text3)'}}>{new Date(p.scheduled_at).toLocaleTimeString(lang==='fr'?'fr-FR':'en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
-                          <span style={{fontSize:9,fontWeight:600,color:p.status==='published'?'var(--forest)':p.status==='error'?'#c0392b':'#8a7040',textTransform:'uppercase' as const}}>{p.status==='published'?T('status_published'):p.status==='error'?T('status_error'):T('status_pending')}</span>
+                          <span style={{fontSize:9,fontWeight:600,color:p.status==='published'?'var(--indigo)':p.status==='error'?'#c0392b':'#8a7040',textTransform:'uppercase' as const}}>{p.status==='published'?T('status_published'):p.status==='error'?T('status_error'):T('status_pending')}</span>
                         </div>
                       ))}
                     </div>
@@ -1884,18 +1884,18 @@ export default function Home() {
                     const isCurrentMonth = day?.getMonth()===calDate.getMonth()
                     return (
                       <div key={i}
-                        onDragOver={e=>{if(day){e.preventDefault();e.currentTarget.style.background='rgba(81,103,86,0.06)';e.currentTarget.style.borderColor='var(--forest)'}}}
-                        onDragLeave={e=>{if(day){e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)'}}}
-                        onDrop={e=>{if(day){e.preventDefault();e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--forest)':'var(--border)';handleDrop(day)}}}
-                        style={{minHeight:80,background:day?'var(--white)':'transparent',border:day?`1px solid ${isToday?'var(--forest)':'var(--border)'}`:'none',borderRadius:8,padding:'4px 6px',opacity:isCurrentMonth?1:0.4,transition:'background 0.15s,border-color 0.15s'}}>
-                        {day&&<div style={{fontSize:11,fontWeight:isToday?700:400,color:isToday?'var(--forest)':'var(--text3)',marginBottom:3}}>{day.getDate()}</div>}
+                        onDragOver={e=>{if(day){e.preventDefault();e.currentTarget.style.background='rgba(61,82,160,0.06)';e.currentTarget.style.borderColor='var(--indigo)'}}}
+                        onDragLeave={e=>{if(day){e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--indigo)':'var(--border)'}}}
+                        onDrop={e=>{if(day){e.preventDefault();e.currentTarget.style.background='var(--white)';e.currentTarget.style.borderColor=isToday?'var(--indigo)':'var(--border)';handleDrop(day)}}}
+                        style={{minHeight:80,background:day?'var(--white)':'transparent',border:day?`1px solid ${isToday?'var(--indigo)':'var(--border)'}`:'none',borderRadius:8,padding:'4px 6px',opacity:isCurrentMonth?1:0.4,transition:'background 0.15s,border-color 0.15s'}}>
+                        {day&&<div style={{fontSize:11,fontWeight:isToday?700:400,color:isToday?'var(--indigo)':'var(--text3)',marginBottom:3}}>{day.getDate()}</div>}
                         {dayPosts.slice(0,2).map((p:any)=>(
                           <div key={p.id}
                             draggable={p.status!=='published'}
                             onDragStart={e=>{e.stopPropagation();setDraggedPostId(p.id);e.dataTransfer.effectAllowed='move'}}
                             onDragEnd={()=>setDraggedPostId(null)}
                             onClick={()=>setSelectedCalPost(p)}
-                            style={{background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,padding:'2px 5px',marginBottom:2,cursor:p.status!=='published'?'grab':'pointer',fontSize:10,overflow:'hidden',color:'var(--text1)',opacity:draggedPostId===p.id?0.5:1}}>
+                            style={{background:p.status==='published'?'rgba(61,82,160,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,padding:'2px 5px',marginBottom:2,cursor:p.status!=='published'?'grab':'pointer',fontSize:10,overflow:'hidden',color:'var(--text1)',opacity:draggedPostId===p.id?0.5:1}}>
                             {p.svg_content && (p.svg_content.trimStart().startsWith('<') ? <div style={{width:'100%',height:28,overflow:'hidden',borderRadius:3,marginBottom:2,pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(p.svg_content).replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}} /> : <img src={`data:image/png;base64,${p.svg_content}`} alt="" style={{width:'100%',height:28,objectFit:'cover',borderRadius:3,marginBottom:2,display:'block'}} />)}
                             <div style={{overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' as const}}>{p.topic||'Post'}</div>
                           </div>
@@ -1925,7 +1925,7 @@ export default function Home() {
                       )}
                       <div style={{marginTop:6,display:'flex',gap:3,flexWrap:'wrap' as const}}>
                         {monthPosts.slice(0,3).map((p:any)=>(
-                          <span key={p.id} style={{fontSize:9,padding:'2px 6px',background:p.status==='published'?'rgba(81,103,86,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,color:'var(--text2)'}}>
+                          <span key={p.id} style={{fontSize:9,padding:'2px 6px',background:p.status==='published'?'rgba(61,82,160,0.1)':'rgba(217,200,163,0.2)',borderRadius:4,color:'var(--text2)'}}>
                             {new Date(p.scheduled_at).getDate()} {p.topic?.substring(0,10)||'Post'}
                           </span>
                         ))}
@@ -1984,10 +1984,10 @@ export default function Home() {
           <div className={`page ${page==='bibliotheque'?'active':''}`}>
             <div className="eyebrow">{T('your_content')}</div><div className="page-title">{T('library')}</div><div className="copper-rule"/>
             <div style={{display:'flex',gap:8,marginBottom:16}}>
-              <button onClick={()=>setLibraryTab('posts')} style={{padding:'6px 16px',borderRadius:8,border:`1px solid ${libraryTab==='posts'?'var(--forest)':'var(--border)'}`,background:libraryTab==='posts'?'rgba(81,103,86,0.08)':'transparent',color:libraryTab==='posts'?'var(--forest)':'var(--text2)',fontSize:12,cursor:'pointer',fontWeight:libraryTab==='posts'?600:400,fontFamily:'inherit'}}>
+              <button onClick={()=>setLibraryTab('posts')} style={{padding:'6px 16px',borderRadius:8,border:`1px solid ${libraryTab==='posts'?'var(--indigo)':'var(--border)'}`,background:libraryTab==='posts'?'rgba(61,82,160,0.08)':'transparent',color:libraryTab==='posts'?'var(--indigo)':'var(--text2)',fontSize:12,cursor:'pointer',fontWeight:libraryTab==='posts'?600:400,fontFamily:'inherit'}}>
                 {lang==='en'?'Posts':'Posts'} ({savedPosts.length})
               </button>
-              <button onClick={()=>setLibraryTab('ideas')} style={{padding:'6px 16px',borderRadius:8,border:`1px solid ${libraryTab==='ideas'?'var(--forest)':'var(--border)'}`,background:libraryTab==='ideas'?'rgba(81,103,86,0.08)':'transparent',color:libraryTab==='ideas'?'var(--forest)':'var(--text2)',fontSize:12,cursor:'pointer',fontWeight:libraryTab==='ideas'?600:400,fontFamily:'inherit'}}>
+              <button onClick={()=>setLibraryTab('ideas')} style={{padding:'6px 16px',borderRadius:8,border:`1px solid ${libraryTab==='ideas'?'var(--indigo)':'var(--border)'}`,background:libraryTab==='ideas'?'rgba(61,82,160,0.08)':'transparent',color:libraryTab==='ideas'?'var(--indigo)':'var(--text2)',fontSize:12,cursor:'pointer',fontWeight:libraryTab==='ideas'?600:400,fontFamily:'inherit'}}>
                 {lang==='en'?'Ideas':'Idées'} ({savedIdeas.length})
               </button>
             </div>
@@ -2108,7 +2108,7 @@ export default function Home() {
                       </div>
                       {enrichSuggestions&&(
                         <div style={{marginTop:12,background:'rgba(79,103,84,0.05)',border:'1px solid rgba(79,103,84,0.2)',borderRadius:12,padding:'14px 16px'}}>
-                          <div style={{fontSize:12,fontWeight:600,color:'var(--forest)',marginBottom:10}}>{T('suggestions_from_domain')} {profile.domain}</div>
+                          <div style={{fontSize:12,fontWeight:600,color:'var(--indigo)',marginBottom:10}}>{T('suggestions_from_domain')} {profile.domain}</div>
                           {enrichSuggestions.summary&&<div style={{fontSize:11,color:'var(--text2)',marginBottom:10,fontStyle:'italic'}}>"{enrichSuggestions.summary}"</div>}
                           {(Object.entries(enrichSuggestions) as [string,string][]).filter(([k])=>k!=='summary').map(([k,v])=>{
                             const labels:Record<string,string>={company:T('enrich_label_company'),sector:T('enrich_label_sector'),audience:T('enrich_label_audience'),tech_stack:T('enrich_label_stack')}
@@ -2130,7 +2130,7 @@ export default function Home() {
                   <label className="form-label">{T('field_sector')}</label>
                   <div style={{display:'flex',flexWrap:'wrap' as const,gap:6,marginBottom:8}}>
                     {(profile.sector||'').split(',').map(s=>s.trim()).filter(Boolean).map((tag,i)=>(
-                      <span key={i} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 10px',background:'rgba(81,103,86,0.08)',border:'1px solid rgba(81,103,86,0.2)',borderRadius:20,fontSize:12,color:'var(--forest)'}}>
+                      <span key={i} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 10px',background:'rgba(61,82,160,0.08)',border:'1px solid rgba(61,82,160,0.2)',borderRadius:20,fontSize:12,color:'var(--indigo)'}}>
                         {tag}
                         <button onClick={()=>{const tags=(profile.sector||'').split(',').map((s:string)=>s.trim()).filter(Boolean);tags.splice(i,1);setProfile((p:any)=>({...p,sector:tags.join(', ')}))}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontSize:14,lineHeight:1,color:'var(--text3)',fontFamily:'inherit'}}>×</button>
                       </span>
@@ -2143,10 +2143,10 @@ export default function Home() {
                   <label className="form-label">{T('linkedin_pub')}</label>
                   <div style={{background:linkedinConnected?'rgba(79,103,84,0.06)':'rgba(0,119,181,0.05)',border:`1px solid ${linkedinConnected?'rgba(79,103,84,0.2)':'rgba(0,119,181,0.2)'}`,borderRadius:10,padding:'10px 14px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:10}}>
                     <div>
-                      <div style={{fontSize:12,fontWeight:600,color:linkedinConnected?'var(--forest)':'#0077B5',marginBottom:2}}>{linkedinConnected?T('linkedin_connected_status'):T('linkedin_disconnected_status')}</div>
+                      <div style={{fontSize:12,fontWeight:600,color:linkedinConnected?'var(--indigo)':'#0077B5',marginBottom:2}}>{linkedinConnected?T('linkedin_connected_status'):T('linkedin_disconnected_status')}</div>
                       <div style={{fontSize:11,color:'var(--text2)'}}>{linkedinConnected?T('linkedin_connected_hint_text'):T('linkedin_connect_hint_text')}</div>
                     </div>
-                    <button className="btn btn-primary" style={{fontSize:11,flexShrink:0,background:linkedinConnected?'var(--forest)':'#0077B5'}} onClick={connectLinkedIn}>{linkedinConnected?T('reconnect_btn'):T('connect_btn')}</button>
+                    <button className="btn btn-primary" style={{fontSize:11,flexShrink:0,background:linkedinConnected?'var(--indigo)':'#0077B5'}} onClick={connectLinkedIn}>{linkedinConnected?T('reconnect_btn'):T('connect_btn')}</button>
                   </div>
                 </div>
                 <button className="btn btn-primary" onClick={handleSaveProfile} disabled={savingProfile}>{savingProfile?<><span className="spinner"/> {T('saving')}</>:T('save_profile')}</button>
@@ -2158,7 +2158,7 @@ export default function Home() {
                   {([[T('color_bg'),'brand_bg'],[T('color_text'),'brand_text'],[T('color_primary'),'brand_accent'],[T('color_secondary'),'brand_color2'],[T('color_accent'),'brand_color3']] as [string,keyof typeof profile][]).map(([label,key])=>(
                     <div key={key} style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                       <span style={{fontSize:11,color:'var(--text2)',width:64,flexShrink:0}}>{label}</span>
-                      <input type="color" value={(profile[key] as string)||'#516756'} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))} style={{width:30,height:30,borderRadius:8,border:'1px solid var(--border)',cursor:'pointer',padding:2}}/>
+                      <input type="color" value={(profile[key] as string)||'#3D52A0'} onChange={e=>setProfile(p=>({...p,[key]:e.target.value}))} style={{width:30,height:30,borderRadius:8,border:'1px solid var(--border)',cursor:'pointer',padding:2}}/>
                       <span style={{fontSize:11,fontFamily:'monospace',color:'var(--text2)'}}>{profile[key] as string}</span>
                     </div>
                   ))}
@@ -2169,7 +2169,7 @@ export default function Home() {
                     <label className="form-label">Tags</label>
                     <div style={{display:'flex',flexWrap:'wrap' as const,gap:6,marginBottom:8}}>
                       {(profile.tech_stack||'').split(',').map(s=>s.trim()).filter(Boolean).map((tag,i)=>(
-                        <span key={i} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 10px',background:'rgba(81,103,86,0.08)',border:'1px solid rgba(81,103,86,0.2)',borderRadius:20,fontSize:12,color:'var(--forest)'}}>
+                        <span key={i} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 10px',background:'rgba(61,82,160,0.08)',border:'1px solid rgba(61,82,160,0.2)',borderRadius:20,fontSize:12,color:'var(--indigo)'}}>
                           {tag}
                           <button onClick={()=>{const tags=(profile.tech_stack||'').split(',').map((s:string)=>s.trim()).filter(Boolean);tags.splice(i,1);setProfile((p:any)=>({...p,tech_stack:tags.join(', ')}))}} style={{background:'none',border:'none',cursor:'pointer',padding:0,fontSize:14,lineHeight:1,color:'var(--text3)',fontFamily:'inherit'}}>×</button>
                         </span>
@@ -2184,7 +2184,7 @@ export default function Home() {
                     <label className="form-label">{lang==='en'?'Tone':'Tutoiement / Vouvoiement'}</label>
                     <div style={{display:'flex',gap:8,marginTop:4}}>
                       {['tutoiement','vouvoiement'].map(f=>(
-                        <button key={f} onClick={()=>setProfile((p:any)=>({...p,formality:f}))} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--border)'}`,background:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'rgba(81,103,86,0.08)':'transparent',color:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--text2)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit',textTransform:'capitalize' as const}}>{f}</button>
+                        <button key={f} onClick={()=>setProfile((p:any)=>({...p,formality:f}))} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--indigo)':'var(--border)'}`,background:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'rgba(61,82,160,0.08)':'transparent',color:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--indigo)':'var(--text2)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit',textTransform:'capitalize' as const}}>{f}</button>
                       ))}
                     </div>
                   </div>
@@ -2211,7 +2211,7 @@ export default function Home() {
                     <div key={idx} style={{background:'var(--ivory)',border:'1px solid var(--border)',borderRadius:10,padding:'10px 12px',marginBottom:8,position:'relative' as const}}>
                       <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:8}}>
                         <div>
-                          <div style={{fontSize:11,fontWeight:600,color:'var(--forest)',marginBottom:4}}>Post {idx+1}</div>
+                          <div style={{fontSize:11,fontWeight:600,color:'var(--indigo)',marginBottom:4}}>Post {idx+1}</div>
                           <div style={{fontSize:11,color:'var(--text2)',lineHeight:1.5,maxHeight:60,overflow:'hidden',maskImage:'linear-gradient(to bottom, black 60%, transparent 100%)'}}>{post}</div>
                         </div>
                         <button onClick={()=>removeRefPost(idx)} style={{flexShrink:0,background:'none',border:'none',cursor:'pointer',color:'var(--text3)',fontSize:14,padding:'0 4px',lineHeight:1}}>✕</button>
@@ -2220,8 +2220,8 @@ export default function Home() {
                   ))}
                   {/* Add new ref post */}
                   {showAddRef && (
-                    <div style={{border:'1px solid var(--forest)',borderRadius:10,padding:'12px',marginBottom:8,background:'rgba(79,103,84,0.03)'}}>
-                      <div style={{fontSize:11,fontWeight:600,color:'var(--forest)',marginBottom:6}}>{T('new_ref_post')}</div>
+                    <div style={{border:'1px solid var(--indigo)',borderRadius:10,padding:'12px',marginBottom:8,background:'rgba(79,103,84,0.03)'}}>
+                      <div style={{fontSize:11,fontWeight:600,color:'var(--indigo)',marginBottom:6}}>{T('new_ref_post')}</div>
                       <textarea
                         className="form-input"
                         rows={6}
@@ -2245,7 +2245,7 @@ export default function Home() {
                     </div>
                   )}
                   {getRefPosts().length > 0 && (
-                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'rgba(79,103,84,0.07)',borderRadius:8,fontSize:12,color:'var(--forest)',marginTop:4}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'rgba(79,103,84,0.07)',borderRadius:8,fontSize:12,color:'var(--indigo)',marginTop:4}}>
                       <span>✓</span>
                       <span>Style actif — {getRefPosts().length} post{getRefPosts().length > 1 ? 's' : ''} référent{getRefPosts().length > 1 ? 's' : ''}</span>
                     </div>
@@ -2272,7 +2272,7 @@ export default function Home() {
         ]).map(item=>(
           <div key={item.id} className="pill-btn-wrap">
             <span className="pill-tooltip">{item.label}</span>
-            <button onClick={()=>setPage(item.id)} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page===item.id?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page===item.id?'white':'var(--text3)'}}>
+            <button onClick={()=>setPage(item.id)} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page===item.id?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page===item.id?'white':'var(--text3)'}}>
               {item.icon}
             </button>
           </div>
@@ -2280,13 +2280,13 @@ export default function Home() {
         <div style={{width:'0.5px',height:20,background:'var(--border)',margin:'0 2px'}}/>
         <div className="pill-btn-wrap">
           <span className="pill-tooltip">Calendrier</span>
-          <button onClick={()=>{ if(!isPro){setShowUpgradeModal(true);return;} setPage('calendrier') }} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page==='calendrier'?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='calendrier'?'white':'var(--text3)'}}>
+          <button onClick={()=>{ if(!isPro){setShowUpgradeModal(true);return;} setPage('calendrier') }} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page==='calendrier'?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='calendrier'?'white':'var(--text3)'}}>
             <CalIcon/>
           </button>
         </div>
         <div className="pill-btn-wrap">
           <span className="pill-tooltip">Bibliothèque</span>
-          <button onClick={()=>setPage('bibliotheque')} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page==='bibliotheque'?'var(--forest)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='bibliotheque'?'white':'var(--text3)'}}>
+          <button onClick={()=>setPage('bibliotheque')} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page==='bibliotheque'?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='bibliotheque'?'white':'var(--text3)'}}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
           </button>
         </div>
@@ -2296,10 +2296,10 @@ export default function Home() {
       {showOnboarding&&(
         <div style={{position:'fixed',inset:0,zIndex:600,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(6px)',padding:20}}>
           <div style={{background:'var(--white)',borderRadius:20,width:'100%',maxWidth:500,boxShadow:'0 24px 64px rgba(0,0,0,0.25)',overflow:'hidden'}}>
-            <div style={{background:'var(--forest)',padding:'24px 28px 20px'}}>
+            <div style={{background:'var(--indigo)',padding:'24px 28px 20px'}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
                 <div style={{background:'white',borderRadius:10,width:36,height:36,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-                  <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:22,width:'auto'}} />
+                  <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{height:22,width:'auto'}} />
                 </div>
                 <span style={{fontFamily:"'Clash Display',sans-serif",fontSize:15,fontWeight:600,color:'white',letterSpacing:'0.02em'}}>Ecrira</span>
               </div>
@@ -2328,13 +2328,13 @@ export default function Home() {
             <div style={{padding:'24px 32px 28px'}}>
               {onboardingStep===0&&(
                 <div>
-                  <div style={{background:'linear-gradient(135deg,rgba(81,103,86,0.06),rgba(217,200,163,0.08))',borderRadius:14,padding:'14px 16px',marginBottom:16,border:'1px solid var(--border)'}}>
+                  <div style={{background:'linear-gradient(135deg,rgba(61,82,160,0.06),rgba(217,200,163,0.08))',borderRadius:14,padding:'14px 16px',marginBottom:16,border:'1px solid var(--border)'}}>
                     <div style={{fontSize:13,fontWeight:600,color:'var(--text1)',marginBottom:10}}>
                       {lang==='en'?'What you can do with Ecrira:':'Ce que vous pouvez faire avec Ecrira :'}
                     </div>
                     {[
                       {icon:'💡',color:'#f59e0b',title:T('onb_feat1_title'),desc:T('onb_feat1_desc')},
-                      {icon:'⚡',color:'#516756',title:T('onb_feat2_title'),desc:T('onb_feat2_desc')},
+                      {icon:'⚡',color:'#3D52A0',title:T('onb_feat2_title'),desc:T('onb_feat2_desc')},
                       {icon:'🖼',color:'#6366f1',title:T('onb_feat3_title'),desc:T('onb_feat3_desc')}
                     ].map((f,i)=>(
                       <div key={i} style={{display:'flex',gap:12,marginBottom:i<2?12:0,alignItems:'flex-start'}}>
@@ -2346,7 +2346,7 @@ export default function Home() {
                       </div>
                     ))}
                   </div>
-                  <div style={{display:'flex',gap:10,alignItems:'center',padding:'10px 14px',background:'rgba(81,103,86,0.05)',borderRadius:10,marginBottom:14,border:'1px solid rgba(81,103,86,0.1)'}}>
+                  <div style={{display:'flex',gap:10,alignItems:'center',padding:'10px 14px',background:'rgba(81,103,86,0.05)',borderRadius:10,marginBottom:14,border:'1px solid rgba(61,82,160,0.1)'}}>
                     <span style={{fontSize:18}}>🚀</span>
                     <span style={{fontSize:12,color:'var(--text2)',lineHeight:1.5}}>
                       {lang==='en'?'Setup takes less than 2 minutes. No credit card required to start.':'Configuration en moins de 2 minutes. Aucune carte bancaire requise pour commencer.'}
@@ -2375,7 +2375,7 @@ export default function Home() {
                     )}
                   </div>
                   <div style={{background:'rgba(79,103,84,0.05)',border:'1px solid rgba(79,103,84,0.15)',borderRadius:12,padding:'14px 16px',marginBottom:14}}>
-                    <div style={{fontSize:13,fontWeight:600,color:'var(--forest)',marginBottom:4}}>{T('onb_enrich_site')}</div>
+                    <div style={{fontSize:13,fontWeight:600,color:'var(--indigo)',marginBottom:4}}>{T('onb_enrich_site')}</div>
                     <div style={{fontSize:12,color:'var(--text2)',marginBottom:8}}>{T('onb_enrich_site_desc')}</div>
                     <div style={{display:'flex',gap:8}}>
                       <input className="form-input" placeholder="ex: entreprise.fr" value={profile.domain||''} onChange={(e:any)=>setProfile((p:any)=>({...p,domain:e.target.value}))} style={{flex:1,fontSize:12}}/>
@@ -2405,14 +2405,14 @@ export default function Home() {
     </div>
     <div style={{display:'flex',flexDirection:'column',gap:12}}>
       <div style={{border:'1.5px solid var(--border)',borderRadius:14,padding:'16px 20px',cursor:'pointer',transition:'border-color 0.2s'}} onClick={finishOnboarding}
-        onMouseEnter={e=>(e.currentTarget.style.borderColor='var(--forest)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='var(--border)')}>
+        onMouseEnter={e=>(e.currentTarget.style.borderColor='var(--indigo)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='var(--border)')}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
           <div style={{fontFamily:"'Clash Display',sans-serif",fontWeight:700,fontSize:15,color:'var(--text1)'}}>{T('free_plan_label')}</div>
           <span style={{fontSize:11,background:'var(--sand)',color:'var(--text2)',padding:'2px 8px',borderRadius:20,fontWeight:500}}>{lang==='en'?'Free forever':'Gratuit'}</span>
         </div>
-        {['5 posts','IA basique','Style personnalisé'].map((f,i)=>(<div key={i} style={{fontSize:12,color:'var(--text2)',display:'flex',alignItems:'center',gap:5,marginBottom:2}}><span style={{color:'var(--forest)'}}>✓</span>{f}</div>))}
+        {['5 posts','IA basique','Style personnalisé'].map((f,i)=>(<div key={i} style={{fontSize:12,color:'var(--text2)',display:'flex',alignItems:'center',gap:5,marginBottom:2}}><span style={{color:'var(--indigo)'}}>✓</span>{f}</div>))}
       </div>
-      <div style={{border:'2px solid var(--forest)',borderRadius:14,padding:'16px 20px',cursor:'pointer',background:'var(--forest)',color:'white',position:'relative',overflow:'hidden'}} onClick={async()=>{
+      <div style={{border:'2px solid var(--indigo)',borderRadius:14,padding:'16px 20px',cursor:'pointer',background:'var(--indigo)',color:'white',position:'relative',overflow:'hidden'}} onClick={async()=>{
         if(!userId) return;
         const res = await authFetch('/api/stripe/checkout',{method:'POST',body:JSON.stringify({userId,email:(profile as any)?.email ?? ''})});
         const data = await res.json();
@@ -2452,7 +2452,7 @@ export default function Home() {
                     <label className="form-label" style={{fontSize:12}}>{lang==='en'?'How do you address your audience?':'Comment tu t\'adresses à ton audience ?'}</label>
                     <div style={{display:'flex',gap:8,marginTop:6}}>
                       {['tutoiement','vouvoiement'].map(f=>(
-                        <button key={f} onClick={()=>setProfile((p:any)=>({...p,formality:f}))} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--border)'}`,background:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'rgba(81,103,86,0.08)':'transparent',color:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--forest)':'var(--text2)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit',textTransform:'capitalize' as const}}>{lang==='en'?(f==='tutoiement'?'Informal (tu)':'Formal (vous)'):f}</button>
+                        <button key={f} onClick={()=>setProfile((p:any)=>({...p,formality:f}))} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--indigo)':'var(--border)'}`,background:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'rgba(61,82,160,0.08)':'transparent',color:(profile as any).formality===f||(!(profile as any).formality&&f==='vouvoiement')?'var(--indigo)':'var(--text2)',fontSize:12,fontWeight:500,cursor:'pointer',fontFamily:'inherit',textTransform:'capitalize' as const}}>{lang==='en'?(f==='tutoiement'?'Informal (tu)':'Formal (vous)'):f}</button>
                       ))}
                     </div>
                   </div>
@@ -2472,7 +2472,7 @@ export default function Home() {
       {showBatchModal && (
         <div onClick={()=>{if(!batchLoading)setShowBatchModal(false)}} style={{position:'fixed',inset:0,zIndex:700,background:'rgba(0,0,0,0.6)',display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(4px)',padding:20}}>
           <div onClick={e=>e.stopPropagation()} style={{background:'var(--white)',borderRadius:20,width:'100%',maxWidth:520,boxShadow:'0 24px 64px rgba(0,0,0,0.2)',overflow:'hidden'}}>
-            <div style={{background:'var(--forest)',padding:'20px 24px'}}>
+            <div style={{background:'var(--indigo)',padding:'20px 24px'}}>
               <div style={{fontSize:16,fontWeight:700,color:'white',marginBottom:4}}>{lang==='en'?`Generate ${selectedIdeaIds.size} post(s)`:`Générer ${selectedIdeaIds.size} post(s)`}</div>
               <div style={{fontSize:12,color:'rgba(255,255,255,0.7)'}}>Choisissez le format, la longueur et le ton</div>
             </div>
@@ -2490,7 +2490,7 @@ export default function Home() {
                   <label className="form-label">{lang==='en'?'Length':'Longueur'}</label>
                   <div style={{display:'flex',gap:8}}>
                     {(['short','medium','long'] as const).map(l=>(
-                      <button key={l} onClick={()=>setBatchLength(l)} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${batchLength===l?'var(--forest)':'var(--border)'}`,background:batchLength===l?'rgba(81,103,86,0.08)':'transparent',color:batchLength===l?'var(--forest)':'var(--text2)',fontSize:12,cursor:'pointer',fontFamily:'inherit',fontWeight:batchLength===l?600:400}}>
+                      <button key={l} onClick={()=>setBatchLength(l)} style={{flex:1,padding:'8px',borderRadius:8,border:`1px solid ${batchLength===l?'var(--indigo)':'var(--border)'}`,background:batchLength===l?'rgba(61,82,160,0.08)':'transparent',color:batchLength===l?'var(--indigo)':'var(--text2)',fontSize:12,cursor:'pointer',fontFamily:'inherit',fontWeight:batchLength===l?600:400}}>
                         {l==='short'?(lang==='en'?'Short':'Court'):l==='medium'?(lang==='en'?'Medium':'Moyen'):(lang==='en'?'Long':'Long')}
                       </button>
                     ))}
@@ -2564,7 +2564,7 @@ export default function Home() {
                 <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:12}}>
                   {(profile as any).linkedin_picture
                     ? <img src={(profile as any).linkedin_picture} alt="" style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>
-                    : <div style={{width:48,height:48,borderRadius:'50%',background:'#516756',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:16,flexShrink:0}}>{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
+                    : <div style={{width:48,height:48,borderRadius:'50%',background:'#3D52A0',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:16,flexShrink:0}}>{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
                   }
                   <div style={{flex:1}}>
                     <div style={{fontWeight:600,fontSize:14,color:'#000'}}>{profile.name||'Votre nom'}</div>
