@@ -1940,7 +1940,7 @@ export default function Home() {
             {selectedCalPost && (
               <div style={{position:'fixed' as const,inset:0,background:'rgba(0,0,0,0.4)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setSelectedCalPost(null)}>
                 <div style={{background:'var(--white)',borderRadius:20,padding:24,maxWidth:480,width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.15)'}} onClick={e=>e.stopPropagation()}>
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+                  <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:14,flexWrap:'wrap' as const,gap:8}}>
                     <span className={`badge ${selectedCalPost.status==='published'?'badge-forest':'badge-copper'}`}>
                       {selectedCalPost.status==='published'?T('status_published'):selectedCalPost.status==='error'?T('status_error'):T('status_pending')}
                     </span>
