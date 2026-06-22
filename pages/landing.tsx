@@ -306,10 +306,10 @@ export default function Landing() {
         {/* FEATURES */}
         <div style={{padding:'64px 32px',maxWidth:960,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16}}>
           {[
-            {icon:'💡',title:'10 idées par jour',desc:"Générées selon votre secteur et l'actualité du moment."},
-            {icon:'⚡',title:'Post en 30 secondes',desc:'Rédigez, éditez et publiez directement sur LinkedIn.'},
-            {icon:'🖼',title:'Visuels 1080px',desc:'Créez des images professionnelles pour chaque post.'},
-            {icon:'📅',title:'Calendrier éditorial',desc:'Planifiez et publiez automatiquement.'},
+            {icon:'✦',title:'10 idées par jour',desc:"Générées selon votre secteur et l'actualité du moment."},
+            {icon:'✦',title:'Post en 30 secondes',desc:'Rédigez, éditez et publiez directement sur LinkedIn.'},
+            {icon:'✦',title:'Visuels 1080px',desc:'Créez des images professionnelles pour chaque post.'},
+            {icon:'✦',title:'Calendrier éditorial',desc:'Planifiez et publiez automatiquement.'},
           ].map((f,i)=>(
             <div key={i} style={{padding:20,borderRadius:12,border:'1px solid #E3DED7',background:'white'}}>
               <div style={{fontSize:24,marginBottom:10}}>{f.icon}</div>

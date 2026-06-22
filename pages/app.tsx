@@ -886,7 +886,7 @@ export default function Home() {
           format: postFormat,
           length: postLength,
           tone: postTone,
-          profile,
+          profile: {...profile, lang},
           improvement: improvementNote,
           previousPost: postOutput,
           seed: Math.random().toString(36).substring(2),
