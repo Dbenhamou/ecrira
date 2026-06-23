@@ -133,13 +133,15 @@ ${isEn
 RÈGLE DE DIVERSITÉ THÉMATIQUE (obligatoire) :
 ${isEn
   ? `- Maximum 3 ideas out of 10 can use the direct keywords from the profile (${keywords || sector})
-- The other 7 must explore the PERIPHERY of the sector: regulation, macro trends, HR/business challenges, new use cases, cross-sector comparisons, AI impact, field feedback
+- MINIMUM 3 ideas out of 10 must be directly based on a recent news article provided above (real title, number or fact from the article)
+- The other ideas must explore the PERIPHERY of the sector: regulation, macro trends, HR/business challenges, new use cases, cross-sector comparisons, AI impact, field feedback
 - Think about sub-domains adjacent to "${sector}" and draw from them
-- If news articles are provided, use them as starting points for original angles`
+- For news-based ideas: cite the real fact in the hook, do not invent it`
   : `- Maximum 3 idées sur 10 peuvent utiliser les mots-clés directs du profil (${keywords || sector})
-- Les 7 autres doivent explorer les PÉRIPHÉRIES du secteur : réglementation, tendances macro, enjeux RH/business, nouveaux usages, comparaisons sectorielles, impact IA, retours terrain
+- MINIMUM 3 idées sur 10 doivent être directement basées sur une actualité récente fournie ci-dessus (titre, chiffre ou fait réel de l'article)
+- Les autres doivent explorer les PÉRIPHÉRIES du secteur : réglementation, tendances macro, enjeux RH/business, nouveaux usages, comparaisons sectorielles, impact IA, retours terrain
 - Imagine les sous-domaines connexes au secteur "${sector}" et pioche dedans
-- Si des actualités sont fournies, utilise-les comme point de départ pour des angles inédits`}
+- Pour les idées basées sur l'actualité : cite le fait réel dans le hook, ne l'invente pas`}
 
 Couvre des angles VARIÉS : actualité récente, ${dayAngle}, conseils pratiques, tendances, cas concrets, prises de position.
 Les 2 premières idées doivent être les plus originales et percutantes.
