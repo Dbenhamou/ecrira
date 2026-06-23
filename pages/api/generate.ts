@@ -11,6 +11,20 @@ const supabaseAdmin = createClient(
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// Rate limiting — max 20 générations par heure par user
+const generateRateLimit = new Map<string, {count: number, reset: number}>()
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now()
+  const limit = generateRateLimit.get(userId)
+  if (!limit || now > limit.reset) {
+    generateRateLimit.set(userId, { count: 1, reset: now + 3600_000 })
+    return true
+  }
+  if (limit.count >= 20) return false
+  limit.count++
+  return true
+}
+
 async function fetchNews(sector: string, topic: string, isEn: boolean): Promise<string> {
   try {
     const queryTopic = encodeURIComponent(topic.split(' ').slice(0, 4).join(' '))
@@ -36,6 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const userId = await requireAuth(req, res)
   if (!userId) return
+
+  if (!checkRateLimit(userId)) return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 20 générations par heure atteinte.' })
 
   const { topic, format, length, tone, profile, seed, improvement, previousPost, variant = 0 } = req.body
   if (topic && topic.length > 500) return res.status(400).json({ error: 'Sujet trop long (max 500 car.)' })

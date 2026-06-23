@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
+  if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) return res.status(401).end()
   const { email, name } = req.body
   if (!email||!process.env.RESEND_API_KEY) return res.status(200).end()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ecrira.com'

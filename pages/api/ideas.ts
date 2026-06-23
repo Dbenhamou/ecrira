@@ -4,6 +4,20 @@ import { requireAuth } from '../../lib/auth-helper'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// Rate limiting — max 10 générations d'idées par heure par user
+const ideasRateLimit = new Map<string, {count: number, reset: number}>()
+function checkIdeasRateLimit(userId: string): boolean {
+  const now = Date.now()
+  const limit = ideasRateLimit.get(userId)
+  if (!limit || now > limit.reset) {
+    ideasRateLimit.set(userId, { count: 1, reset: now + 3600_000 })
+    return true
+  }
+  if (limit.count >= 10) return false
+  limit.count++
+  return true
+}
+
 async function fetchNews(sector: string, isEn: boolean): Promise<string> {
   try {
     const queryBroad = encodeURIComponent(sector.split(' ').slice(0, 2).join(' '))
@@ -40,6 +54,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const userId = await requireAuth(req, res)
   if (!userId) return
+
+  if (!checkIdeasRateLimit(userId)) return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 10 générations d\'idées par heure atteinte.' })
 
   const { profile, pastTitles } = req.body
   if (profile?.role && profile.role.length > 200) return res.status(400).json({ error: 'Profil invalide' })
