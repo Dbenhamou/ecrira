@@ -11,6 +11,26 @@ const supabaseAdmin = createClient(
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+async function fetchNews(sector: string, topic: string, isEn: boolean): Promise<string> {
+  try {
+    const queryTopic = encodeURIComponent(topic.split(' ').slice(0, 4).join(' '))
+    const querySector = encodeURIComponent(sector.split(' ').slice(0, 2).join(' '))
+    const [r1, r2] = await Promise.all([
+      fetch(`https://newsapi.org/v2/everything?q=${queryTopic}&language=${isEn?'en':'fr'}&sortBy=publishedAt&pageSize=3&apiKey=${process.env.NEWS_API_KEY}`),
+      fetch(`https://newsapi.org/v2/everything?q=${querySector}&language=${isEn?'en':'fr'}&sortBy=publishedAt&pageSize=2&apiKey=${process.env.NEWS_API_KEY}`),
+    ])
+    const [d1, d2] = await Promise.all([r1.json(), r2.json()])
+    const seen = new Set<string>()
+    const articles = [...(d1.articles||[]), ...(d2.articles||[])]
+      .filter((a: {title:string}) => { if(seen.has(a.title)) return false; seen.add(a.title); return true; })
+      .slice(0, 4)
+    if (!articles.length) return ''
+    return articles.map((a: {title:string; description:string; source:{name:string}}) =>
+      `- [${a.source?.name||'Source'}] ${a.title}${a.description ? ' : ' + a.description.slice(0,120) : ''}`
+    ).join('\n')
+  } catch { return '' }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
@@ -89,24 +109,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       + "- Adapte le vocabulaire et les exemples au secteur de l'utilisateur"
   }
 
-  const systemPrompt = 'Tu es un expert en personal branding LinkedIn spécialisé dans le secteur de l\'utilisateur.\n'
-    + 'Utilisateur : ' + role + (company ? ' chez ' + company : '') + '.\n'
-    + 'Secteur : ' + (sector || 'Non précisé') + '.\n'
-    + 'Audience cible : ' + audience + '.\n'
-    + (summary ? 'Positionnement : ' + summary + '.\n' : '')
-    + (keywords ? 'Mots-clés secteur : ' + keywords + '.\n' : '')
-    + (painPoints ? 'Problèmes clients résolus : ' + painPoints + '.\n' : '')
-    + (contentThemes ? 'Thèmes éditoriaux recommandés : ' + contentThemes + '.\n' : '')
-    + (profileTone ? 'Ton éditorial : ' + profileTone + '.\n' : '')
-    + (techStack ? 'Outils/Stack : ' + techStack + '.\n' : '')
-    + 'IMPORTANT : Utilise le vocabulaire exact du secteur, des références concrètes au métier, et adresse-toi directement à l\'audience cible.\n'
-    + 'Langue : ' + lang + '. ' + langInstruction + variantInstruction + '\n\n'
+  const newsBlock = newsContext ? `=== ACTUALITÉS RÉCENTES SUR CE SUJET ===
+Ces informations sont réelles et vérifiées. Tu PEUX t'en inspirer pour ancrer le post dans l'actualité.
+${newsContext}
+=== FIN ACTUALITÉS ===
+
+` : ''
+
+  const systemPrompt = 'Tu es un ghostwriter LinkedIn expert, spécialisé dans le personal branding B2B.\n\n' + newsBlock
+    + '=== PROFIL AUTEUR ===\n'
+    + 'Rôle : ' + role + (company ? ' chez ' + company : '') + '\n'
+    + 'Secteur : ' + (sector || 'Non précisé') + '\n'
+    + 'Audience cible : ' + audience + '\n'
+    + (summary ? 'Positionnement : ' + summary + '\n' : '')
+    + (keywords ? 'Expertise clé : ' + keywords + '\n' : '')
+    + (painPoints ? 'Problèmes résolus pour les clients : ' + painPoints + '\n' : '')
+    + (techStack ? 'Outils/Stack : ' + techStack + '\n' : '')
+    + '\n=== RÈGLES ABSOLUES ===\n'
+    + '1. AUDIENCE : Chaque phrase doit résonner avec "' + audience + '". Parle LEURS problèmes, LEUR vocabulaire, LEURS enjeux spécifiques.\n'
+    + '2. CHIFFRES : Utilise uniquement des chiffres issus des actualités fournies ci-dessus ou de faits vérifiables. Si incertain, reformule sans chiffre plutôt que d\'inventer.\n'
+    + '3. TENSION : Commence par un fait contre-intuitif, une statistique réelle ou une situation concrète. Jamais de généralités en ouverture.\n'
+    + '4. VOIX : 1ère personne (je/nous). Point de vue tranché et assumé. Pas de conseils génériques.\n'
+    + '5. FORMAT : Phrases courtes. Retours à la ligne fréquents. Jamais de ** ni Markdown. Texte brut LinkedIn.\n'
+    + '6. HASHTAGS : 3-5 maximum, à la toute fin.\n'
+    + formalityInstruction + '\n\n'
     + styleSection + '\n\n'
-    + "- N'utilise JAMAIS de Markdown : pas de **, pas de __, pas de ##, pas de *\n"
-    + '- Le texte doit etre brut, pret a coller sur LinkedIn tel quel\n\n'
-    + (seed ? 'Seed de variation : ' + seed + ' — utilise cet angle unique, different des posts habituels sur ce sujet.\n' : '')
-    + formalityInstruction + '\n'
-    + 'Reponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
+    + 'Langue : ' + lang + '. ' + langInstruction + variantInstruction + '\n'
+    + (seed ? 'Angle : ' + seed + '\n' : '')
+    + 'Réponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
+
+  // Fetch actualités liées au sujet
+  const newsContext = await fetchNews(sector, topic || '', isEn)
 
   // Vérification plan Free (5 posts à vie)
   const { data: userProfile } = await supabaseAdmin
