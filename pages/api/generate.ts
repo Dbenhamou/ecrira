@@ -109,13 +109,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       + "- Adapte le vocabulaire et les exemples au secteur de l'utilisateur"
   }
 
-  const newsBlock = newsContext ? `=== ACTUALITÉS RÉCENTES SUR CE SUJET ===
-Ces informations sont réelles et vérifiées. Tu PEUX t'en inspirer pour ancrer le post dans l'actualité.
-${newsContext}
-=== FIN ACTUALITÉS ===
-
-` : ''
-
   const systemPrompt = 'Tu es un ghostwriter LinkedIn expert, spécialisé dans le personal branding B2B.\n\n' + newsBlock
     + '=== PROFIL AUTEUR ===\n'
     + 'Rôle : ' + role + (company ? ' chez ' + company : '') + '\n'
@@ -140,6 +133,12 @@ ${newsContext}
 
   // Fetch actualités liées au sujet
   const newsContext = await fetchNews(sector, topic || '', isEn)
+  const newsBlock = newsContext ? `=== ACTUALITÉS RÉCENTES SUR CE SUJET ===
+Ces informations sont réelles et vérifiées. Tu PEUX t'en inspirer pour ancrer le post dans l'actualité.
+${newsContext}
+=== FIN ACTUALITÉS ===
+
+` : ''
 
   // Vérification plan Free (5 posts à vie)
   const { data: userProfile } = await supabaseAdmin
