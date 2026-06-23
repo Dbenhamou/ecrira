@@ -1357,7 +1357,7 @@ export default function Home() {
                         <div key={i} style={{display:'flex',flexDirection:'column' as const,alignItems:'center',gap:6}}>
                           <span style={{fontSize:9,color:'var(--text3)',fontWeight:500,textTransform:'uppercase' as const,letterSpacing:'0.05em'}}>{d}</span>
                           <div style={{width:28,height:28,borderRadius:'50%',background:isToday?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:500,color:isToday?'white':'var(--text2)'}}>{date.getDate()}</div>
-                          <div style={{width:'100%',minHeight:54,borderRadius:8,border:dayPosts.length>0?'0.5px solid rgba(61,82,160,0.2)':'0.5px dashed var(--border)',background:dayPosts.length>0?'rgba(61,82,160,0.06)':'transparent',padding:dayPosts.length>0?'6px 6px':'0',display:'flex',alignItems:dayPosts.length>0?'flex-start':'center',justifyContent:'center'}}>
+                          <div onClick={()=>{ if(dayPosts.length>0){ setSelectedCalPost(dayPosts[0]); setPage('calendrier'); } }} style={{width:'100%',minHeight:54,borderRadius:8,border:dayPosts.length>0?'0.5px solid rgba(61,82,160,0.2)':'0.5px dashed var(--border)',background:dayPosts.length>0?'rgba(61,82,160,0.06)':'transparent',padding:dayPosts.length>0?'6px 6px':'0',display:'flex',alignItems:dayPosts.length>0?'flex-start':'center',justifyContent:'center',cursor:dayPosts.length>0?'pointer':'default'}}>
                             {dayPosts.length>0?(
                               <div>
                                 <div style={{fontSize:8,color:'#B7956A',fontWeight:600,marginBottom:2}}>{new Date(dayPosts[0].scheduled_at).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>
