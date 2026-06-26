@@ -657,7 +657,15 @@ export default function Home() {
       })
       const data = await res.json()
       if (data.suggestions) {
-        setEnrichSuggestions(data.suggestions)
+        // Appliquer AUTOMATIQUEMENT toutes les suggestions de texte (modifiables ensuite)
+        setProfile(p => {
+          const updated = { ...p }
+          Object.keys(data.suggestions).forEach(key => {
+            if (data.suggestions[key]) (updated as any)[key] = data.suggestions[key]
+          })
+          return updated
+        })
+        setEnrichSuggestions(null)
         // Appliquer logo entreprise si trouvé
         if (data.company_logo) setProfile((p:any)=>({...p,company_logo:data.company_logo}))
         // Appliquer automatiquement les couleurs extraites
@@ -670,9 +678,9 @@ export default function Home() {
             brand_color2: data.colors.secondary || p.brand_color2,
             brand_color3: data.colors.accent || p.brand_color3,
           }))
-          showToast(T('toast_colors_detected'))
+          showToast(lang==='en'?'Profile auto-filled ✓ — edit if needed':'Profil pré-rempli ✓ — modifie si besoin')
         } else {
-          showToast('Site dynamique détecté — renseigne les couleurs manuellement')
+          showToast(lang==='en'?'Profile auto-filled ✓ — add colors manually':'Profil pré-rempli ✓ — ajoute les couleurs manuellement')
         }
       } else showToast(data.error || 'Impossible d\'analyser le site')
     } catch { showToast(lang==='en'?'Network error':'Erreur réseau') }
