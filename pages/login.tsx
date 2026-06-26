@@ -7,6 +7,7 @@ export default function Login() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -182,8 +183,9 @@ export default function Login() {
             <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: '#6B7069', marginBottom: 5 }}>
               Mot de passe
             </label>
+            <div style={{ position: 'relative' }}>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
@@ -192,7 +194,7 @@ export default function Login() {
                 background: '#FAF9F7',
                 border: '1px solid #E3DED7',
                 borderRadius: 9,
-                padding: '9px 13px',
+                padding: '9px 40px 9px 13px',
                 fontSize: 13, color: '#1F2421',
                 fontFamily: "'Inter', sans-serif",
                 outline: 'none',
@@ -200,6 +202,13 @@ export default function Login() {
               }}
               onKeyDown={e => e.key === 'Enter' && handleEmailAuth()}
             />
+            <button type="button" onClick={()=>setShowPassword(v=>!v)} style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',padding:4,color:'#9A9490',display:'flex',alignItems:'center'}} aria-label={showPassword?'Masquer':'Afficher'}>
+              {showPassword ? (
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              )}
+            </button>
           </div>
 
           {error && (
