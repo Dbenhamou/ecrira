@@ -88,8 +88,8 @@ export default function Pricing() {
     <>
       <Head>
         <title>{T.tab_title}</title>
-        <link rel="icon" href="/logo-ecrira-icon.png" type="image/png"/>
-        <link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/>
+        <link rel="icon" href="/logo-ecrira-icon-bleu.png" type="image/png"/>
+        <link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/>
         <script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script>
         <meta name="description" content={lang==='fr'?"Ecrira génère vos posts LinkedIn en quelques secondes grâce à l'IA. Commencez gratuitement.":"Ecrira generates your LinkedIn posts in seconds with AI. Start for free."} />
         <meta property="og:title" content="Ecrira — Générateur de posts LinkedIn par IA" />
@@ -102,15 +102,15 @@ export default function Pricing() {
       {/* Header navigation */}
       <div style={{position:'sticky',top:0,zIndex:100,background:'white',borderBottom:'1px solid #E3DED7',padding:'12px 24px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
         <a href="/" style={{display:'flex',alignItems:'center',gap:8,textDecoration:'none'}}>
-          <img src="/logo-ecrira.png" alt="Ecrira" style={{height:52,width:'auto'}} />
+          <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{height:52,width:'auto'}} />
         </a>
         <div style={{display:'flex',gap:10}}>
           {user ? (
-            <a href="/" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#516756',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Accéder à mon compte':'Go to my account'}</a>
+            <a href="/" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#3D52A0',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Accéder à mon compte':'Go to my account'}</a>
           ) : (
             <>
-              <a href="/login" style={{fontSize:13,color:'#516756',textDecoration:'none',padding:'7px 14px',borderRadius:8,border:'1px solid rgba(81,103,86,0.3)',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?'Se connecter':'Sign in'}</a>
-              <a href="/login" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#516756',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Commencer gratuitement':'Start for free'}</a>
+              <a href="/login" style={{fontSize:13,color:'#3D52A0',textDecoration:'none',padding:'7px 14px',borderRadius:8,border:'1px solid rgba(61,82,160,0.3)',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?'Se connecter':'Sign in'}</a>
+              <a href="/login" style={{fontSize:13,color:'white',textDecoration:'none',padding:'7px 14px',borderRadius:8,background:'#3D52A0',fontFamily:"'Inter',sans-serif",fontWeight:500}}>{lang==='fr'?'Commencer gratuitement':'Start for free'}</a>
             </>
           )}
         </div>
@@ -124,16 +124,16 @@ export default function Pricing() {
       }}>
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-          <p style={{ color: '#516756', fontFamily: "'Clash Display', sans-serif", fontSize: '14px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}>
+          <p style={{ color: '#3D52A0', fontFamily: "'Clash Display', sans-serif", fontSize: '14px', letterSpacing: '3px', textTransform: 'uppercase', marginBottom: '12px' }}>
 {T.eyebrow}
           </p>
           <h1 style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#1F2421', margin: '0 0 16px' }}>
 {T.title}
           </h1>
-          <p style={{ color: '#516756', fontSize: '18px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>{T.subtitle}</p>
+          <p style={{ color: '#3D52A0', fontSize: '18px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>{T.subtitle}</p>
           <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center',marginTop:24}}>
             <span style={{fontSize:14,color:!annual?'#1F2421':'#B7C0B8',fontWeight:!annual?600:400}}>{lang==='fr'?'Mensuel':'Monthly'}</span>
-            <div onClick={()=>setAnnual(v=>!v)} style={{width:46,height:26,borderRadius:13,background:annual?'#516756':'#E3DED7',cursor:'pointer',position:'relative',transition:'background 0.2s'}}>
+            <div onClick={()=>setAnnual(v=>!v)} style={{width:46,height:26,borderRadius:13,background:annual?'#3D52A0':'#E3DED7',cursor:'pointer',position:'relative',transition:'background 0.2s'}}>
               <div style={{position:'absolute',top:3,left:annual?23:3,width:20,height:20,borderRadius:'50%',background:'white',transition:'left 0.2s',boxShadow:'0 1px 4px rgba(0,0,0,0.15)'}}/>
             </div>
             <span style={{fontSize:14,color:annual?'#1F2421':'#B7C0B8',fontWeight:annual?600:400}}>{lang==='fr'?'Annuel':'Annual'}<span style={{marginLeft:6,fontSize:11,background:'#D9C8A3',color:'#1F2421',padding:'2px 7px',borderRadius:20,fontWeight:600}}>-20%</span></span>
@@ -159,18 +159,18 @@ export default function Pricing() {
             borderRadius: '20px',
             padding: '40px 32px',
           }}>
-            <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#516756', marginBottom: '8px' }}>Free</p>
+            <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#3D52A0', marginBottom: '8px' }}>Free</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
               <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#1F2421' }}>0€</span>
               <span style={{ color: '#B7C0B8', fontSize: '15px' }}>{T.per_month}</span>
             </div>
-            <p style={{ color: '#516756', fontSize: '14px', marginBottom: '32px' }}>{T.free_tagline}</p>
+            <p style={{ color: '#3D52A0', fontSize: '14px', marginBottom: '32px' }}>{T.free_tagline}</p>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 40px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
                 ...T.free_features.map((f,i) => i < 3 ? f : '✗ ' + f),
               ].map((f, i) => (
                 <li key={i} style={{ fontSize: '14px', color: f.startsWith('✗') ? '#B7C0B8' : '#1F2421', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  {!f.startsWith('✗') && <span style={{ color: '#516756', fontSize: '16px' }}>✓</span>}
+                  {!f.startsWith('✗') && <span style={{ color: '#3D52A0', fontSize: '16px' }}>✓</span>}
                   {f.startsWith('✗') && <span style={{ color: '#B7C0B8', fontSize: '16px' }}>✗</span>}
                   {f.replace('✗ ', '')}
                 </li>
@@ -184,7 +184,7 @@ export default function Pricing() {
                 borderRadius: '12px',
                 border: '1.5px solid #B7C0B8',
                 background: 'transparent',
-                color: '#516756',
+                color: '#3D52A0',
                 fontFamily: "'Clash Display', sans-serif",
                 fontSize: '15px',
                 fontWeight: 600,
@@ -271,7 +271,7 @@ export default function Pricing() {
             padding: '40px 32px',
             opacity: 0.7,
           }}>
-            <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#516756', marginBottom: '8px' }}>Team</p>
+            <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#3D52A0', marginBottom: '8px' }}>Team</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
               <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#B7C0B8' }}>—</span>
             </div>
@@ -285,11 +285,11 @@ export default function Pricing() {
               ))}
             </ul>
             {waitlistSent ? (
-              <div style={{textAlign:'center',padding:'14px',background:'rgba(81,103,86,0.08)',borderRadius:12,fontSize:13,color:'#516756',fontWeight:500}}>✓ {lang==='fr'?"Inscrit sur la liste d'attente !":"Added to waitlist!"}</div>
+              <div style={{textAlign:'center',padding:'14px',background:'rgba(61,82,160,0.08)',borderRadius:12,fontSize:13,color:'#3D52A0',fontWeight:500}}>✓ {lang==='fr'?"Inscrit sur la liste d'attente !":"Added to waitlist!"}</div>
             ) : (
               <div style={{display:'flex',gap:8}}>
                 <input type="email" placeholder={lang==='fr'?'Votre email':'Your email'} value={waitlistEmail} onChange={e=>setWaitlistEmail(e.target.value)} style={{flex:1,padding:'10px 14px',borderRadius:10,border:'1px solid #E3DED7',fontSize:13,fontFamily:"'Inter',sans-serif",outline:'none'}}/>
-                <button onClick={async()=>{if(!waitlistEmail)return;await fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:waitlistEmail,userId:'anonymous'})}).catch(()=>{});setWaitlistSent(true)}} style={{padding:'10px 16px',borderRadius:10,background:'#516756',color:'white',border:'none',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?"M'avertir":"Notify me"}</button>
+                <button onClick={async()=>{if(!waitlistEmail)return;await fetch('/api/waitlist',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:waitlistEmail,userId:'anonymous'})}).catch(()=>{});setWaitlistSent(true)}} style={{padding:'10px 16px',borderRadius:10,background:'#3D52A0',color:'white',border:'none',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:"'Inter',sans-serif"}}>{lang==='fr'?"M'avertir":"Notify me"}</button>
               </div>
             )}
           </div>
@@ -304,7 +304,7 @@ export default function Pricing() {
             {q:lang==='fr'?'Mes données sont-elles sécurisées ?':'Is my data secure?',a:lang==='fr'?'Vos données sont stockées sur Supabase (UE) et ne sont jamais revendues.':'Your data is stored on Supabase (EU) and is never sold.'},
           ].map((faq,i)=>(
             <details key={i} style={{borderBottom:'1px solid #E3DED7',padding:'16px 0'}}>
-              <summary style={{fontSize:15,fontWeight:600,color:'#1F2421',cursor:'pointer',listStyle:'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>{faq.q}<span style={{fontSize:18,color:'#516756',flexShrink:0,marginLeft:12}}>+</span></summary>
+              <summary style={{fontSize:15,fontWeight:600,color:'#1F2421',cursor:'pointer',listStyle:'none',display:'flex',justifyContent:'space-between',alignItems:'center'}}>{faq.q}<span style={{fontSize:18,color:'#3D52A0',flexShrink:0,marginLeft:12}}>+</span></summary>
               <p style={{fontSize:14,color:'#6B7069',lineHeight:1.7,marginTop:10,paddingRight:24}}>{faq.a}</p>
             </details>
           ))}
@@ -313,7 +313,7 @@ export default function Pricing() {
       <footer style={{background:'#1F2421',padding:'40px 24px',marginTop:60}}>
         <div style={{maxWidth:1000,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:20}}>
           <div style={{display:'flex',alignItems:'center',gap:12}}>
-            <img src="/logo-ecrira-icon.png" alt="Ecrira" style={{height:32,width:'auto',filter:'brightness(0) invert(1)'}}/>
+            <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{height:32,width:'auto',filter:'brightness(0) invert(1)'}}/>
             <span style={{fontSize:12,color:'rgba(255,255,255,0.4)'}}>© 2026 Ecrira · Tous droits réservés</span>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:20}}>

@@ -63,8 +63,8 @@ export default function Login() {
   return (
     <>
       <Head>
-        <link rel="icon" href="/logo-ecrira-icon.png" type="image/png"/>
-        <link rel="apple-touch-icon" href="/logo-ecrira-icon.png"/><title>Ecrira — Publiez sur LinkedIn en 30 secondes</title><meta name="description" content="Connectez-vous à Ecrira et générez vos posts LinkedIn en 30 secondes."/></Head>
+        <link rel="icon" href="/logo-ecrira-icon-bleu.png" type="image/png"/>
+        <link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/><title>Ecrira — Publiez sur LinkedIn en 30 secondes</title><meta name="description" content="Connectez-vous à Ecrira et générez vos posts LinkedIn en 30 secondes."/></Head>
       <div style={{
         minHeight: '100vh',
         background: '#FAF9F7',
@@ -86,7 +86,7 @@ export default function Login() {
 
           {/* Logo */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 36 }}>
-            <img src="/logo-ecrira.png" alt="Ecrira" style={{ height: 96, width: 'auto' }} />
+            <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{ height: 96, width: 'auto' }} />
           </div>
 
           <div style={{ marginBottom: 24 }}>
@@ -217,7 +217,7 @@ export default function Login() {
               background: 'rgba(79,103,84,0.07)',
               border: '1px solid rgba(79,103,84,0.2)',
               borderRadius: 9, padding: '9px 13px',
-              fontSize: 12, color: '#516756',
+              fontSize: 12, color: '#3D52A0',
               marginBottom: 14,
             }}>{message}</div>
           )}
@@ -227,7 +227,7 @@ export default function Login() {
             disabled={loading}
             style={{
               width: '100%',
-              background: '#516756', color: 'white',
+              background: '#3D52A0', color: 'white',
               border: 'none',
               borderRadius: 11,
               padding: '10px 18px',
@@ -256,7 +256,7 @@ export default function Login() {
             {mode === 'login' ? "Pas encore de compte ? " : "Déjà un compte ? "}
             <span
               onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setError(''); setMessage('') }}
-              style={{ color: '#516756', cursor: 'pointer', fontWeight: 500 }}
+              style={{ color: '#3D52A0', cursor: 'pointer', fontWeight: 500 }}
             >
               {mode === 'login' ? "S'inscrire" : 'Se connecter'}
             </span>

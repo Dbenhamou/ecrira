@@ -1196,7 +1196,7 @@ export default function Home() {
             )}
             <div style={{position:'relative' as const}}>
               <div className="app-header-avatar" onClick={(e)=>{e.stopPropagation();setShowAvatarMenu(v=>!v)}} style={{cursor:'pointer'}}>
-                {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
+                {(profile as any).linkedin_picture?<img src={(profile as any).linkedin_picture} alt="" onError={(e:any)=>{e.target.style.display='none';e.target.parentElement.textContent=profile.name?profile.name.slice(0,2).toUpperCase():'??'}} style={{width:'100%',height:'100%',objectFit:'cover' as const,borderRadius:'50%'}}/>:profile.name?profile.name.slice(0,2).toUpperCase():'??'}
               </div>
               {(isPro||plan==='trial')&&<span style={{position:'absolute' as const,bottom:-4,right:-4,background:plan==='trial'?'#D9A840':'var(--indigo)',color:'white',fontSize:7,fontWeight:700,padding:'1px 4px',borderRadius:6,letterSpacing:'0.04em',border:'1.5px solid var(--ivory)',zIndex:1}}>{plan==='trial'?`${trialDaysLeft}j`:'PRO'}</span>}
 
