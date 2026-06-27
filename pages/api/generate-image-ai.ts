@@ -32,22 +32,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const sector = profile?.sector || 'B2B'
   const brandAccent = profile?.brand_accent || '#3D52A0'
+  const brandSecondary = profile?.brand_color2 || '#32458A'
 
-  const designPrompt = `Tu es un directeur artistique. À partir de ce post LinkedIn, crée une infographie professionnelle au format carré (1080x1080).
+  const designPrompt = `Crée une infographie LinkedIn premium et minimaliste au format carré 1:1 (1080x1080), en FRANÇAIS.
 
-POST : "${postTopic}"
-CONTENU : "${postContent.slice(0, 800)}"
+SUJET : "${postTopic}"
+CONTEXTE (pour comprendre, NE PAS tout afficher) : "${postContent.slice(0, 600)}"
 SECTEUR : ${sector}
-COULEUR PRINCIPALE : ${brandAccent}
 
-Génère une infographie LinkedIn professionnelle et moderne :
-- Titre accrocheur en gros (extrait du post)
-- 3 à 4 points clés avec icônes
-- Un chiffre ou statistique en évidence si présent dans le post
-- Palette : ${brandAccent} comme couleur dominante, fond clair, accents
-- Style : épuré, corporate, premium, type infographie cybersécurité/tech
-- Texte en FRANÇAIS, parfaitement lisible
-- Format carré 1:1`
+RÈGLES DE CONTENU (strict) :
+- Un GRAND titre accrocheur en haut (une phrase courte, percutante)
+- MAXIMUM 2 à 3 éléments clés seulement (pas plus). Choisis les plus importants.
+- Si un chiffre fort existe, mets-le en évidence visuelle
+- Beaucoup d'espace négatif, épuré, aéré. PAS de surcharge.
+
+RÈGLES GRAPHIQUES (premium) :
+- Composition travaillée avec profondeur : formes organiques, dégradés subtils, ombres douces
+- Style éditorial moderne, type magazine tech / cybersécurité haut de gamme
+- Icônes minimalistes et élégantes pour illustrer les 2-3 points
+- Hiérarchie visuelle forte : le titre domine, les éléments respirent
+
+PALETTE OBLIGATOIRE (à respecter STRICTEMENT) :
+- Couleur dominante : ${brandAccent}
+- Couleur secondaire : ${brandSecondary}
+- Fond clair et neutre
+- N'utilise QUE ces teintes + neutres. Pas de cyan, pas de vert, pas d'autres couleurs.
+
+Texte FRANÇAIS parfaitement orthographié et lisible. Format carré 1:1.`
 
   try {
     const apiKey = process.env.GOOGLE_AI_API_KEY
