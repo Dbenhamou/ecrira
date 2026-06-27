@@ -1624,17 +1624,6 @@ export default function Home() {
                       </div>
                     )}
 
-                    {/* Bouton Visuel IA (Gemini) */}
-                    <button className="btn" style={{width:'100%',fontSize:12,justifyContent:'center',background:'#1F2421',color:'white',border:'none',borderRadius:0,borderTop:'1px solid rgba(255,255,255,0.15)',opacity:postOutput?1:0.4,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
-                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA…</>:'✦ Visuel IA (beta)'}
-                    </button>
-                    {aiImageUrl && (
-                      <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)'}}>
-                        <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.07em',textTransform:'uppercase' as const,marginBottom:8}}>Visuel IA</div>
-                        <img src={aiImageUrl} alt="Visuel IA" style={{width:'100%',borderRadius:8,display:'block',marginBottom:8}}/>
-                        <a href={aiImageUrl} download="visuel-ecrira-ia.png" className="btn btn-secondary" style={{fontSize:11,width:'100%',justifyContent:'center'}}>↓ Télécharger</a>
-                      </div>
-                    )}
 
                     {/* Config panel */}
                     {showVisualConfig && (
