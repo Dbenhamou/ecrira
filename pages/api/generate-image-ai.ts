@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
+import Anthropic from '@anthropic-ai/sdk'
 import { requireAuth } from '../../lib/auth-helper'
 
-// Rate limiting — max 10 images IA par heure par user
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
 const imgRateLimit = new Map<string, {count: number, reset: number}>()
 function checkImgRateLimit(userId: string): boolean {
   const now = Date.now()
@@ -30,35 +32,63 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const isPro = profile?.plan === 'pro' || profile?.plan === 'trial'
   if (!isPro) return res.status(403).json({ error: 'PRO_ONLY', message: 'Les visuels IA sont réservés au plan Pro.' })
 
-  const sector = profile?.sector || 'B2B'
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
 
+  // Étape 1 : Claude extrait le contenu ultra-court pour le visuel
+  let visualTitle = postTopic || ''
+  let visualPoints: string[] = []
+  try {
+    const extract = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system: 'Tu extrais le contenu pour une infographie LinkedIn minimaliste. Réponds UNIQUEMENT en JSON strict, sans markdown.',
+      messages: [{
+        role: 'user',
+        content: `À partir de ce post LinkedIn, extrais :
+- "title" : un titre accrocheur de 6 mots MAXIMUM
+- "points" : un tableau de EXACTEMENT 3 éléments, chacun avec "label" (3 mots max) et "value" (8 mots max, percutant)
+
+POST : "${postContent.slice(0, 700)}"
+
+Réponds en JSON : {"title": "...", "points": [{"label":"...","value":"..."}, ...]}`,
+      }],
+    })
+    const txt = (extract.content[0] as { text: string }).text.replace(/```json|```/g, '').trim()
+    const parsed = JSON.parse(txt)
+    if (parsed.title) visualTitle = parsed.title
+    if (Array.isArray(parsed.points)) visualPoints = parsed.points.map((p: {label:string,value:string}) => `${p.label} — ${p.value}`)
+  } catch (e) {
+    console.error('[extract]', e)
+  }
+
+  const pointsBlock = visualPoints.length ? visualPoints.map((p,i)=>`${i+1}. ${p}`).join('\n') : ''
+
   const designPrompt = `Crée une infographie LinkedIn premium et minimaliste au format carré 1:1 (1080x1080), en FRANÇAIS.
 
-SUJET : "${postTopic}"
-CONTEXTE (pour comprendre, NE PAS tout afficher) : "${postContent.slice(0, 600)}"
-SECTEUR : ${sector}
+TITRE (à afficher en grand, en haut) : "${visualTitle}"
+
+LES 3 SEULS ÉLÉMENTS À AFFICHER (rien d'autre) :
+${pointsBlock}
 
 RÈGLES DE CONTENU (strict) :
-- Un GRAND titre accrocheur en haut (une phrase courte, percutante)
-- MAXIMUM 2 à 3 éléments clés seulement (pas plus). Choisis les plus importants.
-- Si un chiffre fort existe, mets-le en évidence visuelle
-- Beaucoup d'espace négatif, épuré, aéré. PAS de surcharge.
+- Affiche le titre en grand + EXACTEMENT ces 3 éléments, pas plus
+- Chaque élément : un label court + une icône minimaliste. Texte très court.
+- Beaucoup d'espace négatif, épuré, aéré. AUCUNE surcharge de texte.
 
 RÈGLES GRAPHIQUES (premium) :
 - Composition travaillée avec profondeur : formes organiques, dégradés subtils, ombres douces
-- Style éditorial moderne, type magazine tech / cybersécurité haut de gamme
-- Icônes minimalistes et élégantes pour illustrer les 2-3 points
+- Style éditorial moderne, type magazine tech haut de gamme
+- Icônes minimalistes et élégantes
 - Hiérarchie visuelle forte : le titre domine, les éléments respirent
 
-PALETTE OBLIGATOIRE (à respecter STRICTEMENT) :
+PALETTE OBLIGATOIRE (STRICTE) :
 - Couleur dominante : ${brandAccent}
 - Couleur secondaire : ${brandSecondary}
 - Fond clair et neutre
-- N'utilise QUE ces teintes + neutres. Pas de cyan, pas de vert, pas d'autres couleurs.
+- N'utilise QUE ces teintes + neutres. Pas de cyan, pas de vert.
 
-Texte FRANÇAIS parfaitement orthographié et lisible. Format carré 1:1.`
+Texte FRANÇAIS parfaitement orthographié. Format carré 1:1.`
 
   try {
     const apiKey = process.env.GOOGLE_AI_API_KEY

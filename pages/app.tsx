@@ -1619,7 +1619,7 @@ export default function Home() {
                     {aiImageUrl && (
                       <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)'}}>
                         <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.07em',textTransform:'uppercase' as const,marginBottom:8}}>Visuel IA</div>
-                        <img src={aiImageUrl} alt="Visuel IA" style={{width:'100%',borderRadius:8,display:'block',marginBottom:8}}/>
+                        <img src={aiImageUrl} alt="Visuel IA" style={{width:'100%',maxWidth:340,borderRadius:8,display:'block',marginBottom:8,margin:'0 auto 8px'}}/>
                         <a href={aiImageUrl} download="visuel-ecrira-ia.png" className="btn btn-secondary" style={{fontSize:11,width:'100%',justifyContent:'center'}}>↓ Télécharger</a>
                       </div>
                     )}
