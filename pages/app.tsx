@@ -805,6 +805,39 @@ export default function Home() {
     }
   }
 
+  const [aiImageUrl, setAiImageUrl] = useState('')
+  const [generatingImageAI, setGeneratingImageAI] = useState(false)
+
+  const generateImageAI = async () => {
+    if (!postOutput.trim()) { showToast('Génère un post d\'abord'); return }
+    setGeneratingImageAI(true)
+    setAiImageUrl('')
+    try {
+      const res = await authFetch('/api/generate-image-ai', {
+        method: 'POST',
+        body: JSON.stringify({
+          postContent: postOutput,
+          postTopic: visualCustomTitle || postTopic,
+          profile: {...profile, plan: isPro ? 'pro' : 'free'},
+        }),
+      })
+      const data = await res.json()
+      if (data.image) {
+        setAiImageUrl(`data:${data.mimeType || 'image/png'};base64,${data.image}`)
+        showToast('Visuel IA généré ✓')
+      } else if (data.error === 'RATE_LIMIT') {
+        showToast('Limite de 10 visuels IA par heure atteinte')
+      } else if (data.error === 'PRO_ONLY') {
+        setShowUpgradeModal(true)
+      } else {
+        showToast(data.message || 'Erreur génération visuel IA')
+      }
+    } catch {
+      showToast(lang==='en'?'Network error':'Erreur réseau')
+    }
+    setGeneratingImageAI(false)
+  }
+
   const generateAiVisual = async () => {
     if (!postOutput.trim()) { showToast('Génère un post d\'abord'); return }
     const tabAtVisualStart = activeBatchTab
@@ -1578,6 +1611,30 @@ export default function Home() {
                         {showVisualConfig?'▲':'▼'}
                       </button>
                     </div>
+
+                    {/* Bouton Visuel IA (Gemini) */}
+                    <button className="btn" style={{width:'100%',fontSize:12,justifyContent:'center',background:'#1F2421',color:'white',border:'none',borderRadius:0,borderTop:'1px solid rgba(255,255,255,0.15)',opacity:postOutput?1:0.4,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
+                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA…</>:'✦ Visuel IA (beta)'}
+                    </button>
+                    {aiImageUrl && (
+                      <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)'}}>
+                        <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.07em',textTransform:'uppercase' as const,marginBottom:8}}>Visuel IA</div>
+                        <img src={aiImageUrl} alt="Visuel IA" style={{width:'100%',borderRadius:8,display:'block',marginBottom:8}}/>
+                        <a href={aiImageUrl} download="visuel-ecrira-ia.png" className="btn btn-secondary" style={{fontSize:11,width:'100%',justifyContent:'center'}}>↓ Télécharger</a>
+                      </div>
+                    )}
+
+                    {/* Bouton Visuel IA (Gemini) */}
+                    <button className="btn" style={{width:'100%',fontSize:12,justifyContent:'center',background:'#1F2421',color:'white',border:'none',borderRadius:0,borderTop:'1px solid rgba(255,255,255,0.15)',opacity:postOutput?1:0.4,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
+                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA…</>:'✦ Visuel IA (beta)'}
+                    </button>
+                    {aiImageUrl && (
+                      <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)'}}>
+                        <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.07em',textTransform:'uppercase' as const,marginBottom:8}}>Visuel IA</div>
+                        <img src={aiImageUrl} alt="Visuel IA" style={{width:'100%',borderRadius:8,display:'block',marginBottom:8}}/>
+                        <a href={aiImageUrl} download="visuel-ecrira-ia.png" className="btn btn-secondary" style={{fontSize:11,width:'100%',justifyContent:'center'}}>↓ Télécharger</a>
+                      </div>
+                    )}
 
                     {/* Config panel */}
                     {showVisualConfig && (
