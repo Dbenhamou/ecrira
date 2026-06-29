@@ -34,29 +34,44 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
+  const sector = profile?.sector || ''
 
-  // Étape 1 : Claude extrait le contenu ultra-court pour le visuel
+  // Étape 1 : Claude analyse le post (généraliste, tous secteurs) et prépare le brief visuel
   let visualTitle = postTopic || ''
   let visualPoints: string[] = []
+  let layout = 'trois-points'
+  let bgDescription = ''
+  let postType = 'conseil'
   try {
     const extract = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
-      system: 'Tu extrais le contenu pour une infographie LinkedIn minimaliste. Réponds UNIQUEMENT en JSON strict, sans markdown.',
+      max_tokens: 500,
+      system: `Tu es directeur artistique pour des infographies LinkedIn professionnelles, tous secteurs confondus (tech, immobilier, finance, coaching, RH, santé, etc.). Tu analyses un post et prépares un brief visuel adapté au secteur ET au type de contenu. Réponds UNIQUEMENT en JSON strict, sans markdown.`,
       messages: [{
         role: 'user',
-        content: `À partir de ce post LinkedIn, extrais :
-- "title" : un titre accrocheur de 6 mots MAXIMUM
-- "points" : un tableau de EXACTEMENT 3 éléments, chacun avec "label" (3 mots max) et "value" (8 mots max, percutant)
+        content: `Analyse ce post LinkedIn et prépare le brief d'une infographie pro.
 
-POST : "${postContent.slice(0, 700)}"
+POST : "${postContent.slice(0, 800)}"
+SECTEUR DE L'AUTEUR : "${sector || 'non précisé — déduis-le du post'}"
 
-Réponds en JSON : {"title": "...", "points": [{"label":"...","value":"..."}, ...]}`,
+Renvoie ce JSON :
+{
+  "title": "titre accrocheur, 6 mots MAX",
+  "postType": "un parmi: alerte | statistique | conseil | comparaison | storytelling",
+  "layout": "un parmi: heros-chiffre (un grand chiffre central) | comparaison (2 colonnes opposées) | trois-points (3 éléments) | citation (une phrase forte centrale)",
+  "points": [{"label":"3 mots max","value":"8 mots max"}],
+  "bgDescription": "description courte EN ANGLAIS d'une image d'ambiance professionnelle et abstraite liée au SECTEUR du post (ex pour la tech: 'abstract data center with soft blue light'; pour l'immobilier: 'modern architecture soft daylight'). Doit rester subtile, pas chargée, pour servir de fond avec du texte par-dessus."
+}
+
+Le nombre de points dépend du layout : heros-chiffre=1 ou 2, comparaison=2, trois-points=3, citation=0.`,
       }],
     })
     const txt = (extract.content[0] as { text: string }).text.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(txt)
     if (parsed.title) visualTitle = parsed.title
+    if (parsed.layout) layout = parsed.layout
+    if (parsed.postType) postType = parsed.postType
+    if (parsed.bgDescription) bgDescription = parsed.bgDescription
     if (Array.isArray(parsed.points)) visualPoints = parsed.points.map((p: {label:string,value:string}) => `${p.label} — ${p.value}`)
   } catch (e) {
     console.error('[extract]', e)
@@ -64,31 +79,40 @@ Réponds en JSON : {"title": "...", "points": [{"label":"...","value":"..."}, ..
 
   const pointsBlock = visualPoints.length ? visualPoints.map((p,i)=>`${i+1}. ${p}`).join('\n') : ''
 
-  const designPrompt = `Crée une infographie LinkedIn premium et minimaliste au format carré 1:1 (1080x1080), en FRANÇAIS.
+  // Layout-specific composition guidance
+  const layoutGuide: Record<string,string> = {
+    'heros-chiffre': 'Composition centrée sur UN grand chiffre/statistique dominant, énorme, au centre. Le titre au-dessus, une courte explication en dessous.',
+    'comparaison': 'Deux colonnes ou deux zones opposées (vs), avec un contraste visuel clair entre les deux côtés.',
+    'trois-points': 'Trois éléments alignés avec icônes minimalistes, espacés et aérés.',
+    'citation': 'Une phrase forte centrale en grand, traitée comme une citation premium, beaucoup d\'espace négatif.',
+  }
 
-TITRE (à afficher en grand, en haut) : "${visualTitle}"
+  const designPrompt = `Crée une infographie LinkedIn PREMIUM et professionnelle, format carré 1:1 (1080x1080), en FRANÇAIS.
 
-LES 3 SEULS ÉLÉMENTS À AFFICHER (rien d'autre) :
-${pointsBlock}
+TITRE (en grand, dominant) : "${visualTitle}"
 
-RÈGLES DE CONTENU (strict) :
-- Affiche le titre en grand + EXACTEMENT ces 3 éléments, pas plus
-- Chaque élément : un label court + une icône minimaliste. Texte très court.
-- Beaucoup d'espace négatif, épuré, aéré. AUCUNE surcharge de texte.
+CONTENU À AFFICHER (uniquement ça, rien de plus) :
+${pointsBlock || '(pas de points, mets en valeur le titre comme une citation)'}
 
-RÈGLES GRAPHIQUES (premium) :
-- Composition travaillée avec profondeur : formes organiques, dégradés subtils, ombres douces
-- Style éditorial moderne, type magazine tech haut de gamme
+COMPOSITION (layout "${layout}") :
+${layoutGuide[layout] || layoutGuide['trois-points']}
+
+IMAGE DE FOND (subtile, en arrière-plan, faible opacité pour garder le texte lisible) :
+${bgDescription || 'fond abstrait professionnel, dégradé doux'}
+
+RÈGLES GRAPHIQUES (premium, niveau magazine pro) :
+- Vraie profondeur : image d'ambiance en fond + overlay pour la lisibilité du texte
+- Composition éditoriale travaillée, hiérarchie visuelle forte
 - Icônes minimalistes et élégantes
-- Hiérarchie visuelle forte : le titre domine, les éléments respirent
+- Beaucoup d'espace négatif, aéré, AUCUNE surcharge de texte
+- Rendu haut de gamme, pas "template générique"
 
 PALETTE OBLIGATOIRE (STRICTE) :
 - Couleur dominante : ${brandAccent}
 - Couleur secondaire : ${brandSecondary}
-- Fond clair et neutre
-- N'utilise QUE ces teintes + neutres. Pas de cyan, pas de vert.
+- N'utilise QUE ces teintes + neutres (blanc, gris, noir). Pas de cyan, pas de vert non demandés.
 
-Texte FRANÇAIS parfaitement orthographié. Format carré 1:1.`
+Texte FRANÇAIS parfaitement orthographié et lisible. Format carré 1:1.`
 
   try {
     const apiKey = process.env.GOOGLE_AI_API_KEY
@@ -124,7 +148,7 @@ Texte FRANÇAIS parfaitement orthographié. Format carré 1:1.`
       return res.status(500).json({ error: 'Aucune image générée' })
     }
 
-    res.status(200).json({ image: imagePart.inlineData.data, mimeType: imagePart.inlineData.mimeType || 'image/png' })
+    res.status(200).json({ image: imagePart.inlineData.data, mimeType: imagePart.inlineData.mimeType || 'image/png', layout, postType })
   } catch (err) {
     console.error('[generate-image-ai]', err)
     res.status(500).json({ error: 'Erreur génération image IA' })
