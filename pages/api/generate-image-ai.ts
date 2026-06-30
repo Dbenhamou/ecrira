@@ -20,6 +20,28 @@ function checkImgRateLimit(userId: string): boolean {
   return true
 }
 
+function escSvg(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const clean = hex.replace('#', '')
+  const full = clean.length === 3
+    ? clean.split('').map(c => c + c).join('')
+    : clean
+  const num = parseInt(full, 16)
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }
+}
+
+function isLight(hex: string): boolean {
+  const { r, g, b } = hexToRgb(hex)
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
   const userId = await requireAuth(req, res)
@@ -38,91 +60,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
   const sector = profile?.sector || ''
+  const textColor = isLight(brandAccent) ? '#1A1A1A' : '#FFFFFF'
 
-  // Étape 1 : Claude Haiku analyse le post et prépare le brief visuel
+  // ── Étape 1 : Haiku extrait le brief ──────────────────────────────────────
   let visualTitle = postTopic || ''
-  let visualPoints: string[] = []
-  let layout = 'trois-points'
+  let statValue = ''
+  let statLabel = ''
+  let subtitle = ''
   let bgDescription = ''
   let postType = 'conseil'
 
   try {
     const extract = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      system: `Tu es directeur artistique pour des visuels LinkedIn professionnels photo-réalistes, tous secteurs confondus (tech, immobilier, finance, coaching, RH, santé, cybersécurité, juridique, retail, industrie, etc.). Tu analyses un post et prépares un brief visuel percutant. Réponds UNIQUEMENT en JSON strict, sans markdown.`,
+      max_tokens: 400,
+      system: `Tu es directeur artistique pour des visuels LinkedIn professionnels, tous secteurs confondus. Tu analyses un post et extrais les éléments clés pour un visuel percutant. Réponds UNIQUEMENT en JSON strict, sans markdown.`,
       messages: [{
         role: 'user',
-        content: `Analyse ce post LinkedIn et prépare le brief d'un visuel pro photo-réaliste.
+        content: `Analyse ce post LinkedIn.
 
 POST : "${postContent.slice(0, 800)}"
-SECTEUR DE L'AUTEUR : "${sector || 'non précisé — déduis-le du post'}"
+SECTEUR : "${sector || 'déduis-le du post'}"
 
 Renvoie ce JSON :
 {
-  "title": "titre accrocheur et court, 5 mots MAX, en MAJUSCULES",
-  "subtitle": "phrase d'accroche percutante, 10 mots MAX",
-  "postType": "un parmi: alerte | statistique | conseil | comparaison | storytelling",
-  "layout": "un parmi: hero-stat (grand chiffre central) | comparaison (2 colonnes) | liste (3-4 points clés) | citation (phrase forte centrale)",
-  "points": [{"icon": "emoji simple", "label": "3 mots max", "value": "8 mots max"}],
-  "bgPhoto": "description EN ANGLAIS d'une vraie photo professionnelle réaliste liée au SECTEUR (ex: 'modern hospital corridor with blue lighting and medical staff', 'busy trading floor with multiple screens', 'construction site with safety equipment'). Photo concrète, pas abstraite.",
-  "overlayStyle": "dark (fond sombre) ou light (fond clair) selon la lisibilité souhaitée"
-}
-
-Nombre de points selon layout : hero-stat=1, comparaison=2, liste=3 ou 4, citation=0.`,
+  "title": "titre choc, 4 mots MAX, MAJUSCULES, sans ponctuation",
+  "subtitle": "accroche courte, 8 mots MAX, minuscules",
+  "statValue": "UN chiffre ou % marquant extrait du post, ou chaine vide si aucun",
+  "statLabel": "contexte du chiffre, 4 mots max, ou chaine vide",
+  "postType": "alerte | statistique | conseil | comparaison | storytelling",
+  "bgPhoto": "description EN ANGLAIS d'une photo professionnelle réaliste liée au secteur. PAS de texte dans la scène. Exemples: 'cybersecurity operations center with analysts at workstations', 'modern hospital hallway with soft blue light', 'aerial view of construction site at golden hour'. Scène réaliste et concrète."
+}`,
       }],
     })
     const txt = (extract.content[0] as { text: string }).text.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(txt)
     if (parsed.title) visualTitle = parsed.title
-    if (parsed.layout) layout = parsed.layout
-    if (parsed.postType) postType = parsed.postType
+    if (parsed.subtitle) subtitle = parsed.subtitle
+    if (parsed.statValue) statValue = parsed.statValue
+    if (parsed.statLabel) statLabel = parsed.statLabel
     if (parsed.bgPhoto) bgDescription = parsed.bgPhoto
-    if (Array.isArray(parsed.points)) {
-      visualPoints = parsed.points.map((p: { icon?: string; label: string; value: string }) =>
-        `${p.icon ? p.icon + ' ' : ''}${p.label} — ${p.value}`
-      )
-    }
+    if (parsed.postType) postType = parsed.postType
   } catch (e) {
     console.error('[extract]', e)
   }
 
-  const pointsBlock = visualPoints.length
-    ? visualPoints.map((p) => `• ${p}`).join('\n')
-    : ''
+  // ── Étape 2 : Gemini génère la photo de fond SANS texte ───────────────────
+  const photoPrompt = `Photorealistic professional photo, square format. Scene: ${bgDescription || 'modern professional office with natural lighting'}.
 
-  const layoutGuide: Record<string, string> = {
-    'hero-stat': 'UN chiffre/statistique ÉNORME au centre, dominant toute la composition. Titre au-dessus en gras, explication courte en dessous. Effet wow immédiat.',
-    'comparaison': 'Deux zones distinctes côte à côte avec séparateur vertical. Contraste fort entre les deux côtés. Titres de colonne clairs et gras.',
-    'liste': 'Liste verticale de 3-4 points avec icônes ou numéros. Chaque point sur une ligne avec label en gras et valeur. Hiérarchie claire.',
-    'citation': 'UNE phrase forte en très grand, centrée, style citation premium. Auteur ou source en dessous. Beaucoup d\'espace blanc.',
-  }
+ABSOLUTE RULES — violation is not acceptable:
+- NO text, NO words, NO letters, NO numbers, NO signs, NO labels anywhere in the image
+- NO watermarks, NO logos, NO UI overlays, NO copyright notices
+- NO footer, NO banner, NO white bar at the bottom
+- Pure photo only, clean composition
+- Cinematic lighting, shallow depth of field, editorial quality`
 
-  const designPrompt = `Create a PREMIUM LinkedIn visual, square format 1:1 (1080x1080px). Text in FRENCH.
-
-STYLE : Photo-realistic editorial. Real photo background with professional overlay. NOT an illustration, NOT flat design, NOT a generic template. Think magazine cover or premium media post.
-
-BACKGROUND PHOTO : ${bgDescription || 'professional office environment with natural lighting'}
-Apply a semi-transparent overlay (dark gradient or color wash) on the photo so text is perfectly readable.
-
-MAIN TITLE (huge, dominant, bold) : "${visualTitle}"
-
-CONTENT (${layout} layout) :
-${layoutGuide[layout] || layoutGuide['liste']}
-${pointsBlock || '(no bullet points — emphasize the title as a powerful statement)'}
-
-DESIGN RULES (strictly follow) :
-- Typography : Bold sans-serif for titles (think Helvetica Black or similar weight), clean regular for body
-- Strong visual hierarchy : title must be immediately dominant
-- Semi-transparent dark or colored overlay on photo for text readability
-- Color accent : ${brandAccent} for highlights, numbers, underlines, or key elements
-- Secondary color : ${brandSecondary}
-- Only use these colors + white + black/dark neutrals. No other colors.
-- Generous spacing, NO visual clutter
-- Premium editorial feel : think Bloomberg, Forbes, Le Monde visual style
-- Clean bottom bar or footer area (leave space for watermark)
-
-All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high quality.`
+  let rawImageBase64 = ''
 
   try {
     const apiKey = process.env.GOOGLE_AI_API_KEY
@@ -132,12 +125,9 @@ All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high qu
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
       {
         method: 'POST',
-        headers: {
-          'x-goog-api-key': apiKey,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: designPrompt }] }],
+          contents: [{ parts: [{ text: photoPrompt }] }],
           generationConfig: {
             responseModalities: ['IMAGE'],
             imageConfig: { aspectRatio: '1:1' },
@@ -148,68 +138,105 @@ All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high qu
 
     const data = await response.json()
     if (!response.ok) {
-      console.error('[gemini-image]', JSON.stringify(data).slice(0, 500))
+      console.error('[gemini]', JSON.stringify(data).slice(0, 500))
       return res.status(500).json({ error: 'Erreur génération image', detail: data?.error?.message })
     }
 
     const parts = data?.candidates?.[0]?.content?.parts || []
-    const imagePart = parts.find(
-      (p: { inlineData?: { data: string; mimeType?: string } }) => p.inlineData?.data
-    )
-    if (!imagePart) {
-      return res.status(500).json({ error: 'Aucune image générée' })
-    }
+    const imagePart = parts.find((p: { inlineData?: { data: string; mimeType?: string } }) => p.inlineData?.data)
+    if (!imagePart) return res.status(500).json({ error: 'Aucune image générée' })
 
-    let finalImageBase64 = imagePart.inlineData.data
-    const mimeType = imagePart.inlineData.mimeType || 'image/png'
+    rawImageBase64 = imagePart.inlineData.data
+  } catch (err) {
+    console.error('[gemini]', err)
+    return res.status(500).json({ error: 'Erreur génération image IA' })
+  }
 
-    // Watermark logo Ecrira via sharp (sauf si Pro avec hideWatermark)
-    const shouldAddWatermark = !hideWatermark
-    if (shouldAddWatermark) {
-      try {
-        const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira.png')
-        if (fs.existsSync(logoPath)) {
-          const imageBuffer = Buffer.from(finalImageBase64, 'base64')
+  // ── Étape 3 : Sharp — rogner footer Gemini + overlay brand + texte SVG + logo ──
+  try {
+    let imageBuffer: Buffer = Buffer.from(rawImageBase64, 'base64')
 
-          // Redimensionner le logo à ~140px de large
-          const logoBuffer = await sharp(logoPath)
-            .resize({ width: 140, withoutEnlargement: true })
-            .png()
-            .toBuffer()
+    // Rogner les ~80px du bas pour éliminer le footer blanc que Gemini génère parfois
+    const meta = await sharp(imageBuffer).metadata()
+    const W = meta.width || 1080
+    const H = meta.height || 1080
+    const cropH = Math.round(H * 0.93) // on garde 93% de la hauteur
+    const croppedBuf = await sharp(imageBuffer)
+      .extract({ left: 0, top: 0, width: W, height: cropH })
+      .resize(W, H, { fit: 'fill' })
+      .png()
+      .toBuffer() as unknown as Buffer
+    imageBuffer = croppedBuf
 
-          const { width: imgW, height: imgH } = await sharp(imageBuffer).metadata()
-          const { width: logoW, height: logoH } = await sharp(logoBuffer).metadata()
+    const { r, g, b } = hexToRgb(brandAccent)
+    const { r: r2, g: g2, b: b2 } = hexToRgb(brandSecondary)
 
-          const margin = 24
-          const left = (imgW || 1080) - (logoW || 140) - margin
-          const top = (imgH || 1080) - (logoH || 40) - margin
+    const hasStat = statValue.length > 0
+    const padding = 56
+    const titleFontSize = visualTitle.length > 15 ? 76 : visualTitle.length > 10 ? 92 : 108
+    const statFontSize = 156
+    const subtitleFontSize = 36
 
-          const composited = await sharp(imageBuffer)
-            .composite([{
-              input: logoBuffer,
-              left,
-              top,
-              blend: 'over',
-            }])
-            .png()
-            .toBuffer()
+    // Zone texte : démarre à 42% de hauteur
+    const textZoneY = Math.round(H * 0.42)
+    const titleY = textZoneY + 72
+    const statY = titleY + titleFontSize + 16
+    const subtitleY = hasStat ? statY + statFontSize : titleY + titleFontSize + 48
 
-          finalImageBase64 = composited.toString('base64')
-        }
-      } catch (wmErr) {
-        console.error('[watermark]', wmErr)
-        // On continue sans watermark plutôt que de bloquer
+    const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgb(${r},${g},${b})" stop-opacity="0"/>
+      <stop offset="30%" stop-color="rgb(${r},${g},${b})" stop-opacity="0.1"/>
+      <stop offset="50%" stop-color="rgb(${r},${g},${b})" stop-opacity="0.78"/>
+      <stop offset="100%" stop-color="rgb(${r2},${g2},${b2})" stop-opacity="0.95"/>
+    </linearGradient>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#g1)"/>
+  <rect x="${padding}" y="${textZoneY - 6}" width="${Math.round(W * 0.5)}" height="5" fill="${brandAccent}" rx="2"/>
+  <text x="${padding}" y="${titleY}" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="${titleFontSize}" fill="${textColor}" letter-spacing="-1">${escSvg(visualTitle)}</text>
+  ${hasStat ? `
+  <text x="${padding}" y="${statY}" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="${statFontSize}" fill="${textColor}">${escSvg(statValue)}</text>
+  ${statLabel ? `<text x="${padding}" y="${statY + 42}" font-family="Arial,sans-serif" font-size="30" fill="${textColor}" opacity="0.85">${escSvg(statLabel)}</text>` : ''}
+  ` : ''}
+  ${subtitle ? `<text x="${padding}" y="${subtitleY}" font-family="Arial,sans-serif" font-size="${subtitleFontSize}" fill="${textColor}" opacity="0.88">${escSvg(subtitle)}</text>` : ''}
+</svg>`
+
+    let composited = await sharp(imageBuffer)
+      .composite([{ input: Buffer.from(svgOverlay), blend: 'over' }])
+      .png()
+      .toBuffer()
+
+    // Logo icône Ecrira (sauf hideWatermark)
+    if (!hideWatermark) {
+      const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-icon-bleu.png')
+      if (fs.existsSync(logoPath)) {
+        const logoResized = await sharp(logoPath)
+          .resize({ width: 52, withoutEnlargement: true })
+          .png()
+          .toBuffer()
+        const { width: lw = 52, height: lh = 52 } = await sharp(logoResized).metadata()
+        const margin = 24
+        composited = await sharp(composited)
+          .composite([{
+            input: logoResized,
+            left: W - lw - margin,
+            top: H - lh - margin,
+            blend: 'over',
+          }])
+          .png()
+          .toBuffer()
       }
     }
 
     res.status(200).json({
-      image: finalImageBase64,
+      image: composited.toString('base64'),
       mimeType: 'image/png',
-      layout,
+      layout: hasStat ? 'hero-stat' : 'citation',
       postType,
     })
   } catch (err) {
-    console.error('[generate-image-ai]', err)
-    res.status(500).json({ error: 'Erreur génération image IA' })
+    console.error('[composite]', err)
+    res.status(500).json({ error: 'Erreur composition image' })
   }
 }
