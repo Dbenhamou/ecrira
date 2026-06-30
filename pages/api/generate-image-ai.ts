@@ -37,7 +37,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
-  const brandTertiary = profile?.brand_color3 || ''
   const sector = profile?.sector || ''
 
   // Étape 1 : Claude Haiku analyse le post et prépare le brief visuel
@@ -116,13 +115,12 @@ DESIGN RULES (strictly follow) :
 - Typography : Bold sans-serif for titles (think Helvetica Black or similar weight), clean regular for body
 - Strong visual hierarchy : title must be immediately dominant
 - Semi-transparent dark or colored overlay on photo for text readability
-- PRIMARY COLOR (mandatory, dominant) : ${brandAccent} — use it for the main overlay background, large color blocks, title underlines, key numbers, CTA elements. This color must be VISUALLY DOMINANT in the composition.
-- SECONDARY COLOR : ${brandSecondary} — use for secondary elements, icons, borders, accents${brandTertiary ? `, tertiary highlights: ${brandTertiary}` : ''}.
-- STRICT RULE : these brand colors must be immediately visible and recognizable. Do NOT replace them with generic blue, red, or green. Do NOT use colors outside this palette + white + black/near-black neutrals.
-- The overall color mood of the image must reflect ${brandAccent} as the dominant brand color.
+- Color accent : ${brandAccent} for highlights, numbers, underlines, or key elements
+- Secondary color : ${brandSecondary}
+- Only use these colors + white + black/dark neutrals. No other colors.
 - Generous spacing, NO visual clutter
 - Premium editorial feel : think Bloomberg, Forbes, Le Monde visual style
-- IMPORTANT: Do NOT write any watermark text, do NOT write "Watermark", do NOT add any footer text, do NOT draw any horizontal line at the bottom. Leave the bottom-right corner (120x50px) completely empty and clean for a logo overlay.
+- Clean bottom bar or footer area (leave space for watermark)
 
 All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high quality.`
 
@@ -169,32 +167,30 @@ All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high qu
     const shouldAddWatermark = !hideWatermark
     if (shouldAddWatermark) {
       try {
-        const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-bleu.png')
+        const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira.png')
         if (fs.existsSync(logoPath)) {
           const imageBuffer = Buffer.from(finalImageBase64, 'base64')
 
-          // Logo discret : 100px, sans fond, légère transparence
-          const logoResized = await sharp(logoPath)
-            .resize({ width: 100, withoutEnlargement: true })
+          // Redimensionner le logo à ~140px de large
+          const logoBuffer = await sharp(logoPath)
+            .resize({ width: 140, withoutEnlargement: true })
             .png()
             .toBuffer()
 
-          const { width: logoW, height: logoH } = await sharp(logoResized).metadata()
-          const lw = logoW || 100
-          const lh = logoH || 28
-
           const { width: imgW, height: imgH } = await sharp(imageBuffer).metadata()
-          const iw = imgW || 1080
-          const ih = imgH || 1080
-          const margin = 20
+          const { width: logoW, height: logoH } = await sharp(logoBuffer).metadata()
 
-          const logoLeft = iw - lw - margin
-          const logoTop = ih - lh - margin
+          const margin = 24
+          const left = (imgW || 1080) - (logoW || 140) - margin
+          const top = (imgH || 1080) - (logoH || 40) - margin
 
           const composited = await sharp(imageBuffer)
-            .composite([
-              { input: logoResized, left: logoLeft, top: logoTop, blend: 'over', premultiplied: false },
-            ])
+            .composite([{
+              input: logoBuffer,
+              left,
+              top,
+              blend: 'over',
+            }])
             .png()
             .toBuffer()
 
