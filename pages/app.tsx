@@ -994,7 +994,7 @@ export default function Home() {
     try {
       // SVG généré → brut ; PNG importé → base64 ; sinon null
       const visualToStore = scheduleWithVisual
-        ? (aiSvgContent || customVisualBase64 || null)
+        ? (aiSvgContent || (aiImageUrl ? `__png__${aiImageUrl.split(',')[1]}` : null) || (customVisualBase64 ? `__png__${customVisualBase64}` : null) || null)
         : null
 
       const res = await authFetch('/api/schedule', {

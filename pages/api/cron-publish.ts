@@ -47,35 +47,43 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       // Avec image si svg_content disponible
       if (post.svg_content) {
-        // Convertir SVG brut → PNG via resvg
+        // Détecter si c'est un PNG base64 (Gemini) ou un SVG brut
+        const isPngBase64 = post.svg_content.startsWith('__png__')
         let pngBuffer: Buffer | null = null
-        try {
-          const apiKey = process.env.BROWSERLESS_API_KEY
-          if (apiKey) {
-            const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0}body{width:1080px;height:1350px;overflow:hidden}</style></head><body>${post.svg_content}</body></html>`
-            const browserlessRes = await fetch(`https://production-sfo.browserless.io/screenshot?token=${apiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                html,
-                options: { type: 'png', clip: { x: 0, y: 0, width: 1080, height: 1350 } },
-                viewport: { width: 1080, height: 1350 },
-                waitForTimeout: 2000,
-              }),
-            })
-            if (browserlessRes.ok) {
-              pngBuffer = Buffer.from(await browserlessRes.arrayBuffer())
-            } else {
-              console.error('[cron] Browserless error:', await browserlessRes.text())
+
+        if (isPngBase64) {
+          // PNG Gemini — déjà en base64, pas besoin de Browserless
+          pngBuffer = Buffer.from(post.svg_content.replace('__png__', ''), 'base64')
+        } else {
+          // SVG brut → PNG via Browserless
+          try {
+            const apiKey = process.env.BROWSERLESS_API_KEY
+            if (apiKey) {
+              const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>*{margin:0;padding:0}body{width:1080px;height:1350px;overflow:hidden}</style></head><body>${post.svg_content}</body></html>`
+              const browserlessRes = await fetch(`https://production-sfo.browserless.io/screenshot?token=${apiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  html,
+                  options: { type: 'png', clip: { x: 0, y: 0, width: 1080, height: 1350 } },
+                  viewport: { width: 1080, height: 1350 },
+                  waitForTimeout: 2000,
+                }),
+              })
+              if (browserlessRes.ok) {
+                pngBuffer = Buffer.from(await browserlessRes.arrayBuffer())
+              } else {
+                console.error('[cron] Browserless error:', await browserlessRes.text())
+              }
             }
+          } catch (browserlessErr) {
+            console.error('[cron] Browserless conversion failed:', browserlessErr)
           }
-        } catch (browserlessErr) {
-          console.error('[cron] Browserless conversion failed:', browserlessErr)
         }
 
         if (!pngBuffer) {
           // Fallback : publier sans image plutôt que passer en erreur
-          console.error('[cron] resvg failed, publishing without image for post', post.id)
+          console.error('[cron] pngBuffer null, publishing without image for post', post.id)
         }
 
         // Upload image LinkedIn
