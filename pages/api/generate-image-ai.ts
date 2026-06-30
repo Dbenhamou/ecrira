@@ -37,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
+  const brandTertiary = profile?.brand_color3 || ''
   const sector = profile?.sector || ''
 
   // Étape 1 : Claude Haiku analyse le post et prépare le brief visuel
@@ -115,9 +116,10 @@ DESIGN RULES (strictly follow) :
 - Typography : Bold sans-serif for titles (think Helvetica Black or similar weight), clean regular for body
 - Strong visual hierarchy : title must be immediately dominant
 - Semi-transparent dark or colored overlay on photo for text readability
-- Color accent : ${brandAccent} for highlights, numbers, underlines, or key elements
-- Secondary color : ${brandSecondary}
-- Only use these colors + white + black/dark neutrals. No other colors.
+- PRIMARY COLOR (mandatory, dominant) : ${brandAccent} — use it for the main overlay background, large color blocks, title underlines, key numbers, CTA elements. This color must be VISUALLY DOMINANT in the composition.
+- SECONDARY COLOR : ${brandSecondary} — use for secondary elements, icons, borders, accents${brandTertiary ? `, tertiary highlights: ${brandTertiary}` : ''}.
+- STRICT RULE : these brand colors must be immediately visible and recognizable. Do NOT replace them with generic blue, red, or green. Do NOT use colors outside this palette + white + black/near-black neutrals.
+- The overall color mood of the image must reflect ${brandAccent} as the dominant brand color.
 - Generous spacing, NO visual clutter
 - Premium editorial feel : think Bloomberg, Forbes, Le Monde visual style
 - IMPORTANT: Do NOT write any watermark text, do NOT write "Watermark", do NOT add any footer text, do NOT draw any horizontal line at the bottom. Leave the bottom-right corner (120x50px) completely empty and clean for a logo overlay.
@@ -171,44 +173,27 @@ All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high qu
         if (fs.existsSync(logoPath)) {
           const imageBuffer = Buffer.from(finalImageBase64, 'base64')
 
-          // Logo redimensionné à 160px de large
+          // Logo discret : 100px, sans fond, légère transparence
           const logoResized = await sharp(logoPath)
-            .resize({ width: 160, withoutEnlargement: true })
+            .resize({ width: 100, withoutEnlargement: true })
             .png()
             .toBuffer()
 
           const { width: logoW, height: logoH } = await sharp(logoResized).metadata()
-          const lw = logoW || 160
-          const lh = logoH || 45
-
-          // Fond blanc semi-transparent derrière le logo
-          const bgPad = 12
-          const bgW = lw + bgPad * 2
-          const bgH = lh + bgPad * 2
-
-          const bgOverlay = await sharp({
-            create: {
-              width: bgW,
-              height: bgH,
-              channels: 4,
-              background: { r: 255, g: 255, b: 255, alpha: 0.75 },
-            },
-          }).png().toBuffer()
+          const lw = logoW || 100
+          const lh = logoH || 28
 
           const { width: imgW, height: imgH } = await sharp(imageBuffer).metadata()
           const iw = imgW || 1080
           const ih = imgH || 1080
           const margin = 20
 
-          const bgLeft = iw - bgW - margin
-          const bgTop = ih - bgH - margin
-          const logoLeft = bgLeft + bgPad
-          const logoTop = bgTop + bgPad
+          const logoLeft = iw - lw - margin
+          const logoTop = ih - lh - margin
 
           const composited = await sharp(imageBuffer)
             .composite([
-              { input: bgOverlay, left: bgLeft, top: bgTop, blend: 'over' },
-              { input: logoResized, left: logoLeft, top: logoTop, blend: 'over' },
+              { input: logoResized, left: logoLeft, top: logoTop, blend: 'over', premultiplied: false },
             ])
             .png()
             .toBuffer()
