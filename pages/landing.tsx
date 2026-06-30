@@ -71,7 +71,7 @@ export default function Landing() {
 
         {/* ── NAV ── */}
         <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(250,249,247,0.95)',backdropFilter:'blur(8px)',borderBottom:'1px solid #E3DED7',padding:'12px 40px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:36,width:'auto'}}/>
+          <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:52,width:'auto'}}/>
           <div style={{display:'flex',gap:10,alignItems:'center'}}>
             <button onClick={()=>router.push('/login')} style={{padding:'8px 18px',borderRadius:8,border:'1px solid rgba(61,82,160,0.3)',background:'transparent',color:F,fontSize:13,cursor:'pointer',fontFamily:'inherit',fontWeight:500}}>Se connecter</button>
             <button onClick={()=>router.push('/login')} style={{padding:'8px 18px',borderRadius:8,background:F,border:'none',fontSize:13,color:'white',cursor:'pointer',fontWeight:600,fontFamily:'inherit'}}>Essai gratuit 7 jours →</button>
@@ -79,7 +79,7 @@ export default function Landing() {
         </div>
 
         {/* ── HERO 2 colonnes ── */}
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:48,alignItems:'center',padding:'72px 56px 64px',maxWidth:1160,margin:'0 auto'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:48,alignItems:'center',padding:'40px 56px 64px',maxWidth:1160,margin:'0 auto'}}>
           {/* Gauche */}
           <div>
             <div style={{display:'inline-block',background:'rgba(61,82,160,0.08)',color:F,fontSize:11,fontWeight:600,padding:'4px 14px',borderRadius:20,letterSpacing:'0.07em',marginBottom:24}}>✦ 7 JOURS GRATUITS · SANS CB</div>
