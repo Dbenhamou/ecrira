@@ -1079,6 +1079,9 @@ export default function Home() {
           const svgData = await svgRes.json()
           pngBase64 = svgData.base64 || null
         } catch { pngBase64 = null }
+      } else if (withImage && aiImageUrl) {
+        // Visuel IA Gemini — déjà en base64, on extrait la partie data
+        pngBase64 = aiImageUrl.split(',')[1] || null
       } else if (withImage && customVisualBase64) {
         pngBase64 = customVisualBase64
       }
