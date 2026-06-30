@@ -120,7 +120,7 @@ DESIGN RULES (strictly follow) :
 - Only use these colors + white + black/dark neutrals. No other colors.
 - Generous spacing, NO visual clutter
 - Premium editorial feel : think Bloomberg, Forbes, Le Monde visual style
-- Clean bottom bar or footer area (leave space for watermark)
+- IMPORTANT: Do NOT write any watermark text, do NOT write "Watermark", do NOT add any footer text, do NOT draw any horizontal line at the bottom. Leave the bottom-right corner (120x50px) completely empty and clean for a logo overlay.
 
 All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high quality.`
 
@@ -167,30 +167,49 @@ All text perfectly spelled in FRENCH. Square 1:1 format. Photorealistic, high qu
     const shouldAddWatermark = !hideWatermark
     if (shouldAddWatermark) {
       try {
-        const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira.png')
+        const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-bleu.png')
         if (fs.existsSync(logoPath)) {
           const imageBuffer = Buffer.from(finalImageBase64, 'base64')
 
-          // Redimensionner le logo à ~140px de large
-          const logoBuffer = await sharp(logoPath)
-            .resize({ width: 140, withoutEnlargement: true })
+          // Logo redimensionné à 160px de large
+          const logoResized = await sharp(logoPath)
+            .resize({ width: 160, withoutEnlargement: true })
             .png()
             .toBuffer()
 
-          const { width: imgW, height: imgH } = await sharp(imageBuffer).metadata()
-          const { width: logoW, height: logoH } = await sharp(logoBuffer).metadata()
+          const { width: logoW, height: logoH } = await sharp(logoResized).metadata()
+          const lw = logoW || 160
+          const lh = logoH || 45
 
-          const margin = 24
-          const left = (imgW || 1080) - (logoW || 140) - margin
-          const top = (imgH || 1080) - (logoH || 40) - margin
+          // Fond blanc semi-transparent derrière le logo
+          const bgPad = 12
+          const bgW = lw + bgPad * 2
+          const bgH = lh + bgPad * 2
+
+          const bgOverlay = await sharp({
+            create: {
+              width: bgW,
+              height: bgH,
+              channels: 4,
+              background: { r: 255, g: 255, b: 255, alpha: 0.75 },
+            },
+          }).png().toBuffer()
+
+          const { width: imgW, height: imgH } = await sharp(imageBuffer).metadata()
+          const iw = imgW || 1080
+          const ih = imgH || 1080
+          const margin = 20
+
+          const bgLeft = iw - bgW - margin
+          const bgTop = ih - bgH - margin
+          const logoLeft = bgLeft + bgPad
+          const logoTop = bgTop + bgPad
 
           const composited = await sharp(imageBuffer)
-            .composite([{
-              input: logoBuffer,
-              left,
-              top,
-              blend: 'over',
-            }])
+            .composite([
+              { input: bgOverlay, left: bgLeft, top: bgTop, blend: 'over' },
+              { input: logoResized, left: logoLeft, top: logoTop, blend: 'over' },
+            ])
             .png()
             .toBuffer()
 
