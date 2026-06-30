@@ -70,7 +70,7 @@ export default function Landing() {
 
         {/* NAV */}
         <div style={{position:'sticky',top:0,zIndex:100,background:'rgba(250,249,247,0.95)',backdropFilter:'blur(8px)',borderBottom:'1px solid #E3DED7',padding:'14px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-          <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:46,width:'auto'}}/>
+          <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:64,width:'auto'}}/>
           <div style={{display:'flex',gap:10}}>
             <button onClick={()=>router.push('/login')} style={{padding:'7px 16px',borderRadius:8,border:'1px solid rgba(61,82,160,0.3)',background:'transparent',color:'#3D52A0',fontSize:13,cursor:'pointer',fontFamily:'inherit'}}>Se connecter</button>
             <button onClick={()=>router.push('/login')} style={{padding:'7px 16px',borderRadius:8,background:'#3D52A0',border:'none',fontSize:13,color:'white',cursor:'pointer',fontWeight:500,fontFamily:'inherit'}}>Essai gratuit 7 jours →</button>
@@ -328,7 +328,7 @@ export default function Landing() {
 
         {/* FOOTER */}
         <div style={{padding:'20px 32px',borderTop:'1px solid #E3DED7',background:'#FAF9F7',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-          <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:20,width:'auto'}}/>
+          <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:28,width:'auto'}}/>
           <div style={{display:'flex',gap:20,fontSize:11,color:'#9EA39C'}}>
             <a href="/cgu" style={{color:'#9EA39C',textDecoration:'none'}}>CGU</a>
             <a href="/mentions-legales" style={{color:'#9EA39C',textDecoration:'none'}}>Mentions légales</a>
