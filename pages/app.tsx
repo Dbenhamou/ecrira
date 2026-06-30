@@ -1201,7 +1201,7 @@ export default function Home() {
         {/* ── TOP HEADER ── */}
         <header className="app-header">
           <div className="app-header-left" onClick={()=>setPage('apercu')} style={{cursor:'pointer'}}>
-            <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:28,width:'auto'}} />
+            <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{height:32,width:'auto'}} />
             <div className="app-header-title">
               <span className="app-header-brand" style={{display:'none'}}></span>
               <span className="app-header-page">{
