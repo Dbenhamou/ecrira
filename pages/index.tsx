@@ -183,7 +183,7 @@ export default function Landing() {
 
         {/* ─── NAV ─────────────────────────────────────────────────── */}
         <nav style={{position:'sticky',top:0,zIndex:100,background:'rgba(250,249,247,0.95)',backdropFilter:'blur(8px)',borderBottom:`1px solid ${BD}`,padding:'0 32px',display:'flex',alignItems:'center',justifyContent:'space-between',height:60}}>
-          <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{height:46,width:'auto'}}/>
+          <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:46,width:'auto'}}/>
           <div style={{display:'flex',alignItems:'center',gap:16}}>
             <a href="#tarifs" className="nav-links" style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>Tarifs</a>
             <a href="#faq" className="nav-links" style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>FAQ</a>
@@ -510,7 +510,7 @@ export default function Landing() {
         <footer style={{padding:'32px',borderTop:`1px solid ${BD}`,background:IV}}>
           <div style={{maxWidth:960,margin:'0 auto',display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',gap:32,marginBottom:32}} className="grid-4">
             <div>
-              <img src="/logo-ecrira-bleu.png" alt="Ecrira" style={{height:28,width:'auto',marginBottom:12}}/>
+              <img src="/logo-ecrira-horizontal-400.png" alt="Ecrira" style={{height:28,width:'auto',marginBottom:12}}/>
               <p style={{fontSize:12,color:'#9EA39C',lineHeight:1.6,maxWidth:240}}>Générez, illustrez et planifiez vos posts LinkedIn en quelques minutes.</p>
             </div>
             <div>
