@@ -819,6 +819,7 @@ export default function Home() {
           postContent: postOutput,
           postTopic: visualCustomTitle || postTopic,
           profile: {...profile, plan: isPro ? 'pro' : 'free'},
+          hideWatermark,
         }),
       })
       const data = await res.json()
