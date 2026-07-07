@@ -84,12 +84,12 @@ function buildComposition(
     case 'comparaison':
       return [
         'COMPOSITION: Two distinct vertical zones separated by a line.',
-        'LEFT ZONE: darker/neutral — problem or option A',
-        'RIGHT ZONE: brand color ' + brandAccent + ' tinted — solution or option B',
+        'The left half has a dark neutral background, the right half has a ' + brandAccent + ' tinted background.',
+        'Do NOT write LEFT ZONE, RIGHT ZONE, ZONE A, ZONE B anywhere in the image.',
         'TEXT ELEMENTS (render exactly):',
         '- TOP TITLE spanning full width: "' + title + '" — bold large',
-        points.length >= 2 ? '- LEFT points: ' + points.slice(0, Math.ceil(points.length / 2)).join(', ') : '',
-        points.length >= 2 ? '- RIGHT points: ' + points.slice(Math.ceil(points.length / 2)).join(', ') : '',
+        points.length >= 2 ? '- In the left half only, show: ' + points.slice(0, Math.ceil(points.length / 2)).join(' / ') : '',
+        points.length >= 2 ? '- In the right half only, show: ' + points.slice(Math.ceil(points.length / 2)).join(' / ') : '',
         stat ? '- KEY STAT: "' + stat + ' ' + statContext + '" — prominent in one zone' : '',
         'Design: clear hierarchy, icons for each point, strong contrast between zones',
       ].filter(Boolean).join('\n')
@@ -149,7 +149,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       system: 'Tu es directeur artistique senior pour des visuels LinkedIn premium, tous secteurs (cyber, sante, RH, coaching, immobilier, finance, retail, industrie, juridique, tech). Tu crées des briefs uniques adaptés au contenu ET au secteur. Reponds UNIQUEMENT en JSON strict sans markdown.',
       messages: [{
         role: 'user',
-        content: 'Analyse ce post et cree un brief visuel LinkedIn premium.\n\nPOST : "' + postContent.slice(0, 1000) + '"\nSECTEUR : "' + (sector || 'deduis-le du post') + '"\nCOULEUR PRINCIPALE : "' + brandAccent + '"\n\nChoisis UNE composition :\n- hero_stat : post avec chiffre fort\n- liste_icones : post avec liste de points/risques\n- citation : post storytelling/opinion\n- comparaison : post comparatif X vs Y\n- alerte_callout : post alerte/urgence\n\nRenvoie ce JSON :\n{\n  "postType": "hero_stat|liste_icones|citation|comparaison|alerte_callout",\n  "title": "titre 4 mots MAX MAJUSCULES SANS accents. Si comparaison: utilise VS ex SOC VS EXPERT",\n  "subtitle": "accroche 8 mots MAX sans accents",\n  "stat": "chiffre cle ex 70% ou vide",\n  "statContext": "contexte 5 mots MAX sans accents phrase lisible ex des attaques la nuit",\n  "points": ["point 1 sans accents 5 mots max", "point 2", "point 3"],\n  "callout": "phrase forte 10 mots MAX sans accents ou vide",\n  "bgPhoto": "description EN ANGLAIS photo realiste specifique au secteur ex pour cyber: security operations center analysts monitoring screens night, pour sante: hospital emergency corridor nurses workstations blue light, pour coaching: two professionals coaching conversation modern office, pour immobilier: luxury apartment interior natural light city view"\n}',
+        content: 'Analyse ce post et cree un brief visuel LinkedIn premium.\n\nPOST : "' + postContent.slice(0, 1000) + '"\nSECTEUR : "' + (sector || 'deduis-le du post') + '"\nCOULEUR PRINCIPALE : "' + brandAccent + '"\n\nChoisis UNE composition :\n- hero_stat : post avec chiffre fort\n- liste_icones : post avec liste de points/risques\n- citation : post storytelling/opinion\n- comparaison : post comparatif X vs Y\n- alerte_callout : post alerte/urgence\n\nRenvoie ce JSON :\n{\n  "postType": "hero_stat|liste_icones|citation|comparaison|alerte_callout",\n  "title": "titre 3 mots MAX MAJUSCULES SANS accents SANS ponctuation. Si comparaison: X VS Y ex SOC VS EXPERT. Sinon ex SESSIONS OUVERTES, CROISSANCE REELLE, ALERTE CYBER",\n  "subtitle": "accroche 8 mots MAX sans accents",\n  "stat": "chiffre cle ex 70% ou vide",\n  "statContext": "contexte 5 mots MAX sans accents phrase lisible ex des attaques la nuit",\n  "points": ["point 1 sans accents 5 mots max", "point 2", "point 3"],\n  "callout": "phrase forte 10 mots MAX sans accents ou vide",\n  "bgPhoto": "description EN ANGLAIS photo realiste specifique au secteur ex pour cyber: security operations center analysts monitoring screens night, pour sante: hospital emergency corridor nurses workstations blue light, pour coaching: two professionals coaching conversation modern office, pour immobilier: luxury apartment interior natural light city view"\n}',
       }],
     })
 
@@ -159,7 +159,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     bgPhoto = parsed.bgPhoto || bgPhoto
     title = toAscii(parsed.title || title)
     subtitle = toAscii(parsed.subtitle || '')
-    stat = parsed.stat || ''
+    stat = toAscii(parsed.stat || '')
     statContext = toAscii(parsed.statContext || '')
     points = (parsed.points || []).map((p: string) => toAscii(p)).slice(0, 4)
     callout = toAscii(parsed.callout || '')
@@ -186,7 +186,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     + '- NO watermark text, NO "Watermark" word, NO copyright notices\n'
     + '- NO footer bar\n'
     + '- Bottom-right corner 80x80px must be completely EMPTY\n'
-    + '- Render all text exactly as specified'
+    + '- Render all text exactly as specified\n'
+    + '- NEVER write LEFT ZONE, RIGHT ZONE, ZONE A, ZONE B, TEXT ELEMENTS or COMPOSITION in the image\n'
+    + '- Each text element appears ONCE only, no repetition\n'
+    + '- Bottom-right 80x80px area must be completely empty, no color block'
 
   let rawImageBase64 = ''
 
@@ -236,7 +239,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const cropH = Math.round(H * 0.93)
     const croppedBuf = await sharp(imageBuffer)
       .extract({ left: 0, top: 0, width: W, height: cropH })
-      .resize(W, H, { fit: 'fill' })
+      .resize(W, W, { fit: 'cover', position: 'top' })
       .png()
       .toBuffer() as unknown as Buffer
     imageBuffer = croppedBuf
