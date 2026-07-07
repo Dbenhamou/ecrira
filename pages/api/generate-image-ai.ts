@@ -139,7 +139,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     '- Stat and title color must use ONLY ' + brandAccent + ' or white — no random blue, no purple',
     '- Do NOT write watermark, copyright, footer, logo or any label',
     '- Do NOT add colored blocks, frames or zones not described above',
-    '- Bottom-right corner (100x100px) must be completely empty',
     '- Each text element appears exactly once',
     '- Do NOT put any rectangle, box or dark background specifically behind the title text',
     '- Image must look like a premium Bloomberg or Forbes social post',
