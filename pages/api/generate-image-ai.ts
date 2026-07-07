@@ -27,13 +27,88 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }
 }
 
-// Translitère les caractères français en ASCII pour Gemini
 function toAscii(str: string): string {
   return str
     .replace(/[àâä]/g, 'a').replace(/[éèêë]/g, 'e').replace(/[îï]/g, 'i')
     .replace(/[ôö]/g, 'o').replace(/[ùûü]/g, 'u').replace(/[ç]/g, 'c')
     .replace(/[ÀÂÄ]/g, 'A').replace(/[ÉÈÊË]/g, 'E').replace(/[ÎÏ]/g, 'I')
     .replace(/[ÔÖ]/g, 'O').replace(/[ÙÛÜ]/g, 'U').replace(/[Ç]/g, 'C')
+}
+
+function buildComposition(
+  postType: string,
+  title: string,
+  subtitle: string,
+  stat: string,
+  statContext: string,
+  points: string[],
+  callout: string,
+  brandAccent: string,
+  brandSecondary: string
+): string {
+  switch (postType) {
+    case 'hero_stat':
+      return [
+        'COMPOSITION: Realistic photo background. Strong dark overlay on bottom 50%.',
+        'TEXT ELEMENTS (render exactly):',
+        '- TITLE: "' + title + '" — very large bold sans-serif white, top area',
+        stat ? '- STAT: "' + stat + '" — enormous dominant center, bold white' : '',
+        stat && statContext ? '- STAT LABEL: "' + statContext + '" — small clean white below stat' : '',
+        subtitle ? '- SUBTITLE: "' + subtitle + '" — medium weight white, below title' : '',
+        'Design: thin accent line ' + brandAccent + ' under title, generous whitespace',
+      ].filter(Boolean).join('\n')
+
+    case 'liste_icones':
+      return [
+        'COMPOSITION: Realistic photo RIGHT half. Clean structured panel LEFT half with semi-transparent background.',
+        'TEXT ELEMENTS (render exactly):',
+        '- TITLE: "' + title + '" — large bold top of panel, color ' + brandAccent,
+        subtitle ? '- SUBTITLE: "' + subtitle + '" — smaller below title' : '',
+        '- LIST with simple minimal icons, each line with thin separator:',
+        ...points.map((p, i) => '  ' + (i + 1) + '. [icon] ' + p),
+        callout ? '- CALLOUT BOX bottom: rounded rect background ' + brandAccent + ', white bold text: "' + callout + '"' : '',
+        'Design: glassmorphism panel, clean icon style, brand colors prominent',
+      ].filter(Boolean).join('\n')
+
+    case 'citation':
+      return [
+        'COMPOSITION: Photo blurred dark background. Large editorial quote layout.',
+        'TEXT ELEMENTS (render exactly):',
+        '- Large typographic quote marks in color ' + brandAccent,
+        '- QUOTE: "' + title + (subtitle ? ' — ' + subtitle : '') + '" — very large heavy font, left-aligned',
+        stat ? '- STAT: "' + stat + ' ' + statContext + '" — prominent highlight' : '',
+        callout ? '- CONTEXT: "' + callout + '" — small bottom line' : '',
+        'Design: lots of negative space, editorial magazine feel, minimal clutter',
+      ].filter(Boolean).join('\n')
+
+    case 'comparaison':
+      return [
+        'COMPOSITION: Two distinct vertical zones separated by a line.',
+        'LEFT ZONE: darker/neutral — problem or option A',
+        'RIGHT ZONE: brand color ' + brandAccent + ' tinted — solution or option B',
+        'TEXT ELEMENTS (render exactly):',
+        '- TOP TITLE spanning full width: "' + title + '" — bold large',
+        points.length >= 2 ? '- LEFT points: ' + points.slice(0, Math.ceil(points.length / 2)).join(', ') : '',
+        points.length >= 2 ? '- RIGHT points: ' + points.slice(Math.ceil(points.length / 2)).join(', ') : '',
+        stat ? '- KEY STAT: "' + stat + ' ' + statContext + '" — prominent in one zone' : '',
+        'Design: clear hierarchy, icons for each point, strong contrast between zones',
+      ].filter(Boolean).join('\n')
+
+    case 'alerte_callout':
+      return [
+        'COMPOSITION: Dark dramatic photo background, high contrast text.',
+        'TEXT ELEMENTS (render exactly):',
+        '- TITLE: "' + title + '" — very large bold white, top area, impactful',
+        subtitle ? '- SUBTITLE: "' + subtitle + '" — medium white, below title' : '',
+        stat ? '- STAT: "' + stat + '" — very large center, bold white or light' : '',
+        callout ? '- CALLOUT BOX: large rounded rect at bottom, background ' + brandAccent + ', white bold text: "' + callout + '"' : '',
+        points.length > 0 ? '- KEY POINTS with alert icons: ' + points.join(' | ') : '',
+        'Design: urgent dramatic feel, heavy typography, strong brand color on callout',
+      ].filter(Boolean).join('\n')
+
+    default:
+      return 'COMPOSITION: Photo background with overlay. TITLE: "' + title + '" large bold white. Premium editorial style.'
+  }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -54,83 +129,70 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
   const sector = profile?.sector || ''
+  const { r, g, b } = hexToRgb(brandAccent)
+  const { r: r2, g: g2, b: b2 } = hexToRgb(brandSecondary)
 
-  // ── Étape 1 : Haiku extrait le brief ──────────────────────────────────────
-  let visualTitle = postTopic || ''
-  let statValue = ''
-  let statLabel = ''
-  let bgDescription = ''
-  let postType = 'conseil'
+  // ── Étape 1 : Haiku — directeur artistique ────────────────────────────────
+  let postType = 'hero_stat'
+  let bgPhoto = 'modern professional office with natural lighting'
+  let title = toAscii(postTopic || 'EXPERTISE')
+  let subtitle = ''
+  let stat = ''
+  let statContext = ''
+  let points: string[] = []
+  let callout = ''
 
   try {
     const extract = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 400,
-      system: `Tu es directeur artistique pour des visuels LinkedIn professionnels, tous secteurs confondus. Tu analyses un post et extrais les éléments clés. Réponds UNIQUEMENT en JSON strict, sans markdown.`,
+      max_tokens: 600,
+      system: 'Tu es directeur artistique senior pour des visuels LinkedIn premium, tous secteurs (cyber, sante, RH, coaching, immobilier, finance, retail, industrie, juridique, tech). Tu crées des briefs uniques adaptés au contenu ET au secteur. Reponds UNIQUEMENT en JSON strict sans markdown.',
       messages: [{
         role: 'user',
-        content: `Analyse ce post LinkedIn.
-
-POST : "${postContent.slice(0, 800)}"
-SECTEUR : "${sector || 'déduis-le du post'}"
-
-Renvoie ce JSON :
-{
-  "title": "titre percutant, 3 mots MAX, MAJUSCULES, SANS accents, SANS ponctuation. Si comparaison utilise TOUJOURS 'VS' (jamais VERSUS). Ex: 'SOC VS EXPERT', 'AGIR OU ATTENDRE', 'ROI X3'. Sinon titre simple ex: 'PROTECTION REELLE', 'CROISSANCE 2024'.",
-  "statValue": "UN chiffre ou % marquant extrait du post (ex: '43%', '3x', '10k'), ou chaine vide si aucun",
-  "statLabel": "contexte du chiffre, 3 mots MAX, SANS accents, ou chaine vide",
-  "postType": "alerte | statistique | conseil | comparaison | storytelling",
-  "bgPhoto": "description EN ANGLAIS d'une photo professionnelle réaliste liée au secteur, sans texte dans la scene. Ex: 'cybersecurity operations center with analysts at screens', 'modern hospital hallway with blue ambient light', 'construction site aerial view golden hour'."
-}`,
+        content: 'Analyse ce post et cree un brief visuel LinkedIn premium.\n\nPOST : "' + postContent.slice(0, 1000) + '"\nSECTEUR : "' + (sector || 'deduis-le du post') + '"\nCOULEUR PRINCIPALE : "' + brandAccent + '"\n\nChoisis UNE composition :\n- hero_stat : post avec chiffre fort\n- liste_icones : post avec liste de points/risques\n- citation : post storytelling/opinion\n- comparaison : post comparatif X vs Y\n- alerte_callout : post alerte/urgence\n\nRenvoie ce JSON :\n{\n  "postType": "hero_stat|liste_icones|citation|comparaison|alerte_callout",\n  "title": "titre 4 mots MAX MAJUSCULES SANS accents. Si comparaison: utilise VS ex SOC VS EXPERT",\n  "subtitle": "accroche 8 mots MAX sans accents",\n  "stat": "chiffre cle ex 70% ou vide",\n  "statContext": "contexte 5 mots MAX sans accents phrase lisible ex des attaques la nuit",\n  "points": ["point 1 sans accents 5 mots max", "point 2", "point 3"],\n  "callout": "phrase forte 10 mots MAX sans accents ou vide",\n  "bgPhoto": "description EN ANGLAIS photo realiste specifique au secteur ex pour cyber: security operations center analysts monitoring screens night, pour sante: hospital emergency corridor nurses workstations blue light, pour coaching: two professionals coaching conversation modern office, pour immobilier: luxury apartment interior natural light city view"\n}',
       }],
     })
+
     const txt = (extract.content[0] as { text: string }).text.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(txt)
-    if (parsed.title) visualTitle = toAscii(parsed.title)
-    if (parsed.statValue) statValue = parsed.statValue
-    if (parsed.statLabel) statLabel = toAscii(parsed.statLabel)
-    if (parsed.bgPhoto) bgDescription = parsed.bgPhoto
-    if (parsed.postType) postType = parsed.postType
+    postType = parsed.postType || 'hero_stat'
+    bgPhoto = parsed.bgPhoto || bgPhoto
+    title = toAscii(parsed.title || title)
+    subtitle = toAscii(parsed.subtitle || '')
+    stat = parsed.stat || ''
+    statContext = toAscii(parsed.statContext || '')
+    points = (parsed.points || []).map((p: string) => toAscii(p)).slice(0, 4)
+    callout = toAscii(parsed.callout || '')
   } catch (e) {
-    console.error('[extract]', e)
+    console.error('[haiku]', e)
   }
 
-  // ── Étape 2 : Gemini génère photo + texte intégré ─────────────────────────
-  const hasStat = statValue.length > 0
+  const composition = buildComposition(postType, title, subtitle, stat, statContext, points, callout, brandAccent, brandSecondary)
 
-  const textInstructions = hasStat
-    ? `TEXT TO INCLUDE IN THE IMAGE:
-- TOP THIRD: Bold title "${visualTitle}" in white, large font, clean — NOT oversized
-- CENTER: Giant stat "${statValue}" dominant, bold white or light accent color
-- BELOW STAT: Small subtle label "${statLabel}" in white, much smaller font
-- Generous empty space around each text element — NO clutter`
-    : `TEXT TO INCLUDE IN THE IMAGE:
-- LOWER THIRD only: Bold title "${visualTitle}" in white, large clean font
-- Large empty space in upper half — editorial negative space
-- Subtle semi-transparent dark bar behind text for readability`
-
-  const photoPrompt = `Create a PREMIUM LinkedIn visual, square 1:1 format (1080x1080px).
-
-BACKGROUND SCENE: ${bgDescription || 'modern professional office environment'}
-Style: photorealistic, cinematic lighting, editorial quality, shallow depth of field
-
-${textInstructions}
-
-DESIGN RULES:
-- Primary brand color ${brandAccent} used for accents, underlines, or color highlights
-- Secondary color ${brandSecondary} for gradients or secondary elements  
-- Semi-transparent dark overlay on photo bottom half so text is perfectly readable
-- Bold sans-serif typography (Helvetica Black style), clean and impactful
-- NO watermark text, NO "Watermark" word, NO footer bar, NO copyright notice
-- Leave bottom-right corner (100x100px) empty for logo overlay
-- Premium editorial look: Bloomberg/Forbes magazine style
-- All text must be crisp, perfectly rendered, easy to read`
+  // ── Étape 2 : Gemini génère le visuel ─────────────────────────────────────
+  const geminiPrompt = 'Create a PREMIUM LinkedIn visual post, square 1:1 format (1080x1080px).\n\n'
+    + 'BACKGROUND PHOTO: ' + bgPhoto + '\n'
+    + 'Photorealistic, high quality, cinematic lighting, shallow depth of field.\n\n'
+    + composition + '\n\n'
+    + 'BRAND COLORS (mandatory):\n'
+    + '- Primary: ' + brandAccent + ' — use for highlights, callout backgrounds, accent lines, icons\n'
+    + '- Secondary: ' + brandSecondary + ' — for gradients, secondary elements\n'
+    + 'These exact colors must be VISIBLE in the final image.\n\n'
+    + 'GLOBAL RULES:\n'
+    + '- Premium social media design quality\n'
+    + '- Bold heavy sans-serif for titles, clean regular for body text\n'
+    + '- All text perfectly readable, high contrast\n'
+    + '- Generous negative space, never cramped\n'
+    + '- NO watermark text, NO "Watermark" word, NO copyright notices\n'
+    + '- NO footer bar\n'
+    + '- Bottom-right corner 80x80px must be completely EMPTY\n'
+    + '- Render all text exactly as specified'
 
   let rawImageBase64 = ''
 
   try {
     const apiKey = process.env.GOOGLE_AI_API_KEY
-    if (!apiKey) return res.status(500).json({ error: 'Clé API Google manquante' })
+    if (!apiKey) return res.status(500).json({ error: 'Cle API Google manquante' })
 
     const response = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
@@ -138,7 +200,7 @@ DESIGN RULES:
         method: 'POST',
         headers: { 'x-goog-api-key': apiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: photoPrompt }] }],
+          contents: [{ parts: [{ text: geminiPrompt }] }],
           generationConfig: {
             responseModalities: ['IMAGE'],
             imageConfig: { aspectRatio: '1:1' },
@@ -150,20 +212,20 @@ DESIGN RULES:
     const data = await response.json()
     if (!response.ok) {
       console.error('[gemini]', JSON.stringify(data).slice(0, 500))
-      return res.status(500).json({ error: 'Erreur génération image', detail: data?.error?.message })
+      return res.status(500).json({ error: 'Erreur generation image', detail: data?.error?.message })
     }
 
     const parts = data?.candidates?.[0]?.content?.parts || []
     const imagePart = parts.find((p: { inlineData?: { data: string; mimeType?: string } }) => p.inlineData?.data)
-    if (!imagePart) return res.status(500).json({ error: 'Aucune image générée' })
+    if (!imagePart) return res.status(500).json({ error: 'Aucune image generee' })
 
     rawImageBase64 = imagePart.inlineData.data
   } catch (err) {
     console.error('[gemini]', err)
-    return res.status(500).json({ error: 'Erreur génération image IA' })
+    return res.status(500).json({ error: 'Erreur generation image IA' })
   }
 
-  // ── Étape 3 : Sharp — rogner footer + overlay gradient + logo ─────────────
+  // ── Étape 3 : Sharp — rogner + overlay + logo ─────────────────────────────
   try {
     let imageBuffer: Buffer = Buffer.from(rawImageBase64, 'base64')
 
@@ -171,7 +233,6 @@ DESIGN RULES:
     const W = meta.width || 1080
     const H = meta.height || 1080
 
-    // Rogner les ~7% du bas (footer blanc Gemini)
     const cropH = Math.round(H * 0.93)
     const croppedBuf = await sharp(imageBuffer)
       .extract({ left: 0, top: 0, width: W, height: cropH })
@@ -180,43 +241,31 @@ DESIGN RULES:
       .toBuffer() as unknown as Buffer
     imageBuffer = croppedBuf
 
-    // Overlay gradient brand (SVG sans texte — juste la couleur)
-    const { r, g, b } = hexToRgb(brandAccent)
-    const { r: r2, g: g2, b: b2 } = hexToRgb(brandSecondary)
-
-    const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgb(${r},${g},${b})" stop-opacity="0"/>
-      <stop offset="60%" stop-color="rgb(${r},${g},${b})" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="rgb(${r2},${g2},${b2})" stop-opacity="0.45"/>
-    </linearGradient>
-  </defs>
-  <rect width="${W}" height="${H}" fill="url(#g1)"/>
-</svg>`
+    const svgOverlay = '<svg width="' + W + '" height="' + H + '" xmlns="http://www.w3.org/2000/svg">'
+      + '<defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0%" stop-color="rgb(' + r + ',' + g + ',' + b + ')" stop-opacity="0"/>'
+      + '<stop offset="70%" stop-color="rgb(' + r + ',' + g + ',' + b + ')" stop-opacity="0.06"/>'
+      + '<stop offset="100%" stop-color="rgb(' + r2 + ',' + g2 + ',' + b2 + ')" stop-opacity="0.2"/>'
+      + '</linearGradient></defs>'
+      + '<rect width="' + W + '" height="' + H + '" fill="url(#g1)"/>'
+      + '</svg>'
 
     let composited = await sharp(imageBuffer)
       .composite([{ input: Buffer.from(svgOverlay, 'utf-8'), blend: 'over' }])
       .png()
       .toBuffer()
 
-    // Logo icône Ecrira (sauf hideWatermark)
     if (!hideWatermark) {
       const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-icon-bleu.png')
       if (fs.existsSync(logoPath)) {
         const logoResized = await sharp(logoPath)
-          .resize({ width: 52, withoutEnlargement: true })
+          .resize({ width: 48, withoutEnlargement: true })
           .png()
           .toBuffer()
-        const { width: lw = 52, height: lh = 52 } = await sharp(logoResized).metadata()
-        const margin = 24
+        const { width: lw = 48, height: lh = 48 } = await sharp(logoResized).metadata()
+        const margin = 20
         composited = await sharp(composited)
-          .composite([{
-            input: logoResized,
-            left: W - lw - margin,
-            top: H - lh - margin,
-            blend: 'over',
-          }])
+          .composite([{ input: logoResized, left: W - lw - margin, top: H - lh - margin, blend: 'over' }])
           .png()
           .toBuffer()
       }
@@ -225,7 +274,7 @@ DESIGN RULES:
     res.status(200).json({
       image: composited.toString('base64'),
       mimeType: 'image/png',
-      layout: hasStat ? 'hero-stat' : 'citation',
+      layout: postType,
       postType,
     })
   } catch (err) {
