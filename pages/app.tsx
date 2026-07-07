@@ -1649,8 +1649,8 @@ export default function Home() {
                               <button className="btn" onClick={()=>{publishPost(false);setShowPublishMenu(false);}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
                                 {T('text_only_option')}
                               </button>
-                              <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false);}} disabled={!aiSvgContent} style={{width:'100%',padding:'10px 14px',fontSize:12,color:aiSvgContent?'var(--text1)':' var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:(aiSvgContent||customVisualBase64)?'pointer':'not-allowed'}}>
-                                {T('text_visual')}{(!aiSvgContent&&!customVisualBase64)?T('add_visual_hint'):''}
+                              <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false);}} disabled={!aiSvgContent&&!customVisualBase64&&!aiImageUrl} style={{width:'100%',padding:'10px 14px',fontSize:12,color:(aiSvgContent||customVisualBase64||aiImageUrl)?'var(--text1)':' var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:(aiSvgContent||customVisualBase64||aiImageUrl)?'pointer':'not-allowed'}}>
+                                {T('text_visual')}{(!aiSvgContent&&!customVisualBase64&&!aiImageUrl)?T('add_visual_hint'):''}
                               </button>
                             </div>
                           )}
@@ -1672,8 +1672,8 @@ export default function Home() {
                           <button className="btn" onClick={()=>{setScheduleWithVisual(false);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
                             {T('text_only_option')}
                           </button>
-                          <button className="btn" onClick={()=>{setScheduleWithVisual(true);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} disabled={!aiSvgContent&&!customVisualBase64} style={{width:'100%',padding:'10px 14px',fontSize:12,color:(aiSvgContent||customVisualBase64)?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:aiSvgContent?'pointer':'not-allowed'}}>
-                            {T('text_visual')}{!aiSvgContent?T('create_visual_hint'):''}
+                          <button className="btn" onClick={()=>{setScheduleWithVisual(true);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} disabled={!aiSvgContent&&!customVisualBase64&&!aiImageUrl} style={{width:'100%',padding:'10px 14px',fontSize:12,color:(aiSvgContent||customVisualBase64||aiImageUrl)?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:(aiSvgContent||customVisualBase64||aiImageUrl)?'pointer':'not-allowed'}}>
+                            {T('text_visual')}{(!aiSvgContent&&!customVisualBase64&&!aiImageUrl)?T('create_visual_hint'):''}
                           </button>
                         </div>
                       )}
