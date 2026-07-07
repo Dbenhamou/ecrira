@@ -107,10 +107,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // ── Étape 2 : Gemini — visuel photo réaliste plein écran ─────────────────
   const textBlock = stat
     ? [
-        'TITLE "' + title + '" — positioned in the TOP 20% of the image. Bold weight, white, font size approximately 10-12% of image height.',
-        'STAT "' + stat + '" — positioned in the VERTICAL CENTER (40-60%) of the image. Regular/medium weight, white, font size approximately 25-30% of image height.',
-        'LABEL "' + statLabel + '" — positioned just below the stat, around 65-72% from top. Light weight, white, small font approximately 4% of image height, wide letter-spacing.',
-        'Leave generous empty space between each text element. Do not cluster them together.',
+        'TITLE "' + title + '" — TOP 15% of image. BOLD weight, white, clean sans-serif, font size 10-12% of image height. Compact, not oversized.',
+        'STAT "' + stat + '" — VERTICAL CENTER (42-62%) of image. BOLD weight, white, font size 28-32% of image height. Dominant and impactful.',
+        'LABEL "' + statLabel + '" — just below stat, 65-70% from top. LIGHT or REGULAR weight, white, UPPERCASE, wide letter-spacing (0.15em+), font size 3-4% of image height. Elegant and understated.',
+        'Generous empty space between elements. Never cluster them.',
       ].join(' ')
     : [
         'TITLE "' + title + '" — positioned in the TOP 25% of the image. Bold weight, white, font size approximately 12-14% of image height.',
