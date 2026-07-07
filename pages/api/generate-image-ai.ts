@@ -191,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const H = meta.height || 1080
 
     // Rogner haut (bande noire) + bas (footer Gemini)
-    const topCrop = Math.round(H * 0.12)
+    const topCrop = Math.round(H * 0.04)
     const botCrop = Math.round(H * 0.07)
     const cropH = H - topCrop - botCrop
     const croppedBuf = await sharp(imageBuffer)
