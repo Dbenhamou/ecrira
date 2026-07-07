@@ -20,26 +20,20 @@ function checkImgRateLimit(userId: string): boolean {
   return true
 }
 
-function escSvg(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-}
-
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const clean = hex.replace('#', '')
-  const full = clean.length === 3
-    ? clean.split('').map(c => c + c).join('')
-    : clean
+  const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean
   const num = parseInt(full, 16)
   return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 }
 }
 
-function isLight(hex: string): boolean {
-  const { r, g, b } = hexToRgb(hex)
-  return (r * 299 + g * 587 + b * 114) / 1000 > 128
+// Translitère les caractères français en ASCII pour Gemini
+function toAscii(str: string): string {
+  return str
+    .replace(/[àâä]/g, 'a').replace(/[éèêë]/g, 'e').replace(/[îï]/g, 'i')
+    .replace(/[ôö]/g, 'o').replace(/[ùûü]/g, 'u').replace(/[ç]/g, 'c')
+    .replace(/[ÀÂÄ]/g, 'A').replace(/[ÉÈÊË]/g, 'E').replace(/[ÎÏ]/g, 'I')
+    .replace(/[ÔÖ]/g, 'O').replace(/[ÙÛÜ]/g, 'U').replace(/[Ç]/g, 'C')
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -60,13 +54,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
   const sector = profile?.sector || ''
-  const textColor = isLight(brandAccent) ? '#1A1A1A' : '#FFFFFF'
 
   // ── Étape 1 : Haiku extrait le brief ──────────────────────────────────────
   let visualTitle = postTopic || ''
   let statValue = ''
   let statLabel = ''
-  let subtitle = ''
   let bgDescription = ''
   let postType = 'conseil'
 
@@ -74,7 +66,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const extract = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 400,
-      system: `Tu es directeur artistique pour des visuels LinkedIn professionnels, tous secteurs confondus. Tu analyses un post et extrais les éléments clés pour un visuel percutant. Réponds UNIQUEMENT en JSON strict, sans markdown.`,
+      system: `Tu es directeur artistique pour des visuels LinkedIn professionnels, tous secteurs confondus. Tu analyses un post et extrais les éléments clés. Réponds UNIQUEMENT en JSON strict, sans markdown.`,
       messages: [{
         role: 'user',
         content: `Analyse ce post LinkedIn.
@@ -84,36 +76,53 @@ SECTEUR : "${sector || 'déduis-le du post'}"
 
 Renvoie ce JSON :
 {
-  "title": "titre choc, 4 mots MAX, MAJUSCULES, sans ponctuation",
-  "subtitle": "accroche courte, 8 mots MAX, minuscules",
-  "statValue": "UN chiffre ou % marquant extrait du post, ou chaine vide si aucun",
-  "statLabel": "contexte du chiffre, 4 mots max, ou chaine vide",
+  "title": "titre choc, 4 mots MAX, MAJUSCULES, SANS accents, SANS ponctuation, en anglais ou français simple",
+  "statValue": "UN chiffre ou % marquant extrait du post (ex: '43%', '3x', '10k'), ou chaine vide si aucun",
+  "statLabel": "contexte du chiffre en 3 mots MAX sans accents, ou chaine vide",
   "postType": "alerte | statistique | conseil | comparaison | storytelling",
-  "bgPhoto": "description EN ANGLAIS d'une photo professionnelle réaliste liée au secteur. PAS de texte dans la scène. Exemples: 'cybersecurity operations center with analysts at workstations', 'modern hospital hallway with soft blue light', 'aerial view of construction site at golden hour'. Scène réaliste et concrète."
+  "bgPhoto": "description EN ANGLAIS d'une photo professionnelle réaliste liée au secteur, sans texte dans la scene. Ex: 'cybersecurity operations center with analysts', 'modern hospital hallway blue light', 'construction site golden hour aerial view'."
 }`,
       }],
     })
     const txt = (extract.content[0] as { text: string }).text.replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(txt)
-    if (parsed.title) visualTitle = parsed.title
-    if (parsed.subtitle) subtitle = parsed.subtitle
+    if (parsed.title) visualTitle = toAscii(parsed.title)
     if (parsed.statValue) statValue = parsed.statValue
-    if (parsed.statLabel) statLabel = parsed.statLabel
+    if (parsed.statLabel) statLabel = toAscii(parsed.statLabel)
     if (parsed.bgPhoto) bgDescription = parsed.bgPhoto
     if (parsed.postType) postType = parsed.postType
   } catch (e) {
     console.error('[extract]', e)
   }
 
-  // ── Étape 2 : Gemini génère la photo de fond SANS texte ───────────────────
-  const photoPrompt = `Photorealistic professional photo, square format. Scene: ${bgDescription || 'modern professional office with natural lighting'}.
+  // ── Étape 2 : Gemini génère photo + texte intégré ─────────────────────────
+  const hasStat = statValue.length > 0
 
-ABSOLUTE RULES — violation is not acceptable:
-- NO text, NO words, NO letters, NO numbers, NO signs, NO labels anywhere in the image
-- NO watermarks, NO logos, NO UI overlays, NO copyright notices
-- NO footer, NO banner, NO white bar at the bottom
-- Pure photo only, clean composition
-- Cinematic lighting, shallow depth of field, editorial quality`
+  const textInstructions = hasStat
+    ? `TEXT TO INCLUDE IN THE IMAGE:
+- TOP AREA: Large bold title text "${visualTitle}" in white, very large font, dominant
+- CENTER: Giant number/stat "${statValue}" in white or accent color, extremely large, bold
+- BELOW STAT: Small label "${statLabel}" in white, smaller font`
+    : `TEXT TO INCLUDE IN THE IMAGE:
+- LOWER THIRD: Large bold title text "${visualTitle}" in white, very large font, dominant
+- Clean text on a semi-transparent dark overlay for readability`
+
+  const photoPrompt = `Create a PREMIUM LinkedIn visual, square 1:1 format (1080x1080px).
+
+BACKGROUND SCENE: ${bgDescription || 'modern professional office environment'}
+Style: photorealistic, cinematic lighting, editorial quality, shallow depth of field
+
+${textInstructions}
+
+DESIGN RULES:
+- Primary brand color ${brandAccent} used for accents, underlines, or color highlights
+- Secondary color ${brandSecondary} for gradients or secondary elements  
+- Semi-transparent dark overlay on photo bottom half so text is perfectly readable
+- Bold sans-serif typography (Helvetica Black style), clean and impactful
+- NO watermark text, NO "Watermark" word, NO footer bar, NO copyright notice
+- Leave bottom-right corner (100x100px) empty for logo overlay
+- Premium editorial look: Bloomberg/Forbes magazine style
+- All text must be crisp, perfectly rendered, easy to read`
 
   let rawImageBase64 = ''
 
@@ -152,15 +161,16 @@ ABSOLUTE RULES — violation is not acceptable:
     return res.status(500).json({ error: 'Erreur génération image IA' })
   }
 
-  // ── Étape 3 : Sharp — rogner footer Gemini + overlay brand + texte SVG + logo ──
+  // ── Étape 3 : Sharp — rogner footer + overlay gradient + logo ─────────────
   try {
     let imageBuffer: Buffer = Buffer.from(rawImageBase64, 'base64')
 
-    // Rogner les ~80px du bas pour éliminer le footer blanc que Gemini génère parfois
     const meta = await sharp(imageBuffer).metadata()
     const W = meta.width || 1080
     const H = meta.height || 1080
-    const cropH = Math.round(H * 0.93) // on garde 93% de la hauteur
+
+    // Rogner les ~7% du bas (footer blanc Gemini)
+    const cropH = Math.round(H * 0.93)
     const croppedBuf = await sharp(imageBuffer)
       .extract({ left: 0, top: 0, width: W, height: cropH })
       .resize(W, H, { fit: 'fill' })
@@ -168,42 +178,23 @@ ABSOLUTE RULES — violation is not acceptable:
       .toBuffer() as unknown as Buffer
     imageBuffer = croppedBuf
 
+    // Overlay gradient brand (SVG sans texte — juste la couleur)
     const { r, g, b } = hexToRgb(brandAccent)
     const { r: r2, g: g2, b: b2 } = hexToRgb(brandSecondary)
-
-    const hasStat = statValue.length > 0
-    const padding = 56
-    const titleFontSize = visualTitle.length > 15 ? 76 : visualTitle.length > 10 ? 92 : 108
-    const statFontSize = 156
-    const subtitleFontSize = 36
-
-    // Zone texte : démarre à 42% de hauteur
-    const textZoneY = Math.round(H * 0.42)
-    const titleY = textZoneY + 72
-    const statY = titleY + titleFontSize + 16
-    const subtitleY = hasStat ? statY + statFontSize : titleY + titleFontSize + 48
 
     const svgOverlay = `<svg width="${W}" height="${H}" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="rgb(${r},${g},${b})" stop-opacity="0"/>
-      <stop offset="30%" stop-color="rgb(${r},${g},${b})" stop-opacity="0.1"/>
-      <stop offset="50%" stop-color="rgb(${r},${g},${b})" stop-opacity="0.78"/>
-      <stop offset="100%" stop-color="rgb(${r2},${g2},${b2})" stop-opacity="0.95"/>
+      <stop offset="60%" stop-color="rgb(${r},${g},${b})" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="rgb(${r2},${g2},${b2})" stop-opacity="0.45"/>
     </linearGradient>
   </defs>
   <rect width="${W}" height="${H}" fill="url(#g1)"/>
-  <rect x="${padding}" y="${textZoneY - 6}" width="${Math.round(W * 0.5)}" height="5" fill="${brandAccent}" rx="2"/>
-  <text x="${padding}" y="${titleY}" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="${titleFontSize}" fill="${textColor}" letter-spacing="-1">${escSvg(visualTitle)}</text>
-  ${hasStat ? `
-  <text x="${padding}" y="${statY}" font-family="'Arial Black','Helvetica Neue',Arial,sans-serif" font-weight="900" font-size="${statFontSize}" fill="${textColor}">${escSvg(statValue)}</text>
-  ${statLabel ? `<text x="${padding}" y="${statY + 42}" font-family="Arial,sans-serif" font-size="30" fill="${textColor}" opacity="0.85">${escSvg(statLabel)}</text>` : ''}
-  ` : ''}
-  ${subtitle ? `<text x="${padding}" y="${subtitleY}" font-family="Arial,sans-serif" font-size="${subtitleFontSize}" fill="${textColor}" opacity="0.88">${escSvg(subtitle)}</text>` : ''}
 </svg>`
 
     let composited = await sharp(imageBuffer)
-      .composite([{ input: Buffer.from(svgOverlay), blend: 'over' }])
+      .composite([{ input: Buffer.from(svgOverlay, 'utf-8'), blend: 'over' }])
       .png()
       .toBuffer()
 
