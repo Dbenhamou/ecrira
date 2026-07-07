@@ -185,11 +185,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const W = meta.width || 1080
     const H = meta.height || 1080
 
-    // Rogner le footer Gemini sans déformer — cover centré sur le haut
-    const cropH = Math.round(H * 0.92)
+    // Rogner haut (bande noire) + bas (footer Gemini)
+    const topCrop = Math.round(H * 0.06)
+    const botCrop = Math.round(H * 0.07)
+    const cropH = H - topCrop - botCrop
     const croppedBuf = await sharp(imageBuffer)
-      .extract({ left: 0, top: 0, width: W, height: cropH })
-      .resize(W, W, { fit: 'cover', position: 'top' })
+      .extract({ left: 0, top: topCrop, width: W, height: cropH })
+      .resize(W, W, { fit: 'cover', position: 'centre' })
       .png()
       .toBuffer() as unknown as Buffer
     imageBuffer = croppedBuf
@@ -219,6 +221,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const patchSvg = '<svg width="' + patchSize + '" height="' + patchSize + '" xmlns="http://www.w3.org/2000/svg"><rect width="' + patchSize + '" height="' + patchSize + '" fill="rgb(' + r2 + ',' + g2 + ',' + b2 + ')" opacity="0.0"/></svg>'
       composited = await sharp(composited)
         .composite([{ input: Buffer.from(patchSvg, 'utf-8'), left: patchLeft, top: patchTop, blend: 'over' }])
+        .png()
+        .toBuffer()
+    }
+
+    // Patch zone logo — recouvrir le bloc blanc Gemini
+    {
+      const pSize = 90
+      const patchSvg = '<svg width="' + pSize + '" height="' + pSize + '" xmlns="http://www.w3.org/2000/svg">'
+        + '<rect width="' + pSize + '" height="' + pSize + '" fill="rgb(' + r2 + ',' + g2 + ',' + b2 + ')" rx="4"/>'
+        + '</svg>'
+      composited = await sharp(composited)
+        .composite([{ input: Buffer.from(patchSvg, 'utf-8'), left: W - pSize - 12, top: W - pSize - 12, blend: 'over' }])
         .png()
         .toBuffer()
     }
