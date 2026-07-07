@@ -133,6 +133,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     '- Photorealistic background, NOT flat design, NOT illustration',
     '- Do NOT add any text other than what is specified above',
     '- Do NOT add a black bar, dark strip or solid color band at the top or bottom of the image',
+    '- Do NOT put any box, frame, rectangle or background shape behind the stat label text',
     '- The photo must fill the ENTIRE image edge to edge, no borders, no bands, no letterboxing',
     '- Stat and title color must use ONLY ' + brandAccent + ' or white — no random blue, no purple',
     '- Do NOT write watermark, copyright, footer, logo or any label',
@@ -232,7 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     {
       const pSize = 90
       const patchSvg = '<svg width="' + pSize + '" height="' + pSize + '" xmlns="http://www.w3.org/2000/svg">'
-        + '<rect width="' + pSize + '" height="' + pSize + '" fill="rgb(' + r2 + ',' + g2 + ',' + b2 + ')" rx="4"/>'
+        + '<rect width="' + pSize + '" height="' + pSize + '" fill="rgb(0,0,0)" opacity="0.5" rx="4"/>'
         + '</svg>'
       composited = await sharp(composited)
         .composite([{ input: Buffer.from(patchSvg, 'utf-8'), left: W - pSize - 12, top: W - pSize - 12, blend: 'over' }])
@@ -242,10 +243,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Logo Ecrira icône (sauf hideWatermark)
     if (!hideWatermark) {
-      const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-icon-bleu.png')
+      const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-horizontal-400.png')
       if (fs.existsSync(logoPath)) {
         const logoResized = await sharp(logoPath)
-          .resize({ width: 44, withoutEnlargement: true })
+          .resize({ width: 120, withoutEnlargement: true })
           .png()
           .toBuffer()
         const { width: lw = 44, height: lh = 44 } = await sharp(logoResized).metadata()
