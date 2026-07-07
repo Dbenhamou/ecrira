@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           '{',
           '  "title": "3 mots MAX voir regles",',
           '  "stat": "UN chiffre cle ex 70% ou 3x ou 10k, vide si aucun dans le post",',
-          '  "statLabel": "contexte 4 mots MAX, UNIQUEMENT lettres de base a-z A-Z 0-9 espace, ZERO accent ZERO caractere special. Ex: des attaques la nuit, de gain de temps, des PME touchees",',
+          '  "statLabel": "short English context for the stat, 4 words MAX, simple words only no special chars. Ex: triggered at night, of companies affected, saved per month",',
           '  "postType": "comparaison | statistique | alerte | conseil | storytelling",',
           '  "bgPhoto": "EN ANGLAIS, description precise photo realiste pro liee au secteur. Ex cyber: cybersecurity operations center analysts watching threat screens dramatic blue light. Sante: hospital emergency room doctors nurses working night shift. Coaching: executive coach and client in modern bright office. Immobilier: luxury penthouse living room with panoramic city view. Finance: busy trading floor multiple screens data. RH: diverse team collaborative meeting modern workspace."',
           '}',
@@ -107,11 +107,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // ── Étape 2 : Gemini — visuel photo réaliste plein écran ─────────────────
   const textBlock = stat
     ? [
-        'Title "' + title + '" — bold white, large, top area',
-        'Stat "' + stat + '" — enormous dominant center',
-        'Label "' + statLabel + '" — small white below stat',
-      ].join('. ')
-    : 'Title "' + title + '" — bold white, very large, lower third of image'
+        'Title "' + title + '" — bold weight, white, top area, approximately 12-15% of image height. Clean and impactful but NOT oversized.',
+        'Stat "' + stat + '" — regular or medium weight (NOT bold), white or light color, approximately 28-32% of image height. Elegant, not aggressive.',
+        'Label "' + statLabel + '" — light weight, white, small — approximately 4-5% of image height, wide letter-spacing, placed just below the stat.',
+      ].join(' ')
+    : 'Title "' + title + '" — bold weight, white, lower third of image, approximately 14-18% of image height. Elegant, NOT oversized.'
 
   const geminiPrompt = [
     'Create a PREMIUM LinkedIn square visual (1080x1080px).',
