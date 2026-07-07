@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           '{',
           '  "title": "3 mots MAX voir regles",',
           '  "stat": "UN chiffre cle ex 70% ou 3x ou 10k, vide si aucun dans le post",',
-          '  "statLabel": "extrait EXACTEMENT du post, phrase courte qui donne le contexte du chiffre, 5 mots MAX, sans accents, sans caracteres speciaux. OBLIGATOIRE: doit etre grammaticalement correct et avoir du sens. Ex si le post dit 70% des ransomwares frappent la nuit: statLabel = des attaques la nuit. Si aucun contexte clair: laisser vide.",',
+          '  "statLabel": "complement du chiffre extrait du post, 3 mots MAX, sans accents, DOIT avoir du sens seul. Exemples: la nuit ou le weekend, des PME touchees, de gain de temps, des incidents detectes. Si le chiffre est 70% et le post dit nuit et weekend: repondre la nuit weekend. JAMAIS de verbe conjugue, JAMAIS de phrase complete.",',
           '  "postType": "comparaison | statistique | alerte | conseil | storytelling",',
           '  "bgPhoto": "EN ANGLAIS, description precise photo realiste pro liee au secteur. Ex cyber: cybersecurity operations center analysts watching threat screens dramatic blue light. Sante: hospital emergency room doctors nurses working night shift. Coaching: executive coach and client in modern bright office. Immobilier: luxury penthouse living room with panoramic city view. Finance: busy trading floor multiple screens data. RH: diverse team collaborative meeting modern workspace."',
           '}',
