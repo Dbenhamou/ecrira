@@ -133,7 +133,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     '- Photorealistic background, NOT flat design, NOT illustration',
     '- Do NOT add any text other than what is specified above',
     '- Do NOT add a black bar, dark strip or solid color band at the top or bottom of the image',
-    '- Do NOT put any box, frame, rectangle or background shape behind the stat label text',
+    '- Do NOT put any box, frame, rectangle, panel or semi-transparent overlay behind ANY text element — not behind the title, not behind the stat, not behind the label',
+    '- All text must float directly on the photo background with only a subtle text shadow for readability — NO containers',
     '- The photo must fill the ENTIRE image edge to edge, no borders, no bands, no letterboxing',
     '- Stat and title color must use ONLY ' + brandAccent + ' or white — no random blue, no purple',
     '- Do NOT write watermark, copyright, footer, logo or any label',
@@ -190,7 +191,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const H = meta.height || 1080
 
     // Rogner haut (bande noire) + bas (footer Gemini)
-    const topCrop = Math.round(H * 0.06)
+    const topCrop = Math.round(H * 0.12)
     const botCrop = Math.round(H * 0.07)
     const cropH = H - topCrop - botCrop
     const croppedBuf = await sharp(imageBuffer)
