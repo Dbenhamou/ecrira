@@ -107,11 +107,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // ── Étape 2 : Gemini — visuel photo réaliste plein écran ─────────────────
   const textBlock = stat
     ? [
-        'Title "' + title + '" — bold weight, white, top area, approximately 12-15% of image height. Clean and impactful but NOT oversized.',
-        'Stat "' + stat + '" — regular or medium weight (NOT bold), white or light color, approximately 28-32% of image height. Elegant, not aggressive.',
-        'Label "' + statLabel + '" — light weight, white, small — approximately 4-5% of image height, wide letter-spacing, placed just below the stat.',
+        'TITLE "' + title + '" — positioned in the TOP 20% of the image. Bold weight, white, font size approximately 10-12% of image height.',
+        'STAT "' + stat + '" — positioned in the VERTICAL CENTER (40-60%) of the image. Regular/medium weight, white, font size approximately 25-30% of image height.',
+        'LABEL "' + statLabel + '" — positioned just below the stat, around 65-72% from top. Light weight, white, small font approximately 4% of image height, wide letter-spacing.',
+        'Leave generous empty space between each text element. Do not cluster them together.',
       ].join(' ')
-    : 'Title "' + title + '" — bold weight, white, lower third of image, approximately 14-18% of image height. Elegant, NOT oversized.'
+    : [
+        'TITLE "' + title + '" — positioned in the TOP 25% of the image. Bold weight, white, font size approximately 12-14% of image height.',
+        'Leave the rest of the image clean with generous negative space.',
+      ].join(' ')
 
   const geminiPrompt = [
     'Create a PREMIUM LinkedIn square visual (1080x1080px).',
