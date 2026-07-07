@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           '{',
           '  "title": "3 mots MAX voir regles",',
           '  "stat": "UN chiffre cle ex 70% ou 3x ou 10k, vide si aucun dans le post",',
-          '  "statLabel": "short English context for the stat, 4 words MAX, simple words only no special chars. Ex: triggered at night, of companies affected, saved per month",',
+          '  "statLabel": "contexte court en FRANCAIS, 4 mots MAX, sans accents, sans caracteres speciaux, lisible et grammaticalement correct. Ex: des attaques la nuit, des PME touchees, de gain de temps, des incidents evites",',
           '  "postType": "comparaison | statistique | alerte | conseil | storytelling",',
           '  "bgPhoto": "EN ANGLAIS, description precise photo realiste pro liee au secteur. Ex cyber: cybersecurity operations center analysts watching threat screens dramatic blue light. Sante: hospital emergency room doctors nurses working night shift. Coaching: executive coach and client in modern bright office. Immobilier: luxury penthouse living room with panoramic city view. Finance: busy trading floor multiple screens data. RH: diverse team collaborative meeting modern workspace."',
           '}',
