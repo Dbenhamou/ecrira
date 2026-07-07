@@ -76,11 +76,11 @@ SECTEUR : "${sector || 'déduis-le du post'}"
 
 Renvoie ce JSON :
 {
-  "title": "titre choc, 4 mots MAX, MAJUSCULES, SANS accents, SANS ponctuation, en anglais ou français simple",
+  "title": "titre percutant, 3 mots MAX, MAJUSCULES, SANS accents, SANS ponctuation. Si comparaison utilise TOUJOURS 'VS' (jamais VERSUS). Ex: 'SOC VS EXPERT', 'AGIR OU ATTENDRE', 'ROI X3'. Sinon titre simple ex: 'PROTECTION REELLE', 'CROISSANCE 2024'.",
   "statValue": "UN chiffre ou % marquant extrait du post (ex: '43%', '3x', '10k'), ou chaine vide si aucun",
-  "statLabel": "contexte du chiffre en 3 mots MAX sans accents, ou chaine vide",
+  "statLabel": "contexte du chiffre, 3 mots MAX, SANS accents, ou chaine vide",
   "postType": "alerte | statistique | conseil | comparaison | storytelling",
-  "bgPhoto": "description EN ANGLAIS d'une photo professionnelle réaliste liée au secteur, sans texte dans la scene. Ex: 'cybersecurity operations center with analysts', 'modern hospital hallway blue light', 'construction site golden hour aerial view'."
+  "bgPhoto": "description EN ANGLAIS d'une photo professionnelle réaliste liée au secteur, sans texte dans la scene. Ex: 'cybersecurity operations center with analysts at screens', 'modern hospital hallway with blue ambient light', 'construction site aerial view golden hour'."
 }`,
       }],
     })
@@ -100,12 +100,14 @@ Renvoie ce JSON :
 
   const textInstructions = hasStat
     ? `TEXT TO INCLUDE IN THE IMAGE:
-- TOP AREA: Large bold title text "${visualTitle}" in white, very large font, dominant
-- CENTER: Giant number/stat "${statValue}" in white or accent color, extremely large, bold
-- BELOW STAT: Small label "${statLabel}" in white, smaller font`
+- TOP THIRD: Bold title "${visualTitle}" in white, large font, clean — NOT oversized
+- CENTER: Giant stat "${statValue}" dominant, bold white or light accent color
+- BELOW STAT: Small subtle label "${statLabel}" in white, much smaller font
+- Generous empty space around each text element — NO clutter`
     : `TEXT TO INCLUDE IN THE IMAGE:
-- LOWER THIRD: Large bold title text "${visualTitle}" in white, very large font, dominant
-- Clean text on a semi-transparent dark overlay for readability`
+- LOWER THIRD only: Bold title "${visualTitle}" in white, large clean font
+- Large empty space in upper half — editorial negative space
+- Subtle semi-transparent dark bar behind text for readability`
 
   const photoPrompt = `Create a PREMIUM LinkedIn visual, square 1:1 format (1080x1080px).
 

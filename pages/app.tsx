@@ -1619,6 +1619,15 @@ export default function Home() {
                     <button className="btn" style={{width:'100%',fontSize:12,justifyContent:'center',background:'#1F2421',color:'white',border:'none',borderRadius:0,borderTop:'1px solid rgba(255,255,255,0.15)',opacity:postOutput?1:0.4,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
                       {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA…</>:'✦ Visuel IA (beta)'}
                     </button>
+                    {/* Toggle watermark Gemini (Pro only) */}
+                    {isPro && (
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 14px',background:'white',borderTop:'1px solid var(--border)'}}>
+                        <span style={{fontSize:11,color:'var(--text2)'}}>Mention Ecrira</span>
+                        <div className={`toggle ${!hideWatermark?'on':''}`} onClick={()=>setHideWatermark(v=>!v)}>
+                          <div className="toggle-dot"/>
+                        </div>
+                      </div>
+                    )}
                     {aiImageUrl && (
                       <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)'}}>
                         <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.07em',textTransform:'uppercase' as const,marginBottom:8}}>Visuel IA</div>
