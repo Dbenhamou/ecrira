@@ -230,18 +230,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         .toBuffer()
     }
 
-    // Patch zone logo — recouvrir le bloc blanc Gemini
-    {
-      const pSize = 90
-      const patchSvg = '<svg width="' + pSize + '" height="' + pSize + '" xmlns="http://www.w3.org/2000/svg">'
-        + '<rect width="' + pSize + '" height="' + pSize + '" fill="rgb(0,0,0)" opacity="0.5" rx="4"/>'
-        + '</svg>'
-      composited = await sharp(composited)
-        .composite([{ input: Buffer.from(patchSvg, 'utf-8'), left: W - pSize - 12, top: W - pSize - 12, blend: 'over' }])
-        .png()
-        .toBuffer()
-    }
-
     // Logo Ecrira icône (sauf hideWatermark)
     if (!hideWatermark) {
       const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-horizontal-400.png')
