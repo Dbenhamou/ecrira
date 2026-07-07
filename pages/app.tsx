@@ -552,7 +552,7 @@ export default function Home() {
   const generate3Variants = async () => {
     const t = postTopic
     if (!t.trim()) { showToast(T('toast_enter_topic')); return }
-    setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0)
+    setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0); setAiImageUrl('')
     try {
       const results: string[] = []
       for (let i = 0; i < 3; i++) {
@@ -1174,7 +1174,7 @@ export default function Home() {
                   <div className="idea-title">{idea.title}</div>
                   <div className="idea-hook">{idea.hook}</div>
                   <div className="idea-actions">
-                    <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setPage('rediger')}}>{T('develop')}</button>
+                    <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
                     <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>saveIdea(idea)}>{savedIdeas.some(s=>s.title===idea.title)?'★':'☆'} {lang==='en'?'Save':'Sauvegarder'}</button>
                   </div>
                 </div>
@@ -1368,7 +1368,7 @@ export default function Home() {
                     <div style={{fontSize:15,fontWeight:500,color:'var(--text1)',lineHeight:1.4,marginBottom:6}}>{idea.title}</div>
                     <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5,marginBottom:12}}>{idea.hook}</div>
                     <div style={{display:'flex',gap:6}}>
-                      <button className="btn btn-primary" style={{fontSize:10,padding:'5px 12px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setPage('rediger')}}>{T('develop')}</button>
+                      <button className="btn btn-primary" style={{fontSize:10,padding:'5px 12px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
                       <button className="btn btn-ghost" style={{fontSize:10,padding:'5px 12px'}} onClick={async()=>{
                         const{data:u}=await supabase.auth.getUser()
                         if(!u?.user)return
@@ -1533,7 +1533,7 @@ export default function Home() {
               </div>
                 {postVariants.length > 1 && (
                   <div style={{display:'flex',gap:6,marginBottom:6}}>
-                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--indigo)':'var(--border)'}`,background:activeVariant===i?'rgba(61,82,160,0.08)':'transparent',color:activeVariant===i?'var(--indigo)':'var(--text2)',cursor:'pointer',fontWeight:activeVariant===i?600:400}}>Post {i+1}</button>))}
+                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i]);setAiImageUrl('')}} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--indigo)':'var(--border)'}`,background:activeVariant===i?'rgba(61,82,160,0.08)':'transparent',color:activeVariant===i?'var(--indigo)':'var(--text2)',cursor:'pointer',fontWeight:activeVariant===i?600:400}}>Post {i+1}</button>))}
                   </div>
                 )}
                 {/* Hashtags suggérés */}
@@ -1605,19 +1605,9 @@ export default function Home() {
 
                   {/* Créer le visuel — config + bouton */}
                   <div style={{border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
-                    {/* Toggle config */}
-                    <div style={{display:'flex',gap:0}}>
-                      <button className="btn btn-primary" style={{flex:1,fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#3D52A0,#B7C0B8)',opacity:postOutput?1:0.4,borderRadius:0}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateAiVisual(); }} disabled={!postOutput||(batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual)}>
-                        {(batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual)?<><span className="spinner" style={{borderTopColor:'white'}}/>{T('generating_visual')}</>:T('create_visual')}
-                      </button>
-                      <button onClick={()=>setShowVisualConfig(v=>!v)} style={{padding:'0 12px',background:'var(--indigo)',border:'none',borderLeft:'1px solid rgba(255,255,255,0.2)',cursor:'pointer',color:'white',fontSize:16,opacity:postOutput?1:0.4}} disabled={!postOutput}>
-                        {showVisualConfig?'▲':'▼'}
-                      </button>
-                    </div>
-
                     {/* Bouton Visuel IA (Gemini) */}
-                    <button className="btn" style={{width:'100%',fontSize:12,justifyContent:'center',background:'#1F2421',color:'white',border:'none',borderRadius:0,borderTop:'1px solid rgba(255,255,255,0.15)',opacity:postOutput?1:0.4,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
-                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA…</>:'✦ Visuel IA (beta)'}
+                    <button className="btn btn-primary" style={{width:'100%',fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#3D52A0,#5B6EBF)',opacity:postOutput?1:0.4,borderRadius:0,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
+                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA…</>:'✦ Générer un visuel IA'}
                     </button>
                     {/* Toggle watermark Gemini (Pro only) */}
                     {isPro && (
@@ -2069,7 +2059,7 @@ export default function Home() {
                     <div className="idea-title">{idea.title}</div>
                     <div className="idea-hook">{idea.hook}</div>
                     <div className="idea-actions">
-                      <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setPage('rediger')}}>{T('develop')}</button>
+                      <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
                       <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+(idea.hook||''))}>{T('copy')}</button>
                       <button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b'}} onClick={()=>deleteSavedIdea(undefined,idea.title)}>🗑</button>
                     </div>
