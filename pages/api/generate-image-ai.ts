@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           '{',
           '  "title": "3 mots MAX voir regles",',
           '  "stat": "UN chiffre cle ex 70% ou 3x ou 10k, vide si aucun dans le post",',
-          '  "statLabel": "contexte du chiffre, phrase lisible 5 mots MAX SANS accents, ex des attaques la nuit",',
+          '  "statLabel": "contexte 4 mots MAX, UNIQUEMENT lettres de base a-z A-Z 0-9 espace, ZERO accent ZERO caractere special. Ex: des attaques la nuit, de gain de temps, des PME touchees",',
           '  "postType": "comparaison | statistique | alerte | conseil | storytelling",',
           '  "bgPhoto": "EN ANGLAIS, description precise photo realiste pro liee au secteur. Ex cyber: cybersecurity operations center analysts watching threat screens dramatic blue light. Sante: hospital emergency room doctors nurses working night shift. Coaching: executive coach and client in modern bright office. Immobilier: luxury penthouse living room with panoramic city view. Finance: busy trading floor multiple screens data. RH: diverse team collaborative meeting modern workspace."',
           '}',
@@ -209,6 +209,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .composite([{ input: Buffer.from(svgOverlay, 'utf-8'), blend: 'over' }])
       .png()
       .toBuffer()
+
+    // Patch zone logo — recouvrir le fond blanc Gemini avant de poser le logo
+    {
+      const patchSize = 80
+      const patchLeft = W - patchSize - 10
+      const patchTop = W - patchSize - 10
+      const patchSvg = '<svg width="' + patchSize + '" height="' + patchSize + '" xmlns="http://www.w3.org/2000/svg"><rect width="' + patchSize + '" height="' + patchSize + '" fill="rgb(' + r2 + ',' + g2 + ',' + b2 + ')" opacity="0.0"/></svg>'
+      composited = await sharp(composited)
+        .composite([{ input: Buffer.from(patchSvg, 'utf-8'), left: patchLeft, top: patchTop, blend: 'over' }])
+        .png()
+        .toBuffer()
+    }
 
     // Logo Ecrira icône (sauf hideWatermark)
     if (!hideWatermark) {
