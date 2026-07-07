@@ -1628,12 +1628,7 @@ export default function Home() {
                             <div className="toggle-dot"/>
                           </div>
                         </div>
-                        {(profile as any).company_logo && (
-                          <div style={{display:'flex',alignItems:'center',gap:8}}>
-                            <input type="checkbox" id="hideCompanyLogo" checked={hideCompanyLogo} onChange={e=>setHideCompanyLogo(e.target.checked)} style={{accentColor:'var(--indigo)',width:14,height:14}}/>
-                            <label htmlFor="hideCompanyLogo" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer le logo entreprise</label>
-                          </div>
-                        )}
+
                       </div>
                     )}
                   </div>
