@@ -1627,61 +1627,21 @@ export default function Home() {
                     )}
 
 
-                    {/* Config panel */}
-                    {showVisualConfig && (
-                      <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)',display:'flex',flexDirection:'column' as const,gap:10}}>
-
-                        {/* Type de visuel */}
-                        <div>
-                          <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',textTransform:'uppercase' as const,letterSpacing:'.05em',marginBottom:6}}>{T('visual_type_label')}</div>
-                          <div style={{display:'flex',gap:5,flexWrap:'wrap' as const}}>
-                            {[{id:'classique',label:'📰 Classique'},{id:'timeline',label:'🕓 Timeline'},{id:'stat',label:'📊 Stat'},{id:'citation',label:'💬 Citation'},{id:'liste',label:'📋 Liste'}].map(t=>(
-                              <button key={t.id} onClick={()=>setVisualType(t.id)} style={{padding:'5px 10px',borderRadius:20,border:'1.5px solid',borderColor:visualType===t.id?'var(--indigo)':'var(--border)',background:visualType===t.id?'var(--indigo)':'transparent',color:visualType===t.id?'white':'var(--text2)',fontSize:11,fontWeight:500,cursor:'pointer'}}>
-                                {t.label}
-                              </button>
-                            ))}
+                    {/* Options visuels IA */}
+                    {isPro && (
+                      <div style={{display:'flex',flexDirection:'column' as const,gap:8,padding:'10px 14px',background:'white',borderTop:'1px solid var(--border)'}}>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                          <span style={{fontSize:11,color:'var(--text2)'}}>Masquer la mention Ecrira</span>
+                          <div className={`toggle ${hideWatermark?'on':''}`} onClick={()=>setHideWatermark(v=>!v)}>
+                            <div className="toggle-dot"/>
                           </div>
                         </div>
-
-                        {/* Titre personnalisé */}
-                        <div>
-                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>{T('custom_title_label')}</div>
-                          <input value={visualCustomTitle} onChange={e=>setVisualCustomTitle(e.target.value)} placeholder={T('custom_title_placeholder')} style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',boxSizing:'border-box' as const,color:'var(--text1)',background:'var(--bg)'}}/>
-                        </div>
-
-                        {/* Points personnalisés */}
-                        <div>
-                          <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>{T('key_points_label')}</div>
-                          <textarea value={visualCustomPoints} onChange={e=>setVisualCustomPoints(e.target.value)} placeholder={'Point 1\nPoint 2\nPoint 3'} rows={3} style={{width:'100%',fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',resize:'vertical' as const,boxSizing:'border-box' as const,color:'var(--text1)',background:'var(--bg)',fontFamily:'inherit'}}/>
-                        </div>
-
-                        {/* Masquer mention Ecrira (Pro) */}
-                        {isPro && (
-                          <div style={{display:'flex',alignItems:'center',gap:8}}>
-                            <input type="checkbox" id="hideWm" checked={hideWatermark} onChange={e=>setHideWatermark(e.target.checked)} style={{accentColor:'var(--indigo)',width:14,height:14}}/>
-                            <label htmlFor="hideWm" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer la mention "ecrira.com"</label>
-                          </div>
-                        )}
                         {(profile as any).company_logo && (
-                          <div style={{display:'flex',alignItems:'center',gap:8,marginTop:4}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8}}>
                             <input type="checkbox" id="hideCompanyLogo" checked={hideCompanyLogo} onChange={e=>setHideCompanyLogo(e.target.checked)} style={{accentColor:'var(--indigo)',width:14,height:14}}/>
                             <label htmlFor="hideCompanyLogo" style={{fontSize:11,color:'var(--text2)',cursor:'pointer'}}>Masquer le logo entreprise</label>
                           </div>
                         )}
-                        {!isPro && (
-                          <div style={{fontSize:10,color:'var(--text3)',fontStyle:'italic' as const}}>{T('upgrade_watermark')}</div>
-                        )}
-
-
-                        {/* Bouton Régénérer */}
-                        <button
-                          className="btn btn-primary"
-                          onClick={()=>{ setShowSvgEditor(false); generateAiVisual(); }}
-                          disabled={batchTopics.length>1?generatingByTab[activeBatchTab]:generatingAiVisual}
-                          style={{fontSize:12,justifyContent:'center',background:'var(--indigo)',borderRadius:8,marginTop:4}}
-                        >
-                          {generatingAiVisual?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('regenerate')}
-                        </button>
                       </div>
                     )}
                   </div>
