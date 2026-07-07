@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           '{',
           '  "title": "3 mots MAX voir regles",',
           '  "stat": "UN chiffre cle ex 70% ou 3x ou 10k, vide si aucun dans le post",',
-          '  "statLabel": "complement du chiffre extrait du post, 3 mots MAX, sans accents, DOIT avoir du sens seul. Exemples: la nuit ou le weekend, des PME touchees, de gain de temps, des incidents detectes. Si le chiffre est 70% et le post dit nuit et weekend: repondre la nuit weekend. JAMAIS de verbe conjugue, JAMAIS de phrase complete.",',
+          '  "statLabel": "phrase courte qui explique le chiffre, extraite DIRECTEMENT du post, 6 mots MAX. Doit avoir du sens seul. Ex: des ransomwares frappent la nuit, des PME ont subi une attaque, de gain de productivite. Accepte les accents et apostrophes.",',
           '  "postType": "comparaison | statistique | alerte | conseil | storytelling",',
           '  "bgPhoto": "EN ANGLAIS, description precise photo realiste pro liee au secteur. Ex cyber: cybersecurity operations center analysts watching threat screens dramatic blue light. Sante: hospital emergency room doctors nurses working night shift. Coaching: executive coach and client in modern bright office. Immobilier: luxury penthouse living room with panoramic city view. Finance: busy trading floor multiple screens data. RH: diverse team collaborative meeting modern workspace."',
           '}',
@@ -97,7 +97,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const parsed = JSON.parse(txt)
     if (parsed.title) title = toAscii(parsed.title).slice(0, 30)
     if (parsed.stat) stat = toAscii(parsed.stat)
-    if (parsed.statLabel) statLabel = toAscii(parsed.statLabel)
+    if (parsed.statLabel) statLabel = parsed.statLabel
     if (parsed.bgPhoto) bgPhoto = parsed.bgPhoto
     if (parsed.postType) postType = parsed.postType
   } catch (e) {
