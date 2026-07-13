@@ -23,7 +23,7 @@ export type Profile = {
   writing_style: string
   formality: string
   linkedin_token?: string
-  linkedin_token_expiry?: string
+  linkedin_token_expiry?: string | null
   linkedin_id?: string
   summary?: string
   keywords?: string
@@ -125,7 +125,7 @@ export function useProfile() {
         writing_style: data.writing_style || '',
         formality: (data as any).formality || 'vouvoiement',
         linkedin_token: data.linkedin_token || '',
-        linkedin_token_expiry: data.linkedin_token_expiry || '',
+        linkedin_token_expiry: data.linkedin_token_expiry || null,
         linkedin_id: data.linkedin_id || '',
       })
     }
@@ -134,13 +134,17 @@ export function useProfile() {
 
   const saveProfile = async (updated: Profile): Promise<boolean> => {
     if (!userId) return false
+    // linkedin_token_expiry is a timestamptz column — '' is not a valid value
+    // (only a real ISO string from the LinkedIn OAuth callback, or null, are).
+    const payload = { ...updated, linkedin_token_expiry: updated.linkedin_token_expiry || null }
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: userId, ...updated })
+      .upsert({ id: userId, ...payload })
     if (!error) {
       setProfileState(updated)
       return true
     }
+    console.error('[useProfile] saveProfile error:', error)
     return false
   }
 
