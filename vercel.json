@@ -12,6 +12,12 @@
   "functions": {
     "pages/api/generate-visual.ts": {
       "maxDuration": 60
+    },
+    "pages/api/cron-ideas.ts": {
+      "maxDuration": 120
+    },
+    "pages/api/generate-image-ai.ts": {
+      "maxDuration": 60
     }
   },
   "buildCommand": "NODE_OPTIONS=\"--max-old-space-size=3008\" npm run build"
