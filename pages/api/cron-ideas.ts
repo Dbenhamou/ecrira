@@ -22,8 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: profiles } = await supabase.from('profiles').select('*')
     if (!profiles?.length) return res.status(200).json({ message: 'Aucun utilisateur' })
 
-    // Génère des idées pour chaque utilisateur — adaptées à SON secteur
-    for (const profile of profiles) {
+    // Génère des idées par batch de 3 users en parallèle
+    const batchSize = 3
+    for (let i = 0; i < profiles.length; i += batchSize) {
+      const batch = profiles.slice(i, i + batchSize)
+      await Promise.all(batch.map(async (profile: any) => {
+      try {
       const sector = (profile.sector || '').trim()
       const role = (profile.role || '').trim()
       const company = (profile.company || '').trim()
@@ -99,6 +103,10 @@ Réponds UNIQUEMENT avec le JSON, sans markdown.`
           generated_at: new Date().toISOString().split('T')[0],
         }))
       )
+      } catch (userErr) {
+        console.error('[cron-ideas] Erreur user', profile.id, userErr)
+      }
+      }))
     }
 
     res.status(200).json({ message: `Idées générées pour ${profiles.length} utilisateur(s)` })
