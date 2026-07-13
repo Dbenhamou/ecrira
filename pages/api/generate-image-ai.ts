@@ -8,14 +8,14 @@ import fs from 'fs'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const imgRateLimit = new Map<string, { count: number; reset: number }>()
-function checkImgRateLimit(userId: string): boolean {
+function checkImgRateLimit(userId: string, max: number = 10): boolean {
   const now = Date.now()
   const limit = imgRateLimit.get(userId)
   if (!limit || now > limit.reset) {
     imgRateLimit.set(userId, { count: 1, reset: now + 3600_000 })
     return true
   }
-  if (limit.count >= 10) return false
+  if (limit.count >= max) return false
   limit.count++
   return true
 }
@@ -40,15 +40,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
-  if (!checkImgRateLimit(userId)) {
-    return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 10 images par heure atteinte.' })
-  }
-
   const { postContent, postTopic, profile, hideWatermark } = req.body
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
 
   const isPro = profile?.plan === 'pro' || profile?.plan === 'trial'
   if (!isPro) return res.status(403).json({ error: 'PRO_ONLY', message: 'Les visuels IA sont réservés au plan Pro.' })
+
+  const imgLimit = profile?.plan === 'trial' ? 3 : 10
+  if (!checkImgRateLimit(userId, imgLimit)) {
+    return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de ' + imgLimit + ' visuels par heure atteinte.' })
+  }
 
   const brandAccent = profile?.brand_accent || '#3D52A0'
   const brandSecondary = profile?.brand_color2 || '#32458A'
