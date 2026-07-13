@@ -22,26 +22,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: profiles } = await supabase.from('profiles').select('*')
     if (!profiles?.length) return res.status(200).json({ message: 'Aucun utilisateur' })
 
-    // Actualités cyber du jour
-    let news = ''
-    try {
-      const newsRes = await fetch(
-        `https://newsapi.org/v2/everything?q=cybersecurity+ransomware+vulnerability&language=fr&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWS_API_KEY}`
-      )
-      const newsData = await newsRes.json()
-      news = newsData.articles?.map((a: { title: string }) => `- ${a.title}`).join('\n') || ''
-    } catch {}
-
-    // Génère des idées pour chaque utilisateur
+    // Génère des idées pour chaque utilisateur — adaptées à SON secteur
     for (const profile of profiles) {
-      const prompt = `${news ? `Actualités du jour :\n${news}\n\n` : ''}
-Génère 5 idées de posts LinkedIn pour ${profile.role || 'un expert'} en ${profile.sector || 'cybersécurité'}.
-Format JSON : [{"topic":"...","title":"...","hook":"..."}]
-JSON uniquement.`
+      const sector = (profile.sector || '').trim()
+      const role = (profile.role || '').trim()
+      const company = (profile.company || '').trim()
+      const audience = (profile.audience || '').trim()
+
+      // Actualités du jour spécifiques au secteur de l'utilisateur
+      let news = ''
+      if (sector) {
+        try {
+          const query = encodeURIComponent(sector)
+          const newsRes = await fetch(
+            `https://newsapi.org/v2/everything?q=${query}&language=fr&sortBy=publishedAt&pageSize=5&apiKey=${process.env.NEWS_API_KEY}`
+          )
+          const newsData = await newsRes.json()
+          news = newsData.articles?.map((a: { title: string }) => `- ${a.title}`).join('\n') || ''
+        } catch {}
+      }
+
+      // Anti-répétition : récupère les titres des 3 derniers jours
+      const { data: recentIdeas } = await supabase
+        .from('daily_ideas')
+        .select('title')
+        .eq('user_id', profile.id)
+        .order('generated_at', { ascending: false })
+        .limit(15)
+      const recentTitles = (recentIdeas || []).map((i: { title: string }) => i.title).join('\n')
+
+      // Profil de l'utilisateur pour contextualiser
+      const profilLines = [
+        role ? `Rôle : ${role}` : '',
+        sector ? `Secteur : ${sector}` : '',
+        company ? `Entreprise : ${company}` : '',
+        audience ? `Audience cible : ${audience}` : '',
+      ].filter(Boolean).join('\n')
+
+      const prompt = `Tu es un expert en création de contenu LinkedIn. Génère 5 idées de posts VARIÉES et PERTINENTES pour ce professionnel.
+
+PROFIL :
+${profilLines || 'Professionnel (secteur non précisé — reste généraliste et pertinent)'}
+
+${news ? `ACTUALITÉS RÉCENTES DU SECTEUR :\n${news}\n` : ''}
+${recentTitles ? `IDÉES DÉJÀ PROPOSÉES CES DERNIERS JOURS (à NE PAS répéter, trouve des angles différents) :\n${recentTitles}\n` : ''}
+RÈGLES :
+- Les 5 idées doivent couvrir des ANGLES DIFFÉRENTS. Utilise une variété parmi : un chiffre ou une statistique marquante, une opinion tranchée ou contre-intuitive, une erreur commune du secteur, une histoire ou un retour d'expérience, une tendance émergente, une question qui fait réfléchir, un mythe à déconstruire, un conseil actionnable.
+- Chaque idée doit être DIRECTEMENT liée au secteur et au rôle du professionnel ci-dessus.
+- Reste concret et spécifique au métier — évite les banalités génériques.
+- Ton professionnel mais accrocheur, adapté à LinkedIn.
+
+Format JSON strict : [{"topic":"sujet court","title":"titre accrocheur","hook":"phrase d'accroche percutante"}]
+Réponds UNIQUEMENT avec le JSON, sans markdown.`
 
       const message = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 800,
+        max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }],
       })
 
