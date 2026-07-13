@@ -1,4 +1,7 @@
 {
+  "redirects": [
+    { "source": "/", "destination": "/landing", "permanent": true }
+  ],
   "crons": [
     {
       "path": "/api/cron-emails",
