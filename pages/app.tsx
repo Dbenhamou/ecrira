@@ -622,6 +622,7 @@ export default function Home() {
     const displayDate = new Date().toLocaleDateString(profile.lang==='en'?'en-GB':'fr-FR')
     // Capturer le visuel actuel (Gemini ou custom)
     const visualToSave = aiImageUrl ? aiImageUrl.split(',')[1] || null : customVisualBase64 || null
+    console.log('[savePost] aiImageUrl length:', aiImageUrl?.length, '| visualToSave length:', visualToSave?.length || 0)
     const { data, error } = await supabase.from('saved_posts').insert({
       user_id: userId, topic: postTopic||T('sans_titre'),
       content: postOutput, format: postFormat, created_at_display: displayDate,
