@@ -7,7 +7,7 @@ import { useProfile } from '../lib/useProfile'
 import { t, type Lang } from '../lib/i18n'
 
 type Idea = { topic: string; title: string; hook: string; recommended?: boolean }
-type Post = { id: string; topic: string; content: string; format: string; created_at: string }
+type Post = { id: string; topic: string; content: string; format: string; created_at: string; visual_base64?: string | null }
 
 const PALETTES = [
   { name:'Ivory', bg:'#FAF9F7', text:'#1F2421', accent:'#3D52A0' },
@@ -619,12 +619,15 @@ export default function Home() {
   const savePost = async () => {
     if (!postOutput.trim() || !userId) return
     const displayDate = new Date().toLocaleDateString(profile.lang==='en'?'en-GB':'fr-FR')
+    // Capturer le visuel actuel (Gemini ou custom)
+    const visualToSave = aiImageUrl ? aiImageUrl.split(',')[1] || null : customVisualBase64 || null
     const { data, error } = await supabase.from('saved_posts').insert({
       user_id: userId, topic: postTopic||T('sans_titre'),
       content: postOutput, format: postFormat, created_at_display: displayDate,
+      visual_base64: visualToSave,
     }).select().single()
     if (!error && data) {
-      const post: Post = { id: data.id, topic: data.topic, content: data.content, format: data.format, created_at: displayDate }
+      const post: Post = { id: data.id, topic: data.topic, content: data.content, format: data.format, created_at: displayDate, visual_base64: data.visual_base64 }
       setSavedPosts(prev => [post, ...prev])
       showToast(T('toast_post_saved'))
     } else {
