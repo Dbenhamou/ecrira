@@ -2055,6 +2055,12 @@ export default function Home() {
                 </div>
                 {/* Titre */}
                 <div className="saved-title" style={{marginBottom:6}}>{p.topic}</div>
+                {/* Visuel sauvegardé */}
+                {p.visual_base64 && (
+                  <div style={{marginBottom:10}}>
+                    <img src={'data:image/png;base64,' + p.visual_base64} alt="Visuel" style={{width:'100%',maxWidth:280,borderRadius:8,display:'block'}}/>
+                  </div>
+                )}
                 {/* Aperçu contenu — 2 premières lignes */}
                 <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.6,marginBottom:12,padding:'10px 12px',background:'var(--ivory)',borderRadius:8,border:'1px solid var(--border)',fontFamily:"'Inter',sans-serif",whiteSpace:'pre-line' as const,maxHeight:80,overflow:'hidden',position:'relative' as const}}>
                   {p.content.split('\n').slice(0,3).join('\n')}
@@ -2063,7 +2069,7 @@ export default function Home() {
                 {/* Actions */}
                 <div style={{display:'flex',gap:7,flexWrap:'wrap' as const}}>
                   <button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>{T('copy_post_btn')}</button>
-                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('rediger')}}>{T('use_post')}</button>
+                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);if(p.visual_base64){setAiImageUrl('data:image/png;base64,'+p.visual_base64)}else{setAiImageUrl('')};setPage('rediger')}}>{T('use_post')}</button>
                   <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('calendrier');setTimeout(()=>document.getElementById('new-post-btn')?.click(),100)}}>{T('schedule_from_lib')}</button>
                 </div>
               </div>
