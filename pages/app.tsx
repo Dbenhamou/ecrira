@@ -379,6 +379,7 @@ export default function Home() {
       setSavedPosts(data.map((p: any) => ({
         id: p.id, topic: p.topic, content: p.content, format: p.format,
         created_at: p.created_at_display || new Date(p.created_at).toLocaleDateString(profile.lang==='en'?'en-GB':'fr-FR'),
+        visual_base64: p.visual_base64 || null,
       })))
     }
     setLoadingPosts(false)
