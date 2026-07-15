@@ -811,6 +811,35 @@ export default function Home() {
   }
 
   const [aiImageUrl, setAiImageUrl] = useState('')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('stat')
+  const [generatingTemplate, setGeneratingTemplate] = useState(false)
+
+  const generateTemplate = async () => {
+    if (!postOutput.trim()) { showToast('Genere un post d\'abord'); return }
+    setGeneratingTemplate(true)
+    setAiImageUrl('')
+    try {
+      const res = await authFetch('/api/generate-visual-template', {
+        method: 'POST',
+        body: JSON.stringify({
+          postContent: postOutput,
+          profile: {...profile, plan: isPro ? 'pro' : 'free'},
+          templateType: selectedTemplate,
+          hideWatermark,
+        }),
+      })
+      const data = await res.json()
+      if (data.image) {
+        setAiImageUrl('data:' + (data.mimeType || 'image/png') + ';base64,' + data.image)
+        showToast('Visuel genere ✓')
+      } else if (data.error === 'RATE_LIMIT') {
+        showToast(data.message || 'Limite atteinte')
+      } else {
+        showToast(data.error || 'Erreur generation')
+      }
+    } catch { showToast('Erreur reseau') }
+    setGeneratingTemplate(false)
+  }
   const [generatingImageAI, setGeneratingImageAI] = useState(false)
 
   const generateImageAI = async () => {
@@ -1611,9 +1640,21 @@ export default function Home() {
 
                   {/* Créer le visuel — config + bouton */}
                   <div style={{border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
-                    {/* Bouton Visuel IA (Gemini) */}
-                    <button className="btn btn-primary" style={{width:'100%',fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#3D52A0,#5B6EBF)',opacity:postOutput?1:0.4,borderRadius:0,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
-                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération IA…</>:'✦ Générer un visuel IA'}
+                    {/* Sélecteur type de visuel */}
+                    <div style={{display:'flex',gap:4,padding:'8px 10px',background:'white',borderTop:'1px solid var(--border)',flexWrap:'wrap' as const}}>
+                      {[{id:'stat',label:'📊 Stat'},{id:'comparaison',label:'⚡ VS'},{id:'citation',label:'💬 Citation'},{id:'liste',label:'📋 Liste'}].map(t=>(
+                        <button key={t.id} onClick={()=>setSelectedTemplate(t.id)} style={{padding:'4px 10px',borderRadius:20,border:'1.5px solid',borderColor:selectedTemplate===t.id?'var(--indigo)':'var(--border)',background:selectedTemplate===t.id?'rgba(61,82,160,0.08)':'transparent',color:selectedTemplate===t.id?'var(--indigo)':'var(--text2)',fontSize:11,fontWeight:selectedTemplate===t.id?600:400,cursor:'pointer',fontFamily:'inherit'}}>
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Bouton générer template */}
+                    <button className="btn btn-primary" style={{width:'100%',fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#3D52A0,#5B6EBF)',opacity:postOutput?1:0.4,borderRadius:0,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateTemplate(); }} disabled={!postOutput||generatingTemplate}>
+                      {generatingTemplate?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération…</>:'✦ Générer le visuel'}
+                    </button>
+                    {/* Bouton Visuel IA photo (Gemini) */}
+                    <button className="btn" style={{width:'100%',fontSize:11,justifyContent:'center',background:'#1F2421',color:'white',border:'none',borderRadius:0,opacity:postOutput?1:0.4,padding:'8px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
+                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Photo IA…</>:'📷 Photo IA (beta)'}
                     </button>
 
                     {aiImageUrl && (

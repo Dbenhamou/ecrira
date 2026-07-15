@@ -21,6 +21,9 @@
     },
     "pages/api/generate-image-ai.ts": {
       "maxDuration": 60
+    },
+    "pages/api/generate-visual-template.ts": {
+      "maxDuration": 60
     }
   },
   "buildCommand": "NODE_OPTIONS=\"--max-old-space-size=3008\" npm run build"
