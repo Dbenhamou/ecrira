@@ -26,10 +26,10 @@ function esc(s: string): string {
 
 // ── Templates HTML ──────────────────────────────────────────────────────────
 
-function templateStat(data: any, accent: string, secondary: string): string {
+function templateStat(data: any, accent: string, secondary: string, bgImage: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1080px;background:#0d1b2e;font-family:'Helvetica Neue',Arial,sans-serif;color:white;display:flex;flex-direction:column;justify-content:space-between;padding:72px 64px}
+body{width:1080px;height:1080px;background:#0d1b2e;background-image:url(' + (bgImage || '') + ');background-size:cover;background-position:center;font-family:'Helvetica Neue',Arial,sans-serif;color:white;display:flex;flex-direction:column;justify-content:space-between;padding:72px 64px}
 .badge{display:inline-block;font-size:18px;letter-spacing:0.15em;color:${accent};border:2px solid ${accent};padding:6px 20px;border-radius:40px;text-transform:uppercase;margin-bottom:24px}
 .title{font-size:56px;font-weight:800;line-height:1.1;margin-bottom:8px}
 .accent-line{width:100px;height:4px;background:${accent};margin:16px 0}
@@ -53,7 +53,7 @@ body{width:1080px;height:1080px;background:#0d1b2e;font-family:'Helvetica Neue',
 </body></html>`
 }
 
-function templateComparaison(data: any, accent: string, secondary: string): string {
+function templateComparaison(data: any, accent: string, secondary: string, bgImage: string): string {
   const leftItems = (data.leftPoints || []).map((p: string) => `<div class="item"><div class="dot dot-red"></div>${esc(p)}</div>`).join('')
   const rightItems = (data.rightPoints || []).map((p: string) => `<div class="item"><div class="dot dot-green"></div>${esc(p)}</div>`).join('')
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
@@ -91,10 +91,10 @@ ${rightItems}
 </body></html>`
 }
 
-function templateCitation(data: any, accent: string, secondary: string): string {
+function templateCitation(data: any, accent: string, secondary: string, bgImage: string): string {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1080px;background:linear-gradient(160deg,#0d1b2e,${secondary});font-family:'Helvetica Neue',Arial,sans-serif;color:white;display:flex;flex-direction:column;justify-content:center;padding:80px 72px}
+body{width:1080px;height:1080px;background:linear-gradient(160deg,#0d1b2e,${secondary});background-image:url(' + (bgImage || '') + ');background-size:cover;background-blend-mode:overlay;font-family:'Helvetica Neue',Arial,sans-serif;color:white;display:flex;flex-direction:column;justify-content:center;padding:80px 72px}
 .quote-mark{font-size:120px;color:${accent};line-height:0.8;font-family:Georgia,serif;margin-bottom:16px}
 .quote{font-size:44px;font-weight:500;line-height:1.45;margin-bottom:32px;font-style:italic}
 .quote em{color:${accent};font-style:normal;font-weight:700}
@@ -108,7 +108,7 @@ body{width:1080px;height:1080px;background:linear-gradient(160deg,#0d1b2e,${seco
 </body></html>`
 }
 
-function templateListe(data: any, accent: string, secondary: string): string {
+function templateListe(data: any, accent: string, secondary: string, bgImage: string): string {
   const icons = ['◆', '◇', '●', '○', '▸']
   const items = (data.items || []).map((item: any, i: number) => `
 <div class="item">
@@ -121,7 +121,7 @@ function templateListe(data: any, accent: string, secondary: string): string {
 
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1080px;background:#0d1b2e;font-family:'Helvetica Neue',Arial,sans-serif;color:white;padding:64px;display:flex;flex-direction:column}
+body{width:1080px;height:1080px;background:#0d1b2e;background-image:url(' + (bgImage || '') + ');background-size:cover;background-position:center;font-family:'Helvetica Neue',Arial,sans-serif;color:white;padding:64px;display:flex;flex-direction:column;position:relative}
 .badge{display:inline-block;font-size:16px;letter-spacing:0.12em;color:${accent};border:2px solid rgba(91,110,191,0.3);padding:6px 18px;border-radius:30px;text-transform:uppercase;margin-bottom:28px}
 .title{font-size:48px;font-weight:800;margin-bottom:8px}
 .sub{font-size:22px;color:rgba(255,255,255,0.5);margin-bottom:36px}
@@ -147,16 +147,16 @@ function getHaikuPrompt(templateType: string, postContent: string, sector: strin
 
   switch (templateType) {
     case 'stat':
-      return base + 'Renvoie ce JSON :\n{\n  "title": "titre 3 mots MAX, MAJUSCULES",\n  "subtitle": "accroche 8 mots MAX",\n  "stat": "UN chiffre cle ex 70% ou 3x",\n  "statLabel": "contexte du chiffre, phrase courte 5 mots MAX",\n  "sector": "secteur en 1-2 mots"\n}'
+      return base + 'Renvoie ce JSON :\n{\n  "title": "titre 3 mots MAX, MAJUSCULES",\n  "subtitle": "accroche 8 mots MAX",\n  "stat": "UN chiffre cle ex 70% ou 3x",\n  "statLabel": "contexte du chiffre, phrase courte 5 mots MAX",\n  "sector": "secteur en 1-2 mots",\n  "bgPhoto": "EN ANGLAIS, photo realiste liee au secteur, ex: cybersecurity operations center blue screens, modern hospital corridor, coaching session bright office"\n}'
 
     case 'comparaison':
-      return base + 'Renvoie ce JSON :\n{\n  "title": "titre comparatif 4 mots MAX ex Expert vs SOC",\n  "subtitle": "sous-titre 6 mots MAX",\n  "leftTitle": "nom option A, 2 mots MAX",\n  "leftPoints": ["point negatif 1", "point negatif 2", "point negatif 3"],\n  "rightTitle": "nom option B, 2 mots MAX",\n  "rightPoints": ["point positif 1", "point positif 2", "point positif 3"]\n}'
+      return base + 'Renvoie ce JSON :\n{\n  "title": "titre comparatif 4 mots MAX ex Expert vs SOC",\n  "subtitle": "sous-titre 6 mots MAX",\n  "leftTitle": "nom option A, 2 mots MAX",\n  "leftPoints": ["point negatif 1", "point negatif 2", "point negatif 3"],\n  "rightTitle": "nom option B, 2 mots MAX",\n  "rightPoints": ["point positif 1", "point positif 2", "point positif 3"],\n  "bgPhoto": "EN ANGLAIS, photo realiste liee au secteur"\n}'
 
     case 'citation':
-      return base + 'Renvoie ce JSON :\n{\n  "quote": "phrase forte extraite du post, percutante, 15 mots MAX. Mets le mot cle entre <em> et </em>",\n  "context": "contexte en 3 mots MAX ex RETOUR EXPERIENCE ou MANAGEMENT"\n}'
+      return base + 'Renvoie ce JSON :\n{\n  "quote": "phrase forte extraite du post, percutante, 15 mots MAX. Mets le mot cle entre <em> et </em>",\n  "context": "contexte en 3 mots MAX ex RETOUR EXPERIENCE ou MANAGEMENT",\n  "bgPhoto": "EN ANGLAIS, photo realiste liee au secteur"\n}'
 
     case 'liste':
-      return base + 'Renvoie ce JSON :\n{\n  "title": "titre 3 mots MAX",\n  "subtitle": "accroche 8 mots MAX",\n  "items": [{"text": "point principal 3 mots", "detail": "explication 5 mots MAX"}, {"text":"...", "detail":"..."}, {"text":"...", "detail":"..."}],\n  "callout": "phrase de conclusion percutante 8 mots MAX ou vide",\n  "sector": "secteur 1-2 mots"\n}'
+      return base + 'Renvoie ce JSON :\n{\n  "title": "titre 3 mots MAX",\n  "subtitle": "accroche 8 mots MAX",\n  "items": [{"text": "point principal 3 mots", "detail": "explication 5 mots MAX"}, {"text":"...", "detail":"..."}, {"text":"...", "detail":"..."}],\n  "callout": "phrase de conclusion percutante 8 mots MAX ou vide",\n  "sector": "secteur 1-2 mots",\n  "bgPhoto": "EN ANGLAIS, photo realiste liee au secteur"\n}'
 
     default:
       return base + 'Renvoie ce JSON :\n{\n  "title": "titre 3 mots MAX MAJUSCULES",\n  "stat": "chiffre cle ou vide",\n  "statLabel": "contexte 5 mots MAX",\n  "sector": "secteur"\n}'
@@ -204,17 +204,47 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('[haiku-template]', e)
   }
 
-  // ── Étape 2 : Générer le HTML ─────────────────────────────────────────────
-  let html = ''
-  switch (type) {
-    case 'stat': html = templateStat(data, brandAccent, brandSecondary); break
-    case 'comparaison': html = templateComparaison(data, brandAccent, brandSecondary); break
-    case 'citation': html = templateCitation(data, brandAccent, brandSecondary); break
-    case 'liste': html = templateListe(data, brandAccent, brandSecondary); break
-    default: html = templateStat(data, brandAccent, brandSecondary)
+  // ── Étape 2 : Gemini génère la photo de fond ───────────────────────────────
+  let bgImageDataUrl = ''
+  try {
+    const gApiKey = process.env.GOOGLE_AI_API_KEY
+    if (gApiKey && data.bgPhoto) {
+      const photoPrompt = 'Photorealistic professional photo, square format. Scene: ' + (data.bgPhoto || 'modern professional office') + '. RULES: NO text, NO words, NO letters, NO numbers anywhere. Pure photo only, cinematic lighting, shallow depth of field.'
+      const gRes = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
+        {
+          method: 'POST',
+          headers: { 'x-goog-api-key': gApiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: photoPrompt }] }],
+            generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: '1:1' } },
+          }),
+        }
+      )
+      const gData = await gRes.json()
+      if (gRes.ok) {
+        const gParts = gData?.candidates?.[0]?.content?.parts || []
+        const gImg = gParts.find((p: any) => p.inlineData?.data)
+        if (gImg) {
+          bgImageDataUrl = 'data:' + (gImg.inlineData.mimeType || 'image/png') + ';base64,' + gImg.inlineData.data
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[gemini-bg]', e)
   }
 
-  // ── Étape 3 : Browserless screenshot → PNG ────────────────────────────────
+  // ── Étape 3 : Générer le HTML ─────────────────────────────────────────────
+  let html = ''
+  switch (type) {
+    case 'stat': html = templateStat(data, brandAccent, brandSecondary, bgImageDataUrl); break
+    case 'comparaison': html = templateComparaison(data, brandAccent, brandSecondary, bgImageDataUrl); break
+    case 'citation': html = templateCitation(data, brandAccent, brandSecondary, bgImageDataUrl); break
+    case 'liste': html = templateListe(data, brandAccent, brandSecondary, bgImageDataUrl); break
+    default: html = templateStat(data, brandAccent, brandSecondary, bgImageDataUrl)
+  }
+
+  // ── Étape 4 : Browserless screenshot → PNG ────────────────────────────────
   try {
     const apiKey = process.env.BROWSERLESS_API_KEY
     if (!apiKey) return res.status(500).json({ error: 'BROWSERLESS_API_KEY manquant' })
@@ -238,7 +268,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     let pngBuffer: Buffer = Buffer.from(await browserlessRes.arrayBuffer()) as Buffer
 
-    // ── Étape 4 : Logo Ecrira via Sharp ───────────────────────────────────────
+    // ── Étape 5 : Logo Ecrira via Sharp ───────────────────────────────────────
     if (!hideWatermark) {
       const logoPath = path.join(process.cwd(), 'public', 'logo-ecrira-horizontal-400.png')
       if (fs.existsSync(logoPath)) {
