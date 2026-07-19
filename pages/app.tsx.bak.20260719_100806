@@ -1652,6 +1652,10 @@ export default function Home() {
                     <button className="btn btn-primary" style={{width:'100%',fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#3D52A0,#5B6EBF)',opacity:postOutput?1:0.4,borderRadius:0,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateTemplate(); }} disabled={!postOutput||generatingTemplate}>
                       {generatingTemplate?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération…</>:'✦ Générer le visuel'}
                     </button>
+                    {/* Bouton Visuel IA photo (Gemini) */}
+                    <button className="btn" style={{width:'100%',fontSize:11,justifyContent:'center',background:'#1F2421',color:'white',border:'none',borderRadius:0,opacity:postOutput?1:0.4,padding:'8px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateImageAI(); }} disabled={!postOutput||generatingImageAI}>
+                      {generatingImageAI?<><span className="spinner" style={{borderTopColor:'white'}}/>Photo IA…</>:'📷 Photo IA (beta)'}
+                    </button>
 
                     {aiImageUrl && (
                       <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)'}}>
