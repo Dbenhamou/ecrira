@@ -163,23 +163,6 @@ ${data.callout ? `<div class="callout">${esc(data.callout)}</div>` : ''}
 </body></html>`
 }
 
-function templateEditorial(data: any, accent: string, secondary: string, bgImage: string): string {
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{width:1080px;height:1080px;${bgLayer(bgImage, accent, secondary)}font-family:'Helvetica Neue',Arial,sans-serif;color:white;display:flex;flex-direction:column;justify-content:flex-end;padding:80px 64px}
-.kicker{color:${accent};font-size:22px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:28px}
-.phrase{font-size:64px;font-weight:800;line-height:1.12;text-shadow:0 2px 24px rgba(0,0,0,0.45)}
-.phrase em{color:${accent};font-style:normal}
-.foot{margin-top:36px;display:flex;align-items:center;gap:16px}
-.bar{width:56px;height:4px;background:${accent};flex-shrink:0}
-.sub{color:rgba(255,255,255,0.78);font-size:22px}
-</style></head><body>
-<div class="kicker">${esc(data.kicker || data.sector || '')}</div>
-<div class="phrase">${data.phrase || ''}</div>
-${data.sub ? `<div class="foot"><div class="bar"></div><div class="sub">${esc(data.sub)}</div></div>` : ''}
-</body></html>`
-}
-
 // ── Prompts Haiku par template ──────────────────────────────────────────────
 
 function getHaikuPrompt(templateType: string, postContent: string, sector: string): string {
@@ -197,9 +180,6 @@ function getHaikuPrompt(templateType: string, postContent: string, sector: strin
 
     case 'liste':
       return base + 'Renvoie ce JSON :\n{\n  "title": "titre 3 mots MAX",\n  "subtitle": "accroche 8 mots MAX",\n  "items": [{"text": "point principal 3 mots", "detail": "explication 5 mots MAX"}, {"text":"...", "detail":"..."}, {"text":"...", "detail":"..."}],\n  "callout": "phrase de conclusion percutante 8 mots MAX ou vide",\n  "sector": "secteur 1-2 mots",\n  "bgPhoto": "EN ANGLAIS, photo realiste liee au secteur"\n}'
-
-    case 'editorial':
-      return base + 'Renvoie ce JSON :\n{\n  "phrase": "LA phrase forte du post, percutante, 10 mots MAX. Mets 1 ou 2 mots cles entre <em> et </em>. Accents et ponctuation OK.",\n  "kicker": "theme en 1-2 mots MAJUSCULES ex LEADERSHIP ou STRATEGIE",\n  "sub": "accroche complementaire 8 mots MAX ou vide",\n  "sector": "secteur 1-2 mots",\n  "bgPhoto": "EN ANGLAIS, photo realiste liee au secteur"\n}'
 
     default:
       return base + 'Renvoie ce JSON :\n{\n  "title": "titre 3 mots MAX MAJUSCULES",\n  "stat": "chiffre cle ou vide",\n  "statLabel": "contexte 5 mots MAX",\n  "sector": "secteur"\n}'
@@ -253,18 +233,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const gApiKey = process.env.GOOGLE_AI_API_KEY
       if (gApiKey && data.bgPhoto) {
-        const directions = [
-          'extreme close-up detail, macro, shallow focus',
-          'wide establishing shot, expansive, atmospheric depth',
-          'top-down flat lay perspective, organized composition',
-          'low angle dramatic perspective, bold and cinematic',
-          'over-the-shoulder candid moment, natural and human',
-          'abstract textural background, soft bokeh, minimal',
-          'golden hour warm light, long shadows',
-          'moody low-key lighting, deep contrast, editorial'
-        ]
-        const dir = directions[Math.floor(Math.random() * directions.length)]
-        const photoPrompt = 'Photorealistic professional editorial photo, square 1:1 format. Scene: ' + (data.bgPhoto || 'modern professional office') + '. Visual direction: ' + dir + '. Cinematic quality, atmospheric. STRICT RULES: absolutely NO text, NO words, NO letters, NO numbers, NO logos, NO signage anywhere in the image. No people looking directly at the camera. Ambiance and environment only. Pure photography.'
+        const photoPrompt = 'Photorealistic professional editorial photo, square 1:1 format. Scene: ' + (data.bgPhoto || 'modern professional office') + '. Cinematic lighting, shallow depth of field, atmospheric. STRICT RULES: absolutely NO text, NO words, NO letters, NO numbers, NO logos, NO signage anywhere in the image. No people looking directly at the camera. Ambiance and environment only. Pure photography.'
         const gRes = await fetch(
           'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent',
           {
@@ -299,7 +268,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     case 'comparaison': html = templateComparaison(data, brandAccent, brandSecondary, bgImageDataUrl); break
     case 'citation': html = templateCitation(data, brandAccent, brandSecondary, bgImageDataUrl); break
     case 'liste': html = templateListe(data, brandAccent, brandSecondary, bgImageDataUrl); break
-    case 'editorial': html = templateEditorial(data, brandAccent, brandSecondary, bgImageDataUrl); break
     default: html = templateStat(data, brandAccent, brandSecondary, bgImageDataUrl)
   }
 
