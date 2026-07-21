@@ -364,12 +364,9 @@ export default function Home() {
     if (!loading && userId && !profile.role && !isPro && !fromUpgrade) setShowOnboarding(true)
   }, [loading, userId, profile.role])
 
-  // Rediriger vers landing si non connecté.
-  // Exception : si l'URL contient un hash d'auth Supabase (retour de lien de
-  // confirmation), on attend que la session soit etablie avant de decider.
+  // Rediriger vers landing si non connecté
   useEffect(() => {
-    const hasAuthHash = typeof window !== 'undefined' && window.location.hash.includes('access_token')
-    if (!loading && !userId && !hasAuthHash) {
+    if (!loading && !userId) {
       window.location.href = '/'
     }
   }, [loading, userId])
