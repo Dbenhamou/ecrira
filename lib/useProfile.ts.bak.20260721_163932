@@ -150,7 +150,6 @@ export function useProfile() {
 
   const signOut = async () => {
     await supabase.auth.signOut()
-    window.location.href = '/'
   }
 
   return { profile, setProfile: setProfileState, saveProfile, signOut, loading, userId }
