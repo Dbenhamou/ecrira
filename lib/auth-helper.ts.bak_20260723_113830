@@ -25,22 +25,10 @@ export function getClientIp(req: NextApiRequest): string {
 }
 
 export function checkOrigin(req: any): boolean {
-  const raw = req.headers.origin || req.headers.referer || ''
-  if (!raw) return true
-
+  const origin = req.headers.origin || req.headers.referer || ''
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ecrira.com'
-
-  try {
-    const host = new URL(raw).host
-    const appHost = new URL(appUrl).host
-    if (host === appHost) return true
-    if (host === `www.${appHost}` || `www.${host}` === appHost) return true
-    if (host.startsWith('localhost:') || host === 'localhost') return true
-    if (host.endsWith('.vercel.app')) return true
-    return false
-  } catch {
-    return false
-  }
+  if (!origin) return true
+  return origin.startsWith(appUrl) || origin.startsWith('http://localhost')
 }
 
 export async function requireAuth(req: NextApiRequest, res: NextApiResponse): Promise<string | null> {

@@ -1,47 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
-import { createClient } from '@supabase/supabase-js'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// Plafond global quotidien de la demo publique (protection budget API).
-const DAILY_GLOBAL_LIMIT = 300
-
 const rateLimitMap = new Map<string, number>()
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
-// Incremente le compteur du jour et indique si le plafond est atteint.
-// En cas d'erreur (table absente, Supabase indisponible), on laisse passer :
-// la demo ne doit jamais tomber a cause du compteur.
-async function overDailyQuota(): Promise<boolean> {
-  try {
-    const day = new Date().toISOString().slice(0, 10)
-
-    const { data, error } = await supabase
-      .from('demo_usage')
-      .select('count')
-      .eq('day', day)
-      .maybeSingle()
-
-    if (error) return false
-
-    const current = data?.count ?? 0
-    if (current >= DAILY_GLOBAL_LIMIT) return true
-
-    await supabase
-      .from('demo_usage')
-      .upsert({ day, count: current + 1 }, { onConflict: 'day' })
-
-    return false
-  } catch (e) {
-    console.error('[demo] quota check failed (ignore):', e)
-    return false
-  }
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
@@ -55,10 +17,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const last = rateLimitMap.get(ip) || 0
   if (now - last < 30_000) return res.status(429).json({ error: 'Trop de requêtes — réessayez dans 30 secondes.' })
   rateLimitMap.set(ip, now)
-
-  if (await overDailyQuota()) {
-    return res.status(429).json({ error: 'La démo est très sollicitée aujourd\'hui. Réessayez demain ou créez un compte gratuit.' })
-  }
 
   try {
     const message = await anthropic.messages.create({

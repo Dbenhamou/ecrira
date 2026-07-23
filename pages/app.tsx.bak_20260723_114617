@@ -179,42 +179,13 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
 // ─── MAIN ──────────────────────────────────────────────────────────────────────
 // Modal upgrade Pro
 // ── SVG sanitisation globale (protection XSS) ──
-function legacySanitizeSvg(svg: string): string {
-  return svg
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/on\w+\s*=/gi, 'data-removed=')
-    .replace(/javascript\s*:/gi, 'data-js:')
-    .replace(/<use[^>]+href\s*=\s*["']?(?!#)[^"'>\s]+/gi, '<use')
-    .replace(/xlink:href\s*=\s*["']?(?!#)[^"'>\s]+/gi, 'xlink:href="#removed"')
-}
-
 function sanitizeSvg(svg: string): string {
   if (!svg) return ''
-  try {
-    // PARSER_MEDIA_TYPE XML : indispensable pour preserver la casse des
-    // balises SVG (linearGradient, clipPath, viewBox...). Sans cela les
-    // degrades de fond sont detruits.
-    const clean = DOMPurify.sanitize(svg, {
-      PARSER_MEDIA_TYPE: 'application/xhtml+xml',
-      USE_PROFILES: { svg: true, svgFilters: true },
-      ADD_TAGS: ['style', 'defs', 'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask', 'pattern', 'filter'],
-      ADD_ATTR: [
-        'xmlns', 'xmlns:xlink', 'viewBox', 'preserveAspectRatio',
-        'gradientUnits', 'gradientTransform', 'patternUnits', 'patternTransform',
-        'clipPathUnits', 'maskUnits', 'spreadMethod',
-        'offset', 'stop-color', 'stop-opacity', 'stroke-width', 'stroke-linecap',
-        'stroke-linejoin', 'stroke-dasharray', 'fill-opacity', 'fill-rule',
-        'x1', 'y1', 'x2', 'y2', 'fx', 'fy', 'cx', 'cy', 'r', 'rx', 'ry',
-        'font-family', 'font-size', 'font-weight', 'text-anchor', 'dominant-baseline',
-      ],
-    })
-    // Si le nettoyage a vide le contenu (SVG mal forme), on ne casse pas
-    // l'affichage : on retombe sur l'ancienne methode.
-    if (clean && clean.indexOf('<svg') !== -1) return clean
-  } catch (e) {
-    console.error('[sanitizeSvg] fallback:', e)
-  }
-  return legacySanitizeSvg(svg)
+  return DOMPurify.sanitize(svg, {
+    USE_PROFILES: { svg: true, svgFilters: true },
+    ADD_TAGS: ['style'],
+    ADD_ATTR: ['xmlns', 'xmlns:xlink', 'viewBox', 'preserveAspectRatio'],
+  })
 }
 
 // Preview LinkedIn : le contenu est deja echappe en amont, on ne
