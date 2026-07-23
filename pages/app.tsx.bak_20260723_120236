@@ -179,19 +179,6 @@ function VisualModal({ onClose, postContent, postTopic, profileName, profileRole
 // ─── MAIN ──────────────────────────────────────────────────────────────────────
 // Modal upgrade Pro
 // ── SVG sanitisation globale (protection XSS) ──
-function initialsAvatar(name?: string | null): string {
-  const initials = (name || '').trim().slice(0, 2).toUpperCase() || '??'
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96">' +
-    '<rect width="96" height="96" rx="48" fill="#3D52A0"/>' +
-    '<text x="50%" y="50%" dy="0.35em" text-anchor="middle" ' +
-    'font-family="Inter,Arial,sans-serif" font-size="36" font-weight="600" ' +
-    'fill="#ffffff">' + initials + '</text></svg>'
-  const b64 = typeof window === 'undefined'
-    ? Buffer.from(svg, 'utf-8').toString('base64')
-    : window.btoa(unescape(encodeURIComponent(svg)))
-  return 'data:image/svg+xml;base64,' + b64
-}
-
 function legacySanitizeSvg(svg: string): string {
   return svg
     .replace(/<script[\s\S]*?<\/script>/gi, '')
@@ -2178,7 +2165,7 @@ export default function Home() {
             <div className="eyebrow">{T('settings')}</div><div className="page-title">{T('my_profile')}</div><div className="copper-rule"/>
             <div className="page-sub">{T('profile_sub')}</div>
             <div className="profile-hero">
-              {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" onError={(e:any)=>{e.target.onerror=null;e.target.src=initialsAvatar(profile.name)}} style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} /> : <div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}
+              {(profile as any).linkedin_picture ? <img src={(profile as any).linkedin_picture} alt="" style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} /> : <div className="profile-avatar">{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>}
               <div><div className="profile-name">{profile.name||T('profile_name_fallback')}</div><div className="profile-role">{profile.role} · {profile.company}</div>{(profile as any).email&&<div style={{fontSize:11,color:'var(--text3)',marginTop:2}}>{(profile as any).email}</div>}</div>
               <div style={{marginLeft:'auto',display:'flex',flexDirection:'column' as const,alignItems:'center',gap:6}}>
                 {(profile as any).company_logo ? (
@@ -2671,7 +2658,7 @@ export default function Home() {
                 {/* Header post LinkedIn */}
                 <div style={{display:'flex',alignItems:'flex-start',gap:10,marginBottom:12}}>
                   {(profile as any).linkedin_picture
-                    ? <img src={(profile as any).linkedin_picture} alt="" onError={(e:any)=>{e.target.onerror=null;e.target.src=initialsAvatar(profile.name)}} style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>
+                    ? <img src={(profile as any).linkedin_picture} alt="" style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',flexShrink:0}}/>
                     : <div style={{width:48,height:48,borderRadius:'50%',background:'#3D52A0',display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:16,flexShrink:0}}>{profile.name?profile.name.slice(0,2).toUpperCase():'??'}</div>
                   }
                   <div style={{flex:1}}>

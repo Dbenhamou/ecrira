@@ -2,14 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { sendNotification } from '../../lib/notify'
-import {
-  THEMES,
-  SATURATION_THRESHOLD,
-  HISTORY_DAYS,
-  buildThemeBlock,
-  rankIdeas,
-  type ThemeContext,
-} from '../../lib/themes'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -18,38 +10,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
-
-async function loadThemeContext(userId: string): Promise<ThemeContext> {
-  try {
-    const since = new Date(Date.now() - HISTORY_DAYS * 86400_000).toISOString()
-
-    const [hist, saved, scheduled] = await Promise.all([
-      supabase.from('topic_history').select('theme').eq('user_id', userId).gte('created_at', since),
-      supabase.from('saved_posts').select('topic').eq('user_id', userId).gte('created_at', since).limit(120),
-      supabase.from('scheduled_posts').select('topic').eq('user_id', userId).gte('created_at', since).limit(120),
-    ])
-
-    const counts: Record<string, number> = {}
-    for (const row of hist.data || []) {
-      const t = (row as any).theme
-      if (t) counts[t] = (counts[t] || 0) + 1
-    }
-
-    const writtenTopics = [
-      ...(saved.data || []).map((r: any) => r.topic),
-      ...(scheduled.data || []).map((r: any) => r.topic),
-    ].filter((t: string) => t && t.trim()).slice(0, 60)
-
-    return {
-      saturated: THEMES.filter((t) => (counts[t] || 0) >= SATURATION_THRESHOLD),
-      untouched: THEMES.filter((t) => !counts[t]),
-      writtenTopics: Array.from(new Set(writtenTopics)),
-    }
-  } catch (e) {
-    console.error('[cron-ideas] loadThemeContext:', e)
-    return { saturated: [], untouched: [...THEMES], writtenTopics: [] }
-  }
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Sécurité : seul Vercel Cron peut appeler cette route
@@ -86,9 +46,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } catch {}
       }
 
-      // Historique thematique persistant (survit a la purge de daily_ideas)
-      const themeCtx = await loadThemeContext(profile.id)
-      const themeBlock = buildThemeBlock(themeCtx, false)
+      // Anti-répétition : récupère les titres des 3 derniers jours
+      const { data: recentIdeas } = await supabase
+        .from('daily_ideas')
+        .select('title')
+        .eq('user_id', profile.id)
+        .order('generated_at', { ascending: false })
+        .limit(15)
+      const recentTitles = (recentIdeas || []).map((i: { title: string }) => i.title).join('\n')
 
       // Profil de l'utilisateur pour contextualiser
       const profilLines = [
@@ -104,32 +69,24 @@ PROFIL :
 ${profilLines || 'Professionnel (secteur non précisé — reste généraliste et pertinent)'}
 
 ${news ? `ACTUALITÉS RÉCENTES DU SECTEUR :\n${news}\n` : ''}
-${themeBlock}RÈGLE DE ROTATION THÉMATIQUE (prioritaire) :
-- Chaque idée doit relever d'un THÈME DE FOND DIFFÉRENT. Jamais deux idées sur le même thème.
-- Respecte strictement les thèmes interdits et prioritaires listés plus haut.
-- Un sujet déjà publié par l'utilisateur est définitivement exclu, même reformulé.
-
+${recentTitles ? `IDÉES DÉJÀ PROPOSÉES CES DERNIERS JOURS (à NE PAS répéter, trouve des angles différents) :\n${recentTitles}\n` : ''}
 RÈGLES :
 - Les 5 idées doivent couvrir des ANGLES DIFFÉRENTS. Utilise une variété parmi : un chiffre ou une statistique marquante, une opinion tranchée ou contre-intuitive, une erreur commune du secteur, une histoire ou un retour d'expérience, une tendance émergente, une question qui fait réfléchir, un mythe à déconstruire, un conseil actionnable.
 - Chaque idée doit être DIRECTEMENT liée au secteur et au rôle du professionnel ci-dessus.
 - Reste concret et spécifique au métier — évite les banalités génériques.
 - Ton professionnel mais accrocheur, adapté à LinkedIn.
 
-THÈMES AUTORISÉS (choisis-en un par idée, valeur exacte) :
-${THEMES.join(', ')}
-
-Format JSON strict : [{"topic":"sujet court","title":"titre accrocheur","hook":"phrase d'accroche percutante","theme":"un des thèmes autorisés"}]
+Format JSON strict : [{"topic":"sujet court","title":"titre accrocheur","hook":"phrase d'accroche percutante"}]
 Réponds UNIQUEMENT avec le JSON, sans markdown.`
 
       const message = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1200,
+        max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }],
       })
 
       const raw = (message.content[0] as { text: string }).text
-      const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim())
-      const ideas = rankIdeas(Array.isArray(parsed) ? parsed : [], themeCtx, 5)
+      const ideas = JSON.parse(raw.replace(/```json|```/g, '').trim())
 
       // Supprime les idées d'hier pour cet utilisateur
       await supabase
@@ -138,33 +95,14 @@ Réponds UNIQUEMENT avec le JSON, sans markdown.`
         .eq('user_id', profile.id)
         .lt('generated_at', new Date().toISOString().split('T')[0])
 
-      // Insère les nouvelles idées (sans le champ theme : colonne absente
-      // de daily_ideas, le theme vit dans topic_history)
+      // Insère les nouvelles idées
       await supabase.from('daily_ideas').insert(
-        ideas.map((idea: any) => ({
+        ideas.map((idea: { topic: string; title: string; hook: string }) => ({
           user_id: profile.id,
-          topic: idea.topic,
-          title: idea.title,
-          hook: idea.hook,
-          recommended: !!idea.recommended,
+          ...idea,
           generated_at: new Date().toISOString().split('T')[0],
         }))
       )
-
-      // Historique persistant
-      try {
-        const rows = ideas
-          .filter((i: any) => i && (i.topic || i.title))
-          .map((i: any) => ({
-            user_id: profile.id,
-            theme: i.theme || null,
-            topic: i.topic || null,
-            title: i.title || null,
-          }))
-        if (rows.length) await supabase.from('topic_history').insert(rows)
-      } catch (e) {
-        console.error('[cron-ideas] historique', profile.id, e)
-      }
       } catch (userErr) {
         console.error('[cron-ideas] Erreur user', profile.id, userErr)
       }

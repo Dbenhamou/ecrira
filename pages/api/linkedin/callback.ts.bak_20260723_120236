@@ -6,46 +6,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const AVATAR_BUCKET = 'avatars'
-
-// Les URLs media.licdn.com sont signees et expirent au bout de quelques
-// semaines. On rapatrie donc l'image dans Supabase Storage.
-// En cas d'echec on renvoie null : l'appelant retombe sur l'URL LinkedIn,
-// donc le comportement d'origine est preserve.
-async function storeAvatar(userId: string, pictureUrl: string): Promise<string | null> {
-  try {
-    const r = await fetch(pictureUrl)
-    if (!r.ok) return null
-
-    const buf = Buffer.from(await r.arrayBuffer())
-    if (!buf.length || buf.length > 3_000_000) return null
-
-    const contentType = r.headers.get('content-type') || 'image/jpeg'
-    if (!contentType.startsWith('image/')) return null
-
-    const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg'
-    const path = `${userId}.${ext}`
-
-    const { error } = await supabase.storage
-      .from(AVATAR_BUCKET)
-      .upload(path, buf, { contentType, upsert: true })
-
-    if (error) {
-      console.error('[linkedin] upload avatar:', error.message)
-      return null
-    }
-
-    const { data } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path)
-    if (!data?.publicUrl) return null
-
-    // Parametre de version pour invalider le cache navigateur/CDN
-    return `${data.publicUrl}?v=${Date.now()}`
-  } catch (e) {
-    console.error('[linkedin] storeAvatar:', e)
-    return null
-  }
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, error, state } = req.query
   if (error || !code) return res.redirect('/?linkedin=error')
@@ -108,18 +68,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Photo : copie permanente, avec repli sur l'URL LinkedIn
-    let pictureUrl: string | null = li.picture || null
-    if (li.picture) {
-      const stored = await storeAvatar(userId, li.picture)
-      if (stored) pictureUrl = stored
-    }
-
     const updates: Record<string, any> = {
       linkedin_token: tokenData.access_token,
       linkedin_token_expiry: expiresAt,
       linkedin_id: li.sub,
-      linkedin_picture: pictureUrl,
+      linkedin_picture: li.picture || null,
     }
 
     // Enrich name only if empty
