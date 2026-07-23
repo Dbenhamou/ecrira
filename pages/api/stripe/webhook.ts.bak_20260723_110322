@@ -2,7 +2,6 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { stripe } from '../../../lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import Stripe from 'stripe';
-import { sendProWelcomeEmail } from '../../../lib/emails/pro-welcome';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,34 +34,6 @@ async function updateProfile(
     throw error;
   }
   console.log(`[webhook] ${context} — OK (${filter.column}=${filter.value})`);
-}
-
-// Recupere l'email + prenom du client, en priorite depuis Stripe,
-// sinon depuis Supabase Auth via l'userId.
-async function resolveRecipient(
-  session: Stripe.Checkout.Session,
-  userId: string
-): Promise<{ email: string | null; firstName: string | null }> {
-  let email: string | null =
-    session.customer_details?.email || session.customer_email || null;
-
-  let fullName: string | null = session.customer_details?.name || null;
-
-  if (!email) {
-    try {
-      const { data } = await supabase.auth.admin.getUserById(userId);
-      email = data?.user?.email || null;
-      const meta: any = data?.user?.user_metadata || {};
-      fullName = fullName || meta.first_name || meta.full_name || null;
-    } catch (e) {
-      console.error('[webhook] resolveRecipient — getUserById error:', e);
-    }
-  }
-
-  const firstName =
-    typeof fullName === 'string' && fullName.trim() ? fullName.trim().split(' ')[0] : null;
-
-  return { email, firstName };
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -101,20 +72,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           },
           'checkout.session.completed'
         );
-
-        // Email de bienvenue Pro — non bloquant : un echec ne doit pas
-        // faire retourner une erreur a Stripe (sinon retry en boucle).
-        try {
-          const { email, firstName } = await resolveRecipient(session, userId);
-          if (email) {
-            await sendProWelcomeEmail(email, 'pro', firstName);
-          } else {
-            console.error('[webhook] email de bienvenue — destinataire introuvable');
-          }
-        } catch (e) {
-          console.error('[webhook] email de bienvenue — echec:', e);
-        }
-
         break;
       }
 
