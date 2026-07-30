@@ -766,6 +766,7 @@ export default function Home() {
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return }
     if (!userId) return
+    if (!profile.company && !profile.sector && !profile.domain) return
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
     autoSaveTimer.current = setTimeout(async () => {
       const ok = await saveProfile(profile)
