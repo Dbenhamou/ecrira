@@ -10,7 +10,6 @@ import {
   rankIdeas,
   type ThemeContext,
 } from '../../lib/themes'
-import { fetchSectorNews, formatNewsBlock } from '../../lib/news'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -84,6 +83,37 @@ async function saveHistory(userId: string, ideas: any[]) {
   }
 }
 
+async function fetchNews(sector: string, isEn: boolean): Promise<string> {
+  try {
+    const queryBroad = encodeURIComponent(sector.split(' ').slice(0, 2).join(' '))
+    const querySpecific = encodeURIComponent(sector.split(' ').slice(0, 3).join(' ') + ' 2026')
+    const [resFr, resEn, resFr2, resEn2] = await Promise.all([
+      fetch(`https://newsapi.org/v2/everything?q=${queryBroad}&language=fr&sortBy=publishedAt&pageSize=3&apiKey=${process.env.NEWS_API_KEY}`),
+      fetch(`https://newsapi.org/v2/everything?q=${queryBroad}&language=en&sortBy=publishedAt&pageSize=3&apiKey=${process.env.NEWS_API_KEY}`),
+      fetch(`https://newsapi.org/v2/everything?q=${querySpecific}&language=fr&sortBy=publishedAt&pageSize=2&apiKey=${process.env.NEWS_API_KEY}`),
+      fetch(`https://newsapi.org/v2/everything?q=${querySpecific}&language=en&sortBy=publishedAt&pageSize=2&apiKey=${process.env.NEWS_API_KEY}`),
+    ])
+    const [dataFr, dataEn, dataFr2, dataEn2] = await Promise.all([resFr.json(), resEn.json(), resFr2.json(), resEn2.json()])
+    const seen = new Set<string>()
+    const articles = [
+      ...(dataFr.articles || []),
+      ...(dataEn.articles || []),
+      ...(dataFr2.articles || []),
+      ...(dataEn2.articles || []),
+    ].filter((a: { title: string }) => {
+      if (seen.has(a.title)) return false
+      seen.add(a.title)
+      return true
+    }).slice(0, 8)
+    if (!articles.length) return ''
+    return articles
+      .map((a: { title: string; description: string }) => `- ${a.title}: ${a.description || ''}`)
+      .join('\n')
+  } catch {
+    return ''
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
@@ -127,14 +157,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   ]
   const dayAngle = (isEn ? ANGLES_EN : ANGLES_FR)[now.getDay() % 7]
 
-  const keywords = profile?.keywords || techStack || ''
-
-  const [newsArticles, themeCtx] = await Promise.all([
-    fetchSectorNews({ sector, keywords, lang: profile?.lang, limit: 10 }),
+  const [news, themeCtx] = await Promise.all([
+    fetchNews(sector, isEn),
     loadThemeContext(userId),
   ])
-  const news = formatNewsBlock(newsArticles)
 
+  const keywords = profile?.keywords || techStack || ''
   const audienceIsExpert = audience.toLowerCase().match(/expert|rssi|dsi|cto|ciso|ingénieur|engineer|developer|technique|msp|mssp|analyst|architect/i)
   const audienceIsDecideur = audience.toLowerCase().match(/directeur|manager|ceo|coo|dg|pme|pmle|dirigeant|decision|business|commercial|vente/i)
 
@@ -169,45 +197,24 @@ ${techLevelInstruction}`
 
   const themeBlock = buildThemeBlock(themeCtx, isEn)
 
-  const newsBlock = news
-    ? `${isEn ? 'RECENT SECTOR NEWS (real headlines from the last few weeks — use these as raw material):' : 'ACTUALITÉS RÉCENTES DU SECTEUR (vrais titres des dernières semaines — sers-t\'en comme matière première) :'}\n${news}\n\n`
-    : ''
-
-  // Consignes de style inspirees des meilleurs createurs LinkedIn du secteur.
-  const styleRules = isEn
-    ? `WHAT THE BEST CREATORS IN THIS SECTOR DO (copy these patterns):
-- Actionable and specific over theory: real tool names, real incidents, real numbers, named standards/frameworks.
-- Sharp angle: a clear opinion, a myth to break, or a counter-intuitive take — never neutral.
-- Hook under 12 words that creates immediate tension (a fact, a stake, a bold claim).
-- Vary the hook TYPE across ideas: contrarian, curiosity gap, shocking stat, field story, provocative question, myth-busting.
-- Anchor in what is happening NOW (a recent incident, release, regulation, trend).`
-    : `CE QUE FONT LES MEILLEURS CRÉATEURS DU SECTEUR (reproduis ces patterns) :
-- Concret et actionnable plutôt que théorique : vrais noms d'outils, incidents réels, chiffres précis, normes/frameworks nommés.
-- Angle tranché : une opinion claire, un mythe à casser, ou une prise contre-intuitive — jamais neutre.
-- Hook de moins de 12 mots qui crée une tension immédiate (un fait, un enjeu, une affirmation forte).
-- Varie le TYPE de hook d'une idée à l'autre : prise de position, curiosity gap, stat choc, histoire de terrain, question provocatrice, mythe déconstruit.
-- Ancre dans l'actu du MOMENT (un incident récent, une sortie, une réglementation, une tendance).`
-
-  const userPrompt = `${newsBlock}${pastBlock}${themeBlock}${isEn ? 'Generate exactly 10 FRESH LinkedIn post ideas for today.' : "Génère exactement 10 idées de posts LinkedIn NOUVELLES pour aujourd'hui."}
+  const userPrompt = `${news ? `${isEn ? 'Recent news:' : 'Actualités du secteur :'}\n${news}\n\n` : ''}${pastBlock}${themeBlock}${isEn ? 'Generate exactly 10 FRESH LinkedIn post ideas for today.' : "Génère exactement 10 idées de posts LinkedIn NOUVELLES pour aujourd'hui."}
 
 Seed de variation : ${seed} — utilise ce seed pour varier l'angle et le style.
 Année en cours : 2026. Ne cite jamais d'années antérieures à 2025 dans les titres ou hooks.
 Angle du jour à privilégier pour au moins 3 idées : ${dayAngle}
 
-${styleRules}
-
-RÈGLE D'ANCRAGE ACTU (prioritaire quand des actus sont fournies) :
-${news
-  ? (isEn
-      ? `- At least 5 of the 10 ideas MUST start from a specific headline in the news list above.
-- The hook must reference the concrete fact (event, number, name) from that headline.
-- Do NOT invent facts: only use what the headlines actually state, reframed for this professional.`
-      : `- Au moins 5 des 10 idées DOIVENT partir d'un titre précis de la liste d'actus ci-dessus.
-- Le hook doit reprendre le fait concret (événement, chiffre, nom) de ce titre.
-- N'invente aucun fait : n'utilise que ce que les titres affirment réellement, reformulé pour ce professionnel.`)
-  : (isEn
-      ? `- No fresh news available: compensate with concrete, dated, named facts from the sector (real tools, standards, known incidents).`
-      : `- Pas d'actu fraîche disponible : compense avec des faits concrets, datés et nommés du secteur (vrais outils, normes, incidents connus).`)}
+RÈGLES ABSOLUES POUR LES TITRES ET HOOKS :
+${isEn
+  ? `- Titles must be specific and concrete: include real numbers, tool names, or sharp assertions
+- Hooks must create immediate tension with a precise fact or provocative claim
+- NEVER use generic phrases like "here's what you need to know"
+- Use the actual keywords from the user profile: ${keywords || sector}
+- Each idea must feel tailor-made for this exact professional profile`
+  : `- Les titres doivent être spécifiques et concrets : vrais chiffres, noms d'outils, assertions tranchées
+- Les hooks doivent créer une tension immédiate avec un fait précis ou une affirmation provocatrice
+- Ne JAMAIS utiliser des formules génériques comme "voici ce que vous devez savoir"
+- Utiliser les vrais mots-clés du profil : ${keywords || sector}
+- Chaque idée doit sembler faite sur mesure pour ce profil exact`}
 
 RÈGLE DE ROTATION THÉMATIQUE (prioritaire sur tout le reste) :
 ${isEn
@@ -218,12 +225,14 @@ ${isEn
 - Respecte strictement les thèmes interdits et prioritaires listés plus haut.
 - Un sujet déjà publié par l'utilisateur est définitivement exclu, même reformulé ou traité sous un autre angle.`}
 
-RÈGLE DE DIVERSITÉ :
+RÈGLE DE DIVERSITÉ (secondaire) :
 ${isEn
   ? `- Maximum 3 ideas out of 10 can use the direct keywords from the profile (${keywords || sector})
-- The other ideas must explore the PERIPHERY of the sector: regulation, macro trends, HR/business stakes, new uses, AI impact, field feedback`
+- MINIMUM 3 ideas out of 10 must be directly based on a recent news article provided above
+- The other ideas must explore the PERIPHERY of the sector`
   : `- Maximum 3 idées sur 10 peuvent utiliser les mots-clés directs du profil (${keywords || sector})
-- Les autres doivent explorer les PÉRIPHÉRIES du secteur : réglementation, tendances macro, enjeux RH/business, nouveaux usages, impact IA, retours terrain`}
+- MINIMUM 3 idées sur 10 doivent être directement basées sur une actualité récente fournie ci-dessus
+- Les autres doivent explorer les PÉRIPHÉRIES du secteur : réglementation, tendances macro, enjeux RH/business, nouveaux usages, comparaisons sectorielles, impact IA, retours terrain`}
 
 Les 2 premières idées doivent être les plus originales et percutantes.
 
@@ -238,8 +247,8 @@ ${isEn ? "IMPORTANT: Write ALL content (topic, title, hook) in English, but keep
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 3000,
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1800,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     })
