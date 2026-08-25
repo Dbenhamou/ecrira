@@ -1,16 +1,56 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { requireAuth } from '../../lib/auth-helper'
 import Anthropic from '@anthropic-ai/sdk'
+import dns from 'dns/promises'
+import net from 'net'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// ── Protection SSRF ────────────────────────────────────────────────
+function isPrivateIp(ip: string): boolean {
+  if (net.isIPv4(ip)) {
+    const p = ip.split('.').map(Number)
+    if (p[0] === 10 || p[0] === 127 || p[0] === 0) return true
+    if (p[0] === 169 && p[1] === 254) return true
+    if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true
+    if (p[0] === 192 && p[1] === 168) return true
+    if (p[0] === 100 && p[1] >= 64 && p[1] <= 127) return true
+    return false
+  }
+  const v = ip.toLowerCase()
+  if (v === '::1') return true
+  if (v.startsWith('fe80')) return true
+  if (v.startsWith('fc') || v.startsWith('fd')) return true
+  if (v.startsWith('::ffff:')) return isPrivateIp(v.replace('::ffff:', ''))
+  return false
+}
+
+async function isSafeUrl(raw: string): Promise<boolean> {
+  try {
+    const u = new URL(raw)
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return false
+    const host = u.hostname
+    if (!host || host === 'localhost') return false
+    if (net.isIP(host)) return !isPrivateIp(host)
+    const addrs = await dns.lookup(host, { all: true })
+    return addrs.length > 0 && addrs.every(a => !isPrivateIp(a.address))
+  } catch {
+    return false
+  }
+}
+
+async function safeFetch(url: string, init?: RequestInit): Promise<Response | null> {
+  if (!(await isSafeUrl(url))) return null
+  return fetch(url, init)
+}
+
 async function scrapePage(url: string): Promise<string> {
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Ecrira/1.0)' },
       signal: AbortSignal.timeout(8000),
     })
-    if (!res.ok) return ''
+    if (!res || !res.ok) return ''
     const html = await res.text()
     return html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
@@ -26,24 +66,21 @@ async function scrapePage(url: string): Promise<string> {
 
 async function fetchFavicon(baseUrl: string): Promise<string> {
   try {
-    // Try to find favicon URL from HTML first
-    const res = await fetch(baseUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) })
-    if (!res.ok) return ''
+    const res = await safeFetch(baseUrl, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(5000) })
+    if (!res || !res.ok) return ''
     const html = await res.text()
-    // Look for apple-touch-icon or icon link (higher quality)
     const iconMatch = html.match(/<link[^>]+rel=["'](?:apple-touch-icon|icon)["'][^>]+href=["']([^"']+)["']/i)
       || html.match(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["'](?:apple-touch-icon|icon)["']/i)
     let iconUrl = iconMatch ? iconMatch[1] : '/favicon.ico'
     if (!iconUrl.startsWith('http')) {
       iconUrl = iconUrl.startsWith('/') ? new URL(baseUrl).origin + iconUrl : baseUrl + '/' + iconUrl
     }
-    const iconRes = await fetch(iconUrl, { signal: AbortSignal.timeout(4000) })
-    if (!iconRes.ok) return ''
+    const iconRes = await safeFetch(iconUrl, { signal: AbortSignal.timeout(4000) })
+    if (!iconRes || !iconRes.ok) return ''
     const buffer = await iconRes.arrayBuffer()
     const base64 = Buffer.from(buffer).toString('base64')
     const mimeType = iconRes.headers.get('content-type') || 'image/png'
     const dataUri = `data:${mimeType};base64,${base64}`
-    // Only return if reasonably sized (< 200KB)
     return base64.length < 200000 ? dataUri : ''
   } catch {
     return ''
@@ -52,11 +89,11 @@ async function fetchFavicon(baseUrl: string): Promise<string> {
 
 async function extractColors(url: string): Promise<{ bg: string; text: string; primary: string; secondary: string; accent: string } | null> {
   try {
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; Ecrira/1.0)' },
       signal: AbortSignal.timeout(8000),
     })
-    if (!res.ok) return null
+    if (!res || !res.ok) return null
     const html = await res.text()
 
     // Extraire les couleurs hex du CSS inline + style tags
@@ -104,8 +141,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const BLOCKED = /^https?:\/\/(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|0\.0\.0\.0|169\.254\.)/i
   const base = domain.startsWith('http') ? domain : `https://${domain}`
   if (BLOCKED.test(base)) return res.status(400).json({ error: 'Domaine non autorisé' })
-  // Valider que c'est bien une URL
+  // Valider que c'est bien une URL + résolution DNS (anti-SSRF)
   try { new URL(base) } catch { return res.status(400).json({ error: 'Domaine invalide' }) }
+  if (!(await isSafeUrl(base))) return res.status(400).json({ error: 'Domaine non autorisé' })
 
   const [homeText, aboutText, colors, logob64] = await Promise.all([
     scrapePage(base),
@@ -124,7 +162,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 800,
-      system: `Tu es un expert en analyse de positionnement d'entreprise. 
+      system: `Tu es un expert en analyse de positionnement d'entreprise.
 Tu analyses le contenu d'un site web et tu en extrais des informations pour enrichir un profil LinkedIn.
 Réponds UNIQUEMENT avec un JSON valide, sans markdown ni commentaire.`,
       messages: [{
