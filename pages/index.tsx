@@ -2,6 +2,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
+import { frAuthError } from '../lib/authErrors'
 
 export default function Landing() {
   const router = useRouter()
@@ -66,7 +67,7 @@ export default function Landing() {
   const handleGoogle = async () => {
     setAuthLoading(true); setAuthError('')
     const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: `${window.location.origin}/app` } })
-    if (error) { setAuthError(error.message); setAuthLoading(false) }
+    if (error) { setAuthError(frAuthError(error.message)); setAuthLoading(false) }
   }
 
   const handleEmailAuth = async () => {
@@ -75,10 +76,10 @@ export default function Landing() {
     try {
       if (authMode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword })
-        if (error) setAuthError(error.message)
+        if (error) setAuthError(frAuthError(error.message))
       } else {
         const { error } = await supabase.auth.signUp({ email: authEmail, password: authPassword, options: { emailRedirectTo: `${window.location.origin}/app` } })
-        if (error) setAuthError(error.message)
+        if (error) setAuthError(frAuthError(error.message))
         else setAuthError('Vérifiez votre email pour confirmer votre compte.')
       }
     } catch { setAuthError('Erreur inattendue.') }
@@ -149,9 +150,13 @@ export default function Landing() {
         <meta name="description" content="Générez vos posts LinkedIn en 30 secondes. 7 jours Pro gratuits. Rédaction, visuels et planification — l'alternative au ghostwriting LinkedIn." />
         <meta property="og:title" content="Ecrira — Générateur de posts LinkedIn, gratuit" />
         <meta property="og:description" content="Générez vos posts LinkedIn en 30 secondes. L'alternative au ghostwriting, en 10x moins cher." />
-        <meta property="og:image" content="https://ecrira.com/og-image.svg" />
+        <meta property="og:image" content="https://ecrira.com/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content="https://ecrira.com/" />
         <meta property="og:type" content="website" />
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:image" content="https://ecrira.com/og-image.png" />
         <link rel="icon" href="/logo-ecrira-icon-bleu.png" type="image/png"/>
         <link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>

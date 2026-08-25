@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
+import { frAuthError } from '../lib/authErrors'
 
 export default function Login() {
   const router = useRouter()
@@ -40,7 +41,7 @@ export default function Login() {
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/app` },
     })
-    if (error) { setError(error.message); setLoading(false) }
+    if (error) { setError(frAuthError(error.message)); setLoading(false) }
   }
 
   const handleEmailAuth = async () => {
@@ -51,11 +52,11 @@ export default function Login() {
 
     if (mode === 'login') {
       const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) { setError(error.message); setLoading(false) }
+      if (error) { setError(frAuthError(error.message)); setLoading(false) }
       // redirect handled by onAuthStateChange
     } else {
       const { error } = await supabase.auth.signUp({ email, password })
-      if (error) { setError(error.message) }
+      if (error) { setError(frAuthError(error.message)) }
       else { setMessage('Compte créé. Vérifie ton email pour confirmer.') }
       setLoading(false)
     }
