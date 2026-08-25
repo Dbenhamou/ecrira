@@ -127,9 +127,9 @@ export default function Landing() {
   ]
 
   const testimonials = [
-    { initials:'TR', name:'Thomas R.', role:'Freelance growth · B2B SaaS', time:'1 sem.', content:"J'ai annulé mon abonnement ghostwriter (1 800€/mois).\n\nEcrira fait 80% du job pour 15,90€.\n\n3 posts par semaine, publiés, planifiés, avec visuel.\nMon engagement a doublé en 6 semaines.\n\nGame changer.", likes:41, comments:23 },
-    { initials:'SB', name:'Salma B.', role:'Coach business', time:'3 j.', content:"Je n'ai plus l'angoisse de la page blanche.\n\nJe décris ma semaine à Ecrira → il me sort 5 idées de posts → j'en garde 3.\n\nGain de temps : 4h par semaine. Constance : enfin.", likes:28, comments:14 },
-    { initials:'AD', name:'Antoine D.', role:'Fondateur · agence', time:'5 j.', content:"On l'utilise pour les 12 consultants de l'agence.\n\nChacun a sa voix, ses sujets, son planning.\nEcrira respecte le ton de chaque profil.\n\nROI clair : +40% de leads inbound en 2 mois.", likes:52, comments:41 },
+    { initials:'', name:'Format « Prise de position »', role:'Ton expert', time:'', content:"L'IA ne remplacera pas votre expertise.\n\nMais une expertise invisible ne vous ramène aucun client.\n\nPublier, c'est transformer ce que vous savez en ce qu'on vous demande.\n\nUn post. Une idée. Zéro jargon.", likes:0, comments:0 },
+    { initials:'', name:'Format « Storytelling »', role:'Ton personnel', time:'', content:"Il y a un an, la page blanche gagnait à chaque fois.\n\nJe savais quoi dire. Jamais comment.\n\nAujourd'hui : je décris ma semaine, je garde 3 idées sur 5, je publie.\n\nLa régularité a fait le reste.", likes:0, comments:0 },
+    { initials:'', name:'Format « Liste actionnable »', role:'Ton direct', time:'', content:"3 erreurs qui tuent vos posts LinkedIn :\n\n1. Une accroche tiède — personne ne s'arrête\n2. Trois idées au lieu d'une\n3. Aucun appel à réagir\n\nCorrigez-en une cette semaine. Une seule.", likes:0, comments:0 },
   ]
 
   const faqs = [
@@ -212,41 +212,30 @@ export default function Landing() {
             <button onClick={scrollToDemo} className="btn-pulse btn-hover" style={{padding:'14px 32px',borderRadius:12,background:F,border:'none',fontSize:15,color:'white',fontWeight:600,cursor:'pointer',fontFamily:'inherit'}}>Générer mon 1er post gratuit</button>
             <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{padding:'14px 20px',borderRadius:12,border:`1px solid ${BD}`,background:'transparent',fontSize:15,color:CH,cursor:'pointer',fontFamily:'inherit'}}>Créer mon compte freemium</button>
           </div>
-          <div style={{animation:'fadeUp 0.6s 1.2s both',display:'flex',alignItems:'center',justifyContent:'center',gap:16,flexWrap:'wrap' as const}}>
-            <div style={{display:'flex',alignItems:'center',gap:6}}>
-              <span style={{color:'#F59E0B',fontSize:14}}>★★★★★</span>
-              <span style={{fontSize:13,fontWeight:600,color:CH}}>4.9/5</span>
-            </div>
+          <div style={{animation:'fadeUp 0.6s 1.2s both',display:'flex',alignItems:'center',justifyContent:'center',gap:14,flexWrap:'wrap' as const,fontSize:13,color:'#6B7069'}}>
+            <span>✓ Sans carte bancaire</span>
             <span style={{color:BD}}>·</span>
-            <span style={{fontSize:13,color:'#6B7069'}}>2 400+ créateurs nous font confiance</span>
+            <span>✓ Résultat en 30 secondes</span>
+            <span style={{color:BD}}>·</span>
+            <span>✓ Annulation en 1 clic</span>
           </div>
 
-          {/* First testimonial card in hero */}
+          {/* Exemple de post généré */}
           <div style={{marginTop:32,background:'white',borderRadius:16,border:`1px solid ${BD}`,padding:20,textAlign:'left',boxShadow:'0 4px 24px rgba(31,36,33,0.06)',maxWidth:480,margin:'32px auto 0',animation:'fadeUp 0.6s 1.3s both'}}>
             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
-              <div style={{width:40,height:40,borderRadius:'50%',background:F,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:14,flexShrink:0}}>ML</div>
-              <div>
-                <div style={{fontWeight:600,fontSize:13,color:CH}}>Marie L.</div>
-                <div style={{fontSize:11,color:'#666'}}>Fondatrice · SaaS B2B</div>
+              <div style={{width:40,height:40,borderRadius:10,background:'rgba(61,82,160,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{height:22,width:'auto'}}/>
               </div>
-              <span style={{marginLeft:'auto',fontSize:11,color:'#666'}}>2 h</span>
+              <div>
+                <div style={{fontWeight:600,fontSize:13,color:CH}}>Exemple généré par Ecrira</div>
+                <div style={{fontSize:11,color:'#666'}}>Format « prise de position » · en 30 s</div>
+              </div>
             </div>
-            <div style={{fontSize:13,color:CH,lineHeight:1.7,whiteSpace:'pre-line' as const}}>{`Personne ne te le dira mais :\n\nUn bon post LinkedIn, ce n'est pas du talent.\nC'est une méthode.\n\nJ'ai testé 90 jours avec Ecrira.\nRésultat : +3 200 abonnés et 14 leads qualifiés.`}</div>
-            <div style={{display:'flex',gap:16,marginTop:12,paddingTop:10,borderTop:`1px solid ${BD}`,fontSize:12,color:'#666'}}>
-              <span>👍 ❤️ 34</span><span style={{marginLeft:'auto'}}>24 commentaires</span>
-            </div>
+            <div style={{fontSize:13,color:CH,lineHeight:1.7,whiteSpace:'pre-line' as const}}>{`Personne ne te le dira, mais :\n\nUn bon post LinkedIn, ce n'est pas du talent.\nC'est une méthode.\n\n1. Une accroche qui stoppe le scroll\n2. Une idée, une seule\n3. Un appel à réagir\n\nLe reste, c'est de la régularité.`}</div>
           </div>
         </section>
 
-        {/* ─── LOGOS ───────────────────────────────────────────────── */}
-        <section style={{padding:'24px 32px',borderTop:`1px solid ${BD}`,borderBottom:`1px solid ${BD}`,background:'white'}}>
-          <p style={{textAlign:'center',fontSize:12,fontWeight:600,color:'#B7C0B8',letterSpacing:'0.08em',marginBottom:16}}>ILS ÉCRIVENT AVEC ECRIRA</p>
-          <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:32,flexWrap:'wrap' as const}}>
-            {['Nooma','Pivot','Loopstack','Fondly','Verso','Brickly'].map(name=>(
-              <span key={name} style={{fontSize:14,fontWeight:600,color:'#B7C0B8',letterSpacing:'-0.3px'}}>{name}</span>
-            ))}
-          </div>
-        </section>
+        {/* ─── LOGOS ─── (masqué : à réactiver avec de vrais logos clients) */}
 
         {/* ─── STORYTELLING ──────────────────────────────────────────── */}
         <section style={{padding:'72px 32px',background:IV,borderTop:`1px solid ${BD}`}}>
@@ -280,7 +269,7 @@ export default function Landing() {
                   "30 secondes par post, 3 posts par semaine",
                   "Visuels professionnels générés automatiquement",
                   "Publication planifiée sans y penser",
-                  "+40% de leads inbound en 2 mois en moyenne",
+                  "Une présence LinkedIn régulière, sans y penser",
                 ].map((item,i)=>(
                   <div key={i} style={{display:'flex',gap:10,marginBottom:12,alignItems:'flex-start'}}>
                     <span style={{color:F,flexShrink:0,marginTop:1}}>✓</span>
@@ -395,9 +384,9 @@ export default function Landing() {
         {/* ─── COMPTEURS ───────────────────────────────────────────── */}
         <section ref={counterRef} style={{padding:'56px 32px',background:F}}>
           <div style={{maxWidth:700,margin:'0 auto',display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:32,textAlign:'center'}} className="grid-3">
-            <div><div style={{fontSize:40,fontWeight:700,color:C,lineHeight:1}}>{counter1.toLocaleString()}+</div><div style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginTop:6}}>créateurs actifs</div></div>
-            <div><div style={{fontSize:40,fontWeight:700,color:C,lineHeight:1}}>{counter2.toLocaleString()}</div><div style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginTop:6}}>posts générés</div></div>
-            <div><div style={{fontSize:40,fontWeight:700,color:C,lineHeight:1}}>30s</div><div style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginTop:6}}>par post en moyenne</div></div>
+            <div><div style={{fontSize:40,fontWeight:700,color:C,lineHeight:1}}>30 s</div><div style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginTop:6}}>par post, en moyenne</div></div>
+            <div><div style={{fontSize:40,fontWeight:700,color:C,lineHeight:1}}>×3</div><div style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginTop:6}}>variantes à chaque génération</div></div>
+            <div><div style={{fontSize:40,fontWeight:700,color:C,lineHeight:1}}>5</div><div style={{fontSize:13,color:'rgba(255,255,255,0.6)',marginTop:6}}>formats de post prêts</div></div>
           </div>
         </section>
 
@@ -405,25 +394,22 @@ export default function Landing() {
         <section style={{padding:'72px 32px',background:IV,borderTop:`1px solid ${BD}`}}>
           <div style={{maxWidth:960,margin:'0 auto'}}>
             <div id="testi-title" data-animate style={{textAlign:'center',marginBottom:48}} className={`animate-up${visibleSections.has('testi-title')?' visible':''}`}>
-              <h2 style={{fontSize:32,fontWeight:700,color:CH,marginBottom:10,letterSpacing:'-0.5px'}}>Ils ont remplacé leur ghostwriter LinkedIn</h2>
-              <p style={{fontSize:14,color:'#6B7069'}}>2 400+ créateurs, freelances et fondateurs publient avec Ecrira chaque semaine.</p>
+              <h2 style={{fontSize:32,fontWeight:700,color:CH,marginBottom:10,letterSpacing:'-0.5px'}}>Des posts que vous pourriez publier aujourd'hui</h2>
+              <p style={{fontSize:14,color:'#6B7069'}}>Trois exemples générés par Ecrira, dans trois styles différents.</p>
             </div>
             <div id="testi-grid" data-animate style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}} className={`grid-3 animate-up${visibleSections.has('testi-grid')?' visible':''}`}>
               {testimonials.map((t,i)=>(
                 <div key={i} className="card-hover" style={{background:'white',borderRadius:16,border:`1px solid ${BD}`,padding:20,boxShadow:'0 2px 12px rgba(31,36,33,0.04)'}}>
                   <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
-                    <div style={{width:40,height:40,borderRadius:'50%',background:F,display:'flex',alignItems:'center',justifyContent:'center',color:'white',fontWeight:700,fontSize:13,flexShrink:0}}>{t.initials}</div>
+                    <div style={{width:36,height:36,borderRadius:9,background:'rgba(61,82,160,0.08)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                      <img src="/logo-ecrira-icon-bleu.png" alt="Ecrira" style={{height:19,width:'auto'}}/>
+                    </div>
                     <div style={{flex:1}}>
                       <div style={{fontWeight:600,fontSize:13,color:CH}}>{t.name}</div>
                       <div style={{fontSize:11,color:'#666'}}>{t.role}</div>
                     </div>
-                    <span style={{fontSize:11,color:'#666',flexShrink:0}}>{t.time}</span>
                   </div>
-                  <div style={{fontSize:13,color:CH,lineHeight:1.7,whiteSpace:'pre-line' as const,marginBottom:12}}>{t.content}</div>
-                  <div style={{display:'flex',justifyContent:'space-between',fontSize:12,color:'#666',paddingTop:10,borderTop:`1px solid ${BD}`}}>
-                    <span>👍 ❤️ {t.likes}</span>
-                    <span>{t.comments} commentaires</span>
-                  </div>
+                  <div style={{fontSize:13,color:CH,lineHeight:1.7,whiteSpace:'pre-line' as const}}>{t.content}</div>
                 </div>
               ))}
             </div>
