@@ -22,19 +22,10 @@ function decodeEntities(s: string): string {
     .trim()
 }
 
-// Construit la requete a partir des mots-cles (prioritaires) ou du secteur.
-// sector/keywords sont des listes separees par des virgules : on isole les
-// 2 termes les plus forts, nettoyes, pour une requete ciblee et efficace
-// (ex. "cybersecurite MSP") au lieu d'une bouillie "SOC gere, MSP, Cyber...".
+// Construit la requete a partir du secteur (prioritaire) ou des mots-cles.
 export function buildNewsQuery(sector: string, keywords: string): string {
-  const source = (keywords || sector || '').trim()
-  if (!source) return ''
-  const terms = source
-    .split(',')
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .slice(0, 2)
-  return terms.join(' ')
+  const base = (sector || keywords || '').trim()
+  return base.split(/\s+/).slice(0, 4).join(' ')
 }
 
 // --- Source 1 : Google News RSS (sans cle) ---
