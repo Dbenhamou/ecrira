@@ -515,20 +515,20 @@ export default function Landing() {
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:CH,marginBottom:12}}>Produit</div>
-              {['Fonctionnalités','Tarifs','Cas d\'usage'].map(l=>(
-                <div key={l} style={{marginBottom:8}}><a href={`#${l.toLowerCase().replace(' ','').replace("'","")}`} style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>{l}</a></div>
+              {[['Fonctionnalités','#fonctionnalites'],['Tarifs','#tarifs']].map(([l,href])=>(
+                <div key={l} style={{marginBottom:8}}><a href={href} style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>{l}</a></div>
               ))}
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:CH,marginBottom:12}}>Ressources</div>
-              {['Blog','FAQ'].map(l=>(
-                <div key={l} style={{marginBottom:8}}><a href="#" style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>{l}</a></div>
+              {[['FAQ','#faq']].map(([l,href])=>(
+                <div key={l} style={{marginBottom:8}}><a href={href} style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>{l}</a></div>
               ))}
             </div>
             <div>
               <div style={{fontSize:12,fontWeight:600,color:CH,marginBottom:12}}>Légal</div>
-              {['Mentions légales','Confidentialité','CGU'].map(l=>(
-                <div key={l} style={{marginBottom:8}}><a href="#" style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>{l}</a></div>
+              {[['Mentions légales','/mentions-legales'],['Confidentialité','/confidentialite'],['CGU','/cgu'],['CGV','/cgv']].map(([l,href])=>(
+                <div key={l} style={{marginBottom:8}}><a href={href} style={{fontSize:13,color:'#6B7069',textDecoration:'none'}}>{l}</a></div>
               ))}
             </div>
           </div>
