@@ -60,6 +60,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(429).json({ error: 'La démo est très sollicitée aujourd\'hui. Réessayez demain ou créez un compte gratuit.' })
   }
 
+  // Capture du lead démo (non bloquant : la démo ne doit jamais casser)
+  try {
+    await supabase.from('demo_leads').upsert(
+      { email: String(email).toLowerCase().trim(), last_topic: String(topic).slice(0, 200) },
+      { onConflict: 'email' }
+    )
+  } catch (e) { console.error('[demo] lead capture (ignore):', e) }
+
   try {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',

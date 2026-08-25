@@ -4,8 +4,13 @@ import { requireAuth } from '../../lib/auth-helper'
 import sharp from 'sharp'
 import path from 'path'
 import fs from 'fs'
+import { createClient } from '@supabase/supabase-js'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 const imgRateLimit = new Map<string, { count: number; reset: number }>()
 function checkImgRateLimit(userId: string, max: number = 10): boolean {
@@ -43,10 +48,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { postContent, postTopic, profile, hideWatermark } = req.body
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
 
-  const isPro = profile?.plan === 'pro' || profile?.plan === 'trial'
+  // Plan lu en base (jamais depuis le body : sinon contournable)
+  const { data: dbProfile } = await supabaseAdmin.from('profiles').select('plan, trial_ends_at').eq('id', userId).single()
+  const trialActive = dbProfile?.plan === 'trial' && !!dbProfile?.trial_ends_at && new Date(dbProfile.trial_ends_at) > new Date()
+  const isPro = dbProfile?.plan === 'pro' || trialActive
   if (!isPro) return res.status(403).json({ error: 'PRO_ONLY', message: 'Les visuels IA sont réservés au plan Pro.' })
 
-  const imgLimit = profile?.plan === 'trial' ? 3 : 10
+  const imgLimit = trialActive ? 3 : 10
   if (!checkImgRateLimit(userId, imgLimit)) {
     return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de ' + imgLimit + ' visuels par heure atteinte.' })
   }
