@@ -3,6 +3,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { supabase } from '../lib/supabase'
 import { frAuthError } from '../lib/authErrors'
+import { frAuthError } from '../lib/authErrors'
 
 export default function Login() {
   const router = useRouter()
