@@ -80,9 +80,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const painPoints = profile?.pain_points || ''
   const techStack = profile?.tech_stack || ''
   const isEn = (profile?.lang || 'fr') === 'en'
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const todayStr = now.toISOString().slice(0, 10)
   const formality = profile?.formality || 'vouvoiement'
   const formalityInstruction = isEn ? '' : formality === 'tutoiement' ? '\nTUTOIEMENT OBLIGATOIRE : tutoie systématiquement le lecteur dans tout le post (tu, ton, tes, toi). Jamais de vous/votre.' : '\nVOUVOIEMENT OBLIGATOIRE : vouvoie systématiquement le lecteur dans tout le post (vous, votre, vos). Jamais de tu/ton/tes.'
   const lang = isEn ? 'English' : 'Français'
@@ -97,8 +94,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (writingStyle.trim()) {
     try { refPosts = JSON.parse(writingStyle) } catch { refPosts = [writingStyle] }
   }
-  // Fidélité de style : jusqu'à 3 posts référents, tronqués à 1000 chars chacun
-  refPosts = refPosts.slice(0, 3).map(p => String(p).slice(0, 1000))
+  // Optimisation coûts : max 2 posts référents, tronqués à 400 chars chacun
+  refPosts = refPosts.slice(0, 2).map(p => p.slice(0, 400))
 
   // Build style section
   let styleSection: string
@@ -147,11 +144,6 @@ ${newsContext}
     + (keywords ? 'Expertise clé : ' + keywords + '\n' : '')
     + (painPoints ? 'Problèmes résolus pour les clients : ' + painPoints + '\n' : '')
     + (techStack ? 'Outils/Stack : ' + techStack + '\n' : '')
-    + '\n=== DATE ===\n'
-    + 'Nous sommes le ' + todayStr + ' (année en cours : ' + currentYear + ').\n'
-    + 'Toute référence temporelle (bilan, tendances, prédictions, « cette année », « en ce moment ») doit porter sur ' + currentYear + '. '
-    + 'N\'écris JAMAIS une année passée — surtout pas « 2025 », « bilan 2025 », « tendances 2025 » — sauf si le sujet demande explicitement une rétrospective. '
-    + 'Pour le futur proche, parle de ' + currentYear + ' ou ' + (currentYear + 1) + '.\n'
     + '\n=== RÈGLES ABSOLUES ===\n'
     + '1. AUDIENCE : Chaque phrase doit résonner avec "' + audience + '". Parle LEURS problèmes, LEUR vocabulaire, LEURS enjeux spécifiques.\n'
     + '2. CHIFFRES : Utilise uniquement des chiffres issus des actualités fournies ci-dessus ou de faits vérifiables. Si incertain, reformule sans chiffre plutôt que d\'inventer.\n'
@@ -159,7 +151,6 @@ ${newsContext}
     + '4. VOIX : 1ère personne (je/nous). Point de vue tranché et assumé. Pas de conseils génériques.\n'
     + '5. FORMAT : Phrases courtes. Retours à la ligne fréquents. Jamais de ** ni Markdown. Texte brut LinkedIn.\n'
     + '6. HASHTAGS : 3-5 maximum, à la toute fin.\n'
-    + '7. SPÉCIFICITÉ : privilégie les noms d\'outils réels, normes/incidents nommés, chiffres et exemples datés. Bannis les formules passe-partout ("dans un monde où", "aujourd\'hui plus que jamais", "à l\'ère du...").\n'
     + formalityInstruction + '\n\n'
     + styleSection + '\n\n'
     + 'Langue : ' + lang + '. ' + langInstruction + variantInstruction + '\n'
@@ -183,7 +174,7 @@ ${newsContext}
   try {
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1200,
+      max_tokens: 800,
       system: systemPrompt,
       messages: [{
         role: 'user',

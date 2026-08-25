@@ -75,8 +75,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const audience = (profile.audience || '').trim()
       const keywords = (profile.keywords || profile.tech_stack || '').trim()
       const isEn = profile.lang === 'en'
-      const currentYear = new Date().getFullYear()
-      const writingStyle = (profile.writing_style || '').toString().trim()
 
       // Actualités du jour spécifiques au secteur (Google News RSS, gratuit et
       // fonctionnel en prod — remplace NewsAPI qui renvoyait 426).
@@ -111,8 +109,6 @@ PROFIL :
 ${profilLines || 'Professionnel (secteur non précisé — reste généraliste et pertinent)'}
 ${niveau}
 
-ANNÉE EN COURS : ${currentYear}. Toute référence temporelle (bilan, tendances, prédictions, « cette année ») doit porter sur ${currentYear}. N'écris JAMAIS une année passée — surtout pas « 2025 », « bilan 2025 », « tendances 2025 » — sauf si le sujet demande explicitement une rétrospective.
-${writingStyle ? `\nEXEMPLES DE POSTS DE L'UTILISATEUR (sa voix — inspire-toi de ses sujets récurrents et de son angle, sans les recopier) :\n${writingStyle.slice(0, 1500)}\n` : ''}
 ${news ? `ACTUALITÉS RÉCENTES DU SECTEUR (vrais titres — sers-t'en comme matière première) :\n${news}\n` : ''}
 ${themeBlock}CE QUE FONT LES MEILLEURS CRÉATEURS DU SECTEUR (reproduis ces patterns) :
 - Concret et actionnable plutôt que théorique : vrais noms d'outils, incidents réels, chiffres précis, normes nommées.
