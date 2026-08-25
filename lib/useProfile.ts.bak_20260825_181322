@@ -30,8 +30,6 @@ export type Profile = {
   tone?: string
   content_themes?: string
   pain_points?: string
-  plan?: string
-  trial_ends_at?: string | null
 }
 
 export const DEFAULT_PROFILE: Profile = {
@@ -77,13 +75,6 @@ function mapRow(data: any): Profile {
     linkedin_token: data.linkedin_token || '',
     linkedin_token_expiry: data.linkedin_token_expiry || null,
     linkedin_id: data.linkedin_id || '',
-    summary: data.summary || '',
-    keywords: data.keywords || '',
-    tone: data.tone || '',
-    content_themes: data.content_themes || '',
-    pain_points: data.pain_points || '',
-    plan: data.plan || 'free',
-    trial_ends_at: data.trial_ends_at || null,
   }
 }
 
@@ -209,13 +200,8 @@ export function useProfile() {
       return false
     }
 
-    // Champs controles cote serveur : jamais ecrits depuis le client
-    // (le plan et trial_ends_at sont lus pour l'affichage mais ne doivent
-    // pas pouvoir etre modifies par l'utilisateur).
-    const { plan, trial_ends_at, ...safe } = updated as any
-
     // linkedin_token_expiry is a timestamptz column — '' is not a valid value
-    const payload = { ...safe, linkedin_token_expiry: safe.linkedin_token_expiry || null }
+    const payload = { ...updated, linkedin_token_expiry: updated.linkedin_token_expiry || null }
 
     // update (et non upsert) : le plan, trial_ends_at et les champs Stripe
     // ne sont jamais touches depuis le client.
