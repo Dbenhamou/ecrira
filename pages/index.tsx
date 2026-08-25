@@ -86,6 +86,15 @@ export default function Landing() {
     setAuthLoading(false)
   }
 
+  const handleForgot = async () => {
+    if (!authEmail.trim()) { setAuthError('Entrez votre email pour recevoir le lien de réinitialisation.'); return }
+    setAuthLoading(true); setAuthError('')
+    const { error } = await supabase.auth.resetPasswordForEmail(authEmail, { redirectTo: `${window.location.origin}/reset-password` })
+    if (error) setAuthError(frAuthError(error.message))
+    else setAuthError('Email envoyé : cliquez sur le lien pour choisir un nouveau mot de passe.')
+    setAuthLoading(false)
+  }
+
   const handleDemoEmail = () => {
     if (!demoEmail.trim() || !demoEmail.includes('@')) { setDemoEmailError(true); return }
     setDemoEmailError(false); setDemoEmailSent(true)
@@ -559,7 +568,8 @@ export default function Landing() {
                 </div>
                 <input value={authEmail} onChange={e=>setAuthEmail(e.target.value)} placeholder="Email" type="email" style={{width:'100%',padding:'11px 14px',borderRadius:8,border:`1px solid ${BD}`,fontSize:13,color:CH,fontFamily:'inherit',background:IV,outline:'none',marginBottom:8,boxSizing:'border-box' as const}}/>
                 <input value={authPassword} onChange={e=>setAuthPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleEmailAuth()} placeholder="Mot de passe" type="password" style={{width:'100%',padding:'11px 14px',borderRadius:8,border:`1px solid ${BD}`,fontSize:13,color:CH,fontFamily:'inherit',background:IV,outline:'none',marginBottom:12,boxSizing:'border-box' as const}}/>
-                {authError && <p style={{fontSize:12,color:authError.includes('Vérifiez')?F:'#c0392b',marginBottom:10}}>{authError}</p>}
+                {authMode==='login' && <p style={{textAlign:'right' as const,margin:'-4px 0 12px'}}><span onClick={handleForgot} style={{fontSize:12,color:F,cursor:'pointer'}}>Mot de passe oublié ?</span></p>}
+                {authError && <p style={{fontSize:12,color:(authError.includes('Vérifiez')||authError.includes('envoyé'))?F:'#c0392b',marginBottom:10}}>{authError}</p>}
                 <button onClick={handleEmailAuth} disabled={authLoading} style={{width:'100%',padding:'12px',borderRadius:10,background:F,border:'none',color:'white',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginBottom:12,opacity:authLoading?0.7:1}}>
                   {authLoading?'Chargement…':authMode==='login'?'Se connecter':'Créer mon compte'}
                 </button>

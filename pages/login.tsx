@@ -62,6 +62,15 @@ export default function Login() {
     }
   }
 
+  const handleForgot = async () => {
+    if (!email.trim()) { setError('Entrez votre email pour recevoir le lien.'); return }
+    setLoading(true); setError(''); setMessage('')
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` })
+    if (error) setError(frAuthError(error.message))
+    else setMessage('Email envoyé : cliquez sur le lien pour choisir un nouveau mot de passe.')
+    setLoading(false)
+  }
+
   return (
     <>
       <Head>
@@ -212,6 +221,12 @@ export default function Login() {
             </button>
           </div>
           </div>
+
+          {mode === 'login' && (
+            <div style={{ textAlign: 'right', marginTop: -12, marginBottom: 16 }}>
+              <span onClick={handleForgot} style={{ fontSize: 12, color: '#3D52A0', cursor: 'pointer' }}>Mot de passe oublié ?</span>
+            </div>
+          )}
 
           {error && (
             <div style={{
