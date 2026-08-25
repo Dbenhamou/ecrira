@@ -3,7 +3,6 @@ import { useRouter } from 'next/router'
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { frAuthError } from '../lib/authErrors'
-import { frAuthError } from '../lib/authErrors'
 
 export default function Landing() {
   const router = useRouter()
