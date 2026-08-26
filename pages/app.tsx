@@ -2413,24 +2413,25 @@ export default function Home() {
                 <span style={{fontFamily:"'Clash Display',sans-serif",fontSize:15,fontWeight:600,color:'white',letterSpacing:'0.02em'}}>Ecrira</span>
               </div>
               <div style={{fontFamily:"'Clash Display','Inter',sans-serif",fontSize:22,fontWeight:500,color:'white',marginBottom:4}}>
-                {onboardingStep===0&&'Bienvenue'}{onboardingStep===1&&'Connecte LinkedIn'}{onboardingStep===2&&'Ton profil'}
+                {onboardingStep===0&&'Bienvenue'}{onboardingStep===1&&'Connecte LinkedIn'}{onboardingStep===2&&'Ton profil'}{onboardingStep===3&&'Choisis ton offre'}
               </div>
               <div style={{fontSize:13,color:'rgba(255,255,255,0.7)'}}>
                 {onboardingStep===0&&'Ecrira génère tes posts LinkedIn en quelques secondes.'}
                 {onboardingStep===1&&'LinkedIn pré-remplit ton nom et enrichit ton profil.'}
                 {onboardingStep===2&&'Vérifiez et complétez les infos détectées.'}
+                {onboardingStep===3&&'Démarre gratuitement, tu passeras Pro quand tu veux.'}
               </div>
               <div style={{marginTop:16}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:7}}>
                   <div style={{display:'flex',gap:5}}>
-                    {[0,1,2].map(i=>(<div key={i} style={{width:i===onboardingStep?24:7,height:6,borderRadius:3,background:i<=onboardingStep?'white':'rgba(255,255,255,0.25)',transition:'all 0.25s'}}/>))}
+                    {[0,1,2,3].map(i=>(<div key={i} style={{width:i===onboardingStep?24:7,height:6,borderRadius:3,background:i<=onboardingStep?'white':'rgba(255,255,255,0.25)',transition:'all 0.25s'}}/>))}
                   </div>
                   <span style={{fontSize:11,color:'rgba(255,255,255,0.6)',fontWeight:500,letterSpacing:'0.04em'}}>
-                    {onboardingStep < 3 ? `${onboardingStep+1} / 3` : ''}
+                    {`${onboardingStep+1} / 4`}
                   </span>
                 </div>
                 <div style={{height:2,background:'rgba(255,255,255,0.15)',borderRadius:1}}>
-                  <div style={{height:'100%',borderRadius:1,background:'white',width:`${onboardingStep===0?0:onboardingStep===1?50:100}%`,transition:'width 0.35s ease'}}/>
+                  <div style={{height:'100%',borderRadius:1,background:'white',width:`${(onboardingStep/3)*100}%`,transition:'width 0.35s ease'}}/>
                 </div>
               </div>
             </div>

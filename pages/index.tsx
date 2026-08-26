@@ -190,7 +190,7 @@ export default function Landing() {
           .btn-hover { transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s; }
           .btn-hover:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(61,82,160,0.3); }
           .faq-hover:hover { background: rgba(81,103,86,0.03); }
-          @media (max-width:640px) { .grid-4 { grid-template-columns:repeat(2,1fr)!important; } .grid-3 { grid-template-columns:1fr!important; } .hero-h1 { font-size:32px!important; } .mockup-wrap { display:none!important; } .story-grid { grid-template-columns:1fr!important; } .story-grid > div:nth-child(2) { display:none; } .nav-links { display:none!important; } .nav-btn-connect { display:none!important; } .nav-btn-trial { font-size:12px!important; padding:7px 10px!important; } }
+          @media (max-width:640px) { .grid-4 { grid-template-columns:repeat(2,1fr)!important; } .grid-3 { grid-template-columns:1fr!important; } .hero-h1 { font-size:32px!important; } .mockup-wrap { display:none!important; } .story-grid { grid-template-columns:1fr!important; } .story-grid > div:nth-child(2) { display:none; } .nav-links { display:none!important; } .nav-btn-trial { font-size:12px!important; padding:7px 10px!important; } }
         `}</style>
       </Head>
 
