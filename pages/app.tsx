@@ -777,6 +777,17 @@ export default function Home() {
 
   const [linkedinConnected, setLinkedinConnected] = useState(false)
   const lang = (profile.lang || 'fr') as Lang
+  const [genPhase, setGenPhase] = useState('')
+  useEffect(() => {
+    if (!loadingPost) { setGenPhase(''); return }
+    const phases = lang === 'en'
+      ? ['Analyzing your topic…', 'Fetching recent news…', 'Writing your post…', 'Polishing…']
+      : ['Analyse du sujet…', 'Recherche d’actualités…', 'Rédaction…', 'Peaufinage…']
+    let i = 0
+    setGenPhase(phases[0])
+    const id = setInterval(() => { i = Math.min(i + 1, phases.length - 1); setGenPhase(phases[i]) }, 1500)
+    return () => clearInterval(id)
+  }, [loadingPost, lang])
   const T = (key: Parameters<typeof t>[1]) => t(lang, key)
 
   // Realtime désactivé temporairement — cause crash mobile
@@ -1606,7 +1617,7 @@ export default function Home() {
                     {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
                   </div>
                 </div>
-                <div style={{display:'flex',gap:6}}><button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> {T('generating')}</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>{isPro&&<button className="btn btn-secondary" style={{fontSize:12,padding:'0 12px',flexShrink:0}} onClick={()=>{ if(!canGenerate){setShowUpgradeModal(true);return;} generate3Variants(); }} disabled={loadingPost}>×3</button>}</div>
+                <div style={{display:'flex',gap:6}}><button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> {genPhase||T('generating')}</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>{isPro&&<button className="btn btn-secondary" style={{fontSize:12,padding:'0 12px',flexShrink:0}} onClick={()=>{ if(!canGenerate){setShowUpgradeModal(true);return;} generate3Variants(); }} disabled={loadingPost}>×3</button>}</div>
               </div>
 
               {/* RIGHT: Résultat */}
