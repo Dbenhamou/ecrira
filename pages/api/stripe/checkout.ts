@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { stripe } from '../../../lib/stripe';
 import { createClient } from '@supabase/supabase-js';
 import { requireAuth } from '../../../lib/auth-helper';
+import { BILLING_ENABLED } from '../../../lib/config';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,6 +11,8 @@ const supabase = createClient(
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end();
+
+  if (!BILLING_ENABLED) return res.status(403).json({ error: 'BILLING_DISABLED', message: 'Les paiements ne sont pas encore activés (bêta gratuite).' });
 
   const authUserId = await requireAuth(req, res)
   if (!authUserId) return

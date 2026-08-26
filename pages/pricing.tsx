@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabase';
 import Head from 'next/head';
+import { BILLING_ENABLED } from '../lib/config';
 
 const pricingT = {
   fr: {
@@ -67,6 +68,7 @@ export default function Pricing() {
   const T = pricingT[lang];
 
   const handleUpgrade = async () => {
+    if (!BILLING_ENABLED) return;
     if (!user) { router.push('/login'); return; }
     setLoading(true);
     try {
@@ -236,7 +238,7 @@ export default function Pricing() {
             </ul>
             <button
               onClick={handleUpgrade}
-              disabled={loading}
+              disabled={loading || !BILLING_ENABLED}
               style={{
                 width: '100%',
                 padding: '14px',
@@ -251,7 +253,7 @@ export default function Pricing() {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? T.loading : T.pro_cta}
+              {!BILLING_ENABLED ? (lang==='fr'?'Bientôt disponible':'Coming soon') : (loading ? T.loading : T.pro_cta)}
             </button>
           </div>
 

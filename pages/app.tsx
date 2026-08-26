@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/router'
 import { usePlan } from '../lib/usePlan'
+import { BILLING_ENABLED } from '../lib/config'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 import { useProfile } from '../lib/useProfile'
@@ -2556,6 +2557,7 @@ export default function Home() {
         {['5 posts','IA basique','Style personnalisé'].map((f,i)=>(<div key={i} style={{fontSize:12,color:'var(--text2)',display:'flex',alignItems:'center',gap:5,marginBottom:2}}><span style={{color:'var(--indigo)'}}>✓</span>{f}</div>))}
       </div>
       <div style={{border:'2px solid var(--indigo)',borderRadius:14,padding:'16px 20px',cursor:'pointer',background:'var(--indigo)',color:'white',position:'relative',overflow:'hidden'}} onClick={async()=>{
+        if(!BILLING_ENABLED){ showToast(lang==='en'?'Coming soon — enjoy the free beta':'Bientôt — profite de la bêta gratuite'); return; }
         if(!userId) return;
         const res = await authFetch('/api/stripe/checkout',{method:'POST',body:JSON.stringify({userId,email:(profile as any)?.email ?? ''})});
         const data = await res.json();
