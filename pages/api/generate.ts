@@ -170,11 +170,12 @@ ${newsContext}
   // Vérification plan Free (5 posts à vie)
   const { data: userProfile } = await supabaseAdmin
     .from('profiles')
-    .select('plan, posts_count_this_month')
+    .select('plan, posts_count_this_month, trial_ends_at')
     .eq('id', userId)
     .single()
 
-  const isPro = userProfile?.plan === 'pro' || userProfile?.plan === 'trial'
+  const trialActive = userProfile?.plan === 'trial' && !!userProfile?.trial_ends_at && new Date(userProfile.trial_ends_at) > new Date()
+  const isPro = userProfile?.plan === 'pro' || trialActive
   const postsCount = userProfile?.posts_count_this_month ?? 0
 
   if (!isPro && postsCount >= 5) {

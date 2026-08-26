@@ -107,6 +107,7 @@ export default function Landing() {
       const res = await fetch('/api/demo', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ email: demoEmail, topic: demoTopic, tone: demoTone }) })
       const data = await res.json()
       setDemoPost(data.post || 'Une erreur est survenue.')
+      try { if (data.post) localStorage.setItem('ecrira_draft_topic', demoTopic) } catch {}
     } catch { setDemoPost('Une erreur est survenue.') }
     setDemoLoading(false)
   }
@@ -445,7 +446,7 @@ export default function Landing() {
                 <div style={{fontSize:12,color:'#6B7069',marginBottom:16}}>Testez sans engagement.</div>
                 <div style={{fontSize:32,fontWeight:700,color:CH,marginBottom:4}}>0€</div>
                 <div style={{fontSize:12,color:'#9EA39C',marginBottom:20}}>pour toujours</div>
-                {['3 posts LinkedIn générés','3 visuels','Tous les tons','Export copier-coller'].map(f=>(
+                {['5 posts offerts','Tous les formats et tons','Style d\'écriture personnalisé','Export copier-coller'].map(f=>(
                   <div key={f} style={{fontSize:13,color:'#6B7069',marginBottom:8,display:'flex',gap:8}}><span style={{color:F,flexShrink:0}}>✓</span>{f}</div>
                 ))}
                 <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{width:'100%',padding:'11px',borderRadius:10,border:`1px solid ${BD}`,background:'transparent',color:CH,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:16}}>Commencer gratuitement</button>
@@ -457,21 +458,21 @@ export default function Landing() {
                 <div style={{fontSize:12,color:'#6B7069',marginBottom:16}}>Pour publier régulièrement.</div>
                 <div style={{fontSize:32,fontWeight:700,color:CH,marginBottom:4}}>15,90€</div>
                 <div style={{fontSize:12,color:'#9EA39C',marginBottom:20}}>/ mois</div>
-                {['Posts illimités','Visuels illimités','Planification LinkedIn','Analyse de performances','Voix personnalisée','Support prioritaire'].map(f=>(
+                {['Posts illimités','Visuels illimités','Planification LinkedIn','Voix personnalisée','Support prioritaire'].map(f=>(
                   <div key={f} style={{fontSize:13,color:CH,marginBottom:8,display:'flex',gap:8}}><span style={{color:F,flexShrink:0}}>✓</span>{f}</div>
                 ))}
                 <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{width:'100%',padding:'11px',borderRadius:10,background:F,border:'none',color:'white',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:16}}>Démarrer Pro →</button>
               </div>
-              {/* Agency */}
+              {/* Team — bientôt, aligné sur /pricing */}
               <div style={{padding:24,borderRadius:16,border:`1px solid ${BD}`,background:IV}}>
-                <div style={{fontSize:14,fontWeight:600,color:CH,marginBottom:4}}>Agency</div>
+                <div style={{fontSize:14,fontWeight:600,color:CH,marginBottom:4}}>Team</div>
                 <div style={{fontSize:12,color:'#6B7069',marginBottom:16}}>Pour gérer plusieurs profils.</div>
-                <div style={{fontSize:32,fontWeight:700,color:CH,marginBottom:4}}>49,99€</div>
-                <div style={{fontSize:12,color:'#9EA39C',marginBottom:20}}>/ mois</div>
+                <div style={{fontSize:32,fontWeight:700,color:CH,marginBottom:4}}>Bientôt</div>
+                <div style={{fontSize:12,color:'#9EA39C',marginBottom:20}}>sur liste d'attente</div>
                 {["Tout Pro inclus","Jusqu'à 10 profils","Espaces de travail","Validation multi-utilisateurs","Account manager dédié"].map(f=>(
                   <div key={f} style={{fontSize:13,color:'#6B7069',marginBottom:8,display:'flex',gap:8}}><span style={{color:F,flexShrink:0}}>✓</span>{f}</div>
                 ))}
-                <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{width:'100%',padding:'11px',borderRadius:10,border:`1px solid ${BD}`,background:'transparent',color:CH,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:16}}>Démarrer Agency</button>
+                <a href="/pricing" style={{display:'block',textAlign:'center' as const,width:'100%',padding:'11px',borderRadius:10,border:`1px solid ${BD}`,background:'transparent',color:CH,fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:'inherit',marginTop:16,textDecoration:'none',boxSizing:'border-box' as const}}>Rejoindre la liste d'attente</a>
               </div>
             </div>
           </div>
@@ -502,7 +503,7 @@ export default function Landing() {
         <section style={{padding:'80px 32px',textAlign:'center',background:CH}}>
           <div id="cta-final" data-animate style={{maxWidth:560,margin:'0 auto'}} className={`animate-up${visibleSections.has('cta-final')?' visible':''}`}>
             <h2 style={{fontSize:36,fontWeight:700,color:'white',marginBottom:12,letterSpacing:'-0.8px',lineHeight:1.2}}>Votre prochain post LinkedIn est à 30 secondes d'ici.</h2>
-            <p style={{fontSize:15,color:'rgba(255,255,255,0.55)',marginBottom:32,lineHeight:1.6}}>3 posts + 3 visuels gratuits. Sans carte. Sans engagement.</p>
+            <p style={{fontSize:15,color:'rgba(255,255,255,0.55)',marginBottom:32,lineHeight:1.6}}>7 jours Pro gratuits. Sans carte. Sans engagement.</p>
             <button onClick={()=>{setAuthMode('signup');setShowAuthModal(true)}} style={{padding:'16px 40px',borderRadius:14,background:C,border:'none',fontSize:16,color:CH,fontWeight:700,cursor:'pointer',fontFamily:'inherit',letterSpacing:'-0.2px'}}>Créer mon compte gratuit →</button>
           </div>
         </section>

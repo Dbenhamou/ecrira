@@ -269,11 +269,17 @@ export default function Home() {
   // Helper — injecte le token Supabase dans les appels API
   const authFetch = async (url: string, options: RequestInit = {}) => {
     const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.access_token) {
+      // Session expirée — retour propre à la connexion
+      try { await supabase.auth.signOut() } catch {}
+      window.location.href = '/login'
+      return new Response(JSON.stringify({ error: 'Session expirée' }), { status: 401 })
+    }
     return fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        Authorization: `Bearer ${session.access_token}`,
         ...(options.headers || {}),
       },
     })
@@ -408,7 +414,6 @@ export default function Home() {
     loadIdeas()
     loadCount()
     loadScheduledPosts()
-    loadNotifications()
     loadNotifications()
   }, [userId])
 
@@ -611,12 +616,11 @@ export default function Home() {
     if (!t.trim()) { showToast(T('toast_enter_topic')); return }
     setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0); setAiImageUrl('')
     try {
-      const results: string[] = []
-      for (let i = 0; i < 3; i++) {
-        const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variant:i+1}) })
-        const data = await res.json()
-        if (data.content) results.push(data.content)
-      }
+      const responses = await Promise.all([1,2,3].map(v =>
+        authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variant:v}) })
+          .then(r=>r.json()).catch(()=>null)
+      ))
+      const results: string[] = responses.filter((d:any)=>d&&d.content).map((d:any)=>d.content)
       if (results.length > 0) { setPostVariants(results); setPostOutput(results[0]); setActiveVariant(0) }
     } catch { showToast(T('toast_save_error')) }
     setLoadingPost(false)
@@ -2373,6 +2377,19 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            {/* Gestion abonnement — Stripe Billing Portal */}
+            {plan==='pro'&&(
+              <div style={{marginTop:20}}>
+                <button className="btn btn-ghost" style={{fontSize:12}} onClick={async()=>{
+                  try{
+                    const res = await authFetch('/api/stripe/portal',{method:'POST'})
+                    const data = await res.json()
+                    if(data.url) window.location.href = data.url
+                    else showToast(data.error||(lang==='en'?'Billing portal error':'Erreur portail de facturation'))
+                  }catch{ showToast(lang==='en'?'Network error':'Erreur réseau') }
+                }}>{lang==='en'?'Manage my subscription':'Gérer mon abonnement'}</button>
+              </div>
+            )}
             {/* Bouton déconnexion — visible uniquement sur mobile */}
             <div className="mobile-only" style={{marginTop:24,paddingBottom:8}}>
               <button className="btn btn-ghost" style={{width:'100%',justifyContent:'center',color:'var(--text3)'}} onClick={signOut}>
@@ -2524,6 +2541,11 @@ export default function Home() {
       <div style={{fontFamily:"'Clash Display',sans-serif",fontSize:20,fontWeight:700,color:'var(--text1)',marginBottom:6}}>{T('choose_plan')}</div>
       <div style={{fontSize:13,color:'var(--text2)'}}>{T('choose_plan_sub')}</div>
     </div>
+    {plan==='trial'&&trialDaysLeft>0&&(
+      <div style={{background:'rgba(217,168,64,0.12)',border:'1px solid rgba(217,168,64,0.4)',borderRadius:10,padding:'10px 14px',fontSize:12,color:'var(--text1)',textAlign:'center' as const}}>
+        🎉 {lang==='en'?`Your 7-day Pro trial is active (${trialDaysLeft} days left) — no card required.`:`Ton essai Pro de 7 jours est déjà actif (${trialDaysLeft} j restants) — sans carte bancaire.`}
+      </div>
+    )}
     <div style={{display:'flex',flexDirection:'column',gap:12}}>
       <div style={{border:'1.5px solid var(--border)',borderRadius:14,padding:'16px 20px',cursor:'pointer',transition:'border-color 0.2s'}} onClick={finishOnboarding}
         onMouseEnter={e=>(e.currentTarget.style.borderColor='var(--indigo)')} onMouseLeave={e=>(e.currentTarget.style.borderColor='var(--border)')}>

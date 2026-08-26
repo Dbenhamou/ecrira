@@ -13,7 +13,7 @@ export default function Success() {
           <h1 style={{fontSize:22,fontWeight:600,color:'#1F2421',marginBottom:12}}>Bienvenue dans le plan Pro ! 🎉</h1>
           <p style={{fontSize:14,color:'#6B7069',lineHeight:1.6,marginBottom:8}}>Votre abonnement est actif. Posts illimités, visuels et calendrier débloqués.</p>
           <p style={{fontSize:12,color:'#9EA39C',marginBottom:28}}>Redirection dans 5 secondes…</p>
-          <a href="/" style={{display:'inline-block',background:'#3D52A0',color:'white',padding:'12px 28px',borderRadius:12,textDecoration:'none',fontSize:14,fontWeight:500}}>Commencer →</a>
+          <a href="/app" style={{display:'inline-block',background:'#3D52A0',color:'white',padding:'12px 28px',borderRadius:12,textDecoration:'none',fontSize:14,fontWeight:500}}>Commencer →</a>
         </div>
       </div>
     </>

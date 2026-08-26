@@ -132,13 +132,7 @@ export default function Pricing() {
 {T.title}
           </h1>
           <p style={{ color: '#3D52A0', fontSize: '18px', maxWidth: '480px', margin: '0 auto', lineHeight: 1.6 }}>{T.subtitle}</p>
-          <div style={{display:'flex',alignItems:'center',gap:12,justifyContent:'center',marginTop:24}}>
-            <span style={{fontSize:14,color:!annual?'#1F2421':'#B7C0B8',fontWeight:!annual?600:400}}>{lang==='fr'?'Mensuel':'Monthly'}</span>
-            <div onClick={()=>setAnnual(v=>!v)} style={{width:46,height:26,borderRadius:13,background:annual?'#3D52A0':'#E3DED7',cursor:'pointer',position:'relative',transition:'background 0.2s'}}>
-              <div style={{position:'absolute',top:3,left:annual?23:3,width:20,height:20,borderRadius:'50%',background:'white',transition:'left 0.2s',boxShadow:'0 1px 4px rgba(0,0,0,0.15)'}}/>
-            </div>
-            <span style={{fontSize:14,color:annual?'#1F2421':'#B7C0B8',fontWeight:annual?600:400}}>{lang==='fr'?'Annuel':'Annual'}<span style={{marginLeft:6,fontSize:11,background:'#D9C8A3',color:'#1F2421',padding:'2px 7px',borderRadius:20,fontWeight:600}}>-20%</span></span>
-          </div>
+          {/* Toggle annuel masqué tant que l'offre annuelle Stripe n'existe pas (facturait le mensuel) */}
         </div>
 
         {/* Cards */}
@@ -226,7 +220,7 @@ export default function Pricing() {
             </div>
             <p style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '13px', letterSpacing: '2px', textTransform: 'uppercase', color: '#D9C8A3', marginBottom: '8px' }}>Pro</p>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '8px' }}>
-              <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#FAF9F7' }}>{annual?'12,90€':'15,90€'}</span>
+              <span style={{ fontFamily: "'Clash Display', sans-serif", fontSize: '48px', fontWeight: 700, color: '#FAF9F7' }}>15,90€</span>
               <span style={{ color: '#B7C0B8', fontSize: '15px' }}>{T.per_month}</span>
             </div>
             <p style={{ color: '#B7C0B8', fontSize: '14px', marginBottom: '32px' }}>{T.pro_tagline}</p>

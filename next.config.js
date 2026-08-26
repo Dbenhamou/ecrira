@@ -28,7 +28,9 @@ const securityHeaders = [
 const nextConfig = {
   reactStrictMode: true,
   async redirects() {
-    return []
+    return [
+      { source: '/landing', destination: '/', permanent: true },
+    ]
   },
   async headers() {
     return [
