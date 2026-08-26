@@ -2,4 +2,9 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://ecrira.com/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://ecrira.com/pricing</loc><changefreq>monthly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://ecrira.com/login</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://ecrira.com/mentions-legales</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://ecrira.com/confidentialite</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://ecrira.com/cgu</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://ecrira.com/cgv</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>

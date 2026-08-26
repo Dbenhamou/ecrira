@@ -156,6 +156,7 @@ export default function Landing() {
     <>
       <Head>
         <title>Ecrira — Générateur de posts LinkedIn, gratuit</title>
+        <link rel="canonical" href="https://ecrira.com/" />
         <meta name="description" content="Générez vos posts LinkedIn en 30 secondes. 7 jours Pro gratuits. Rédaction, visuels et planification — l'alternative au ghostwriting LinkedIn." />
         <meta property="og:title" content="Ecrira — Générateur de posts LinkedIn, gratuit" />
         <meta property="og:description" content="Générez vos posts LinkedIn en 30 secondes. L'alternative au ghostwriting, en 10x moins cher." />

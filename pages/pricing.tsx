@@ -88,6 +88,7 @@ export default function Pricing() {
     <>
       <Head>
         <title>{T.tab_title}</title>
+        <link rel="canonical" href="https://ecrira.com/pricing" />
         <link rel="icon" href="/logo-ecrira-icon-bleu.png" type="image/png"/>
         <link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/>
         <script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script>
