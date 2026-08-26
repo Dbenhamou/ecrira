@@ -4,3 +4,9 @@ node_modules/
 .DS_Store
 .vercel
 .env*
+
+# backups
+*.bak
+*.bak.*
+*.bak_*
+*.backup
