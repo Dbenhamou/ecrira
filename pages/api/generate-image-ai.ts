@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
 import { requireAuth } from '../../lib/auth-helper'
+import { rateLimitHit } from '../../lib/rateLimit'
 import sharp from 'sharp'
 import path from 'path'
 import fs from 'fs'
@@ -55,7 +56,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!isPro) return res.status(403).json({ error: 'PRO_ONLY', message: 'Les visuels IA sont réservés au plan Pro.' })
 
   const imgLimit = trialActive ? 3 : 10
-  if (!checkImgRateLimit(userId, imgLimit)) {
+  if (!(await rateLimitHit('img:' + userId, imgLimit, 3600))) {
     return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de ' + imgLimit + ' visuels par heure atteinte.' })
   }
 

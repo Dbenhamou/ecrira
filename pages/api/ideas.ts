@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '../../lib/auth-helper'
+import { rateLimitHit } from '../../lib/rateLimit'
 import {
   THEMES,
   SATURATION_THRESHOLD,
@@ -90,7 +91,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
-  if (!checkIdeasRateLimit(userId)) return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 10 générations d\'idées par heure atteinte.' })
+  if (!(await rateLimitHit('ideas:' + userId, 10, 3600))) return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 10 générations d\'idées par heure atteinte.' })
 
   const { profile, pastTitles } = req.body
   if (profile?.role && profile.role.length > 200) return res.status(400).json({ error: 'Profil invalide' })

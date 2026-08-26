@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '../../lib/auth-helper'
+import { rateLimitHit } from '../../lib/rateLimit'
 
 const DAILY_LIMIT = 20
 const supabaseAdmin = createClient(
@@ -51,7 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const userId = await requireAuth(req, res)
   if (!userId) return
 
-  if (!checkRateLimit(userId)) return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 20 générations par heure atteinte.' })
+  if (!(await rateLimitHit('gen:' + userId, 20, 3600))) return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 20 générations par heure atteinte.' })
 
   const { topic, format, length, tone, profile, seed, improvement, previousPost, variant = 0 } = req.body
   if (topic && topic.length > 500) return res.status(400).json({ error: 'Sujet trop long (max 500 car.)' })
