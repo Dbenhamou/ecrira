@@ -290,6 +290,7 @@ export default function Home() {
   const [showAvatarMenu, setShowAvatarMenu] = useState(false)
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [ideasGeneratedAt, setIdeasGeneratedAt] = useState<Date | null>(null)
+  const [ideasNewsCount, setIdeasNewsCount] = useState(0)
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
   const [savedIdeas, setSavedIdeas] = useState<Idea[]>([])
   const [libraryTab, setLibraryTab] = useState<'posts'|'ideas'>('posts')
@@ -602,6 +603,7 @@ export default function Home() {
       const data = await res.json()
       if (data.ideas) {
         setIdeas(data.ideas)
+        setIdeasNewsCount(data.newsCount || 0)
         const now = new Date()
         setIdeasGeneratedAt(now)
         ideasLastRefresh.current = now.getTime()
@@ -1237,6 +1239,9 @@ export default function Home() {
               {lang==='en'?'Generated on':'Générées le'} {formatIdeasDate(ideasGeneratedAt)}
               {ideasRefreshCountdown !== null && ideasRefreshCountdown > 0 && (
                 <span style={{marginLeft:8,color:'var(--indigo)'}}>{lang==='en'?'· Refresh in':'· Refresh dans'} {formatCountdown(ideasRefreshCountdown)}</span>
+              )}
+              {ideasNewsCount > 0 && (
+                <span style={{marginLeft:8,color:'var(--text3)'}}>🗞️ {ideasNewsCount} {lang==='en'?'news used':'actus intégrées'}</span>
               )}
             </div>
           )}

@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '../../lib/auth-helper'
+import { fetchSectorNews, formatNewsBlock } from '../../lib/news'
 import { rateLimitHit } from '../../lib/rateLimit'
 
 const DAILY_LIMIT = 20
@@ -130,7 +131,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Fetch actualités liées au sujet
-  const newsContext = await fetchNews(sector, topic || '', isEn)
+  const newsArticles = await fetchSectorNews({ sector, keywords: [topic, sector].filter(Boolean).join(', '), lang: profile?.lang, days: 14, limit: 5 })
+  const newsContext = formatNewsBlock(newsArticles)
   const newsBlock = newsContext ? `=== ACTUALITÉS RÉCENTES SUR CE SUJET ===
 Ces informations sont réelles et vérifiées. Tu PEUX t'en inspirer pour ancrer le post dans l'actualité.
 ${newsContext}

@@ -209,8 +209,8 @@ ${news
 - Le hook doit reprendre le fait concret (événement, chiffre, nom) de ce titre.
 - N'invente aucun fait : n'utilise que ce que les titres affirment réellement, reformulé pour ce professionnel.`)
   : (isEn
-      ? `- No fresh news available: compensate with concrete, dated, named facts from the sector (real tools, standards, known incidents).`
-      : `- Pas d'actu fraîche disponible : compense avec des faits concrets, datés et nommés du secteur (vrais outils, normes, incidents connus).`)}
+      ? `- No fresh news available: stay qualitative and name real tools/standards. NEVER fabricate precise statistics (percentages, amounts) without a real source.`
+      : `- Pas d'actu fraîche disponible : reste sur des angles qualitatifs et des vrais outils/normes nommés. Ne fabrique JAMAIS de statistique chiffrée (pourcentage, montant) non sourcée.`)}
 
 RÈGLE DE ROTATION THÉMATIQUE (prioritaire sur tout le reste) :
 ${isEn
@@ -256,7 +256,7 @@ ${isEn ? "IMPORTANT: Write ALL content (topic, title, hook) in English, but keep
     // Historique : non bloquant
     saveHistory(userId, ideas)
 
-    res.status(200).json({ ideas, hasNews: !!news })
+    res.status(200).json({ ideas, hasNews: !!news, newsCount: newsArticles.length })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Erreur génération idées' })
