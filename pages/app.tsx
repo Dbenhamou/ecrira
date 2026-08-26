@@ -8,7 +8,29 @@ import { useProfile } from '../lib/useProfile'
 import { t, type Lang } from '../lib/i18n'
 import DOMPurify from 'isomorphic-dompurify'
 
-type Idea = { topic: string; title: string; hook: string; recommended?: boolean }
+type Idea = { topic: string; title: string; hook: string; recommended?: boolean; theme?: string }
+
+const THEME_LABELS: Record<string, { fr: string; en: string }> = {
+  reglementation_conformite: { fr: 'Réglementation', en: 'Regulation' },
+  tendances_marche: { fr: 'Tendances marché', en: 'Market trends' },
+  technologie_outils: { fr: 'Technologie & outils', en: 'Tech & tools' },
+  methodes_process: { fr: 'Méthodes & process', en: 'Methods & process' },
+  management_equipe: { fr: 'Management', en: 'Management' },
+  recrutement_talents: { fr: 'Recrutement', en: 'Hiring' },
+  relation_client: { fr: 'Relation client', en: 'Customer relations' },
+  strategie_business: { fr: 'Stratégie business', en: 'Business strategy' },
+  finance_couts: { fr: 'Finance & coûts', en: 'Finance & costs' },
+  retour_experience: { fr: "Retour d'expérience", en: 'Field experience' },
+  erreurs_pieges: { fr: 'Erreurs & pièges', en: 'Mistakes & pitfalls' },
+  formation_competences: { fr: 'Formation', en: 'Training' },
+  innovation_ia: { fr: 'Innovation & IA', en: 'Innovation & AI' },
+  securite_risques: { fr: 'Sécurité & risques', en: 'Security & risks' },
+  culture_metier: { fr: 'Culture métier', en: 'Work culture' },
+}
+function themeLabel(theme: string | undefined, lang: string): string {
+  if (!theme) return ''
+  return THEME_LABELS[theme]?.[lang === 'en' ? 'en' : 'fr'] || theme.replace(/_/g, ' ')
+}
 type Post = { id: string; topic: string; content: string; format: string; created_at: string; visual_base64?: string | null }
 
 const PALETTES = [
@@ -462,7 +484,7 @@ export default function Home() {
         const diff = new Date(latestDate).getTime() - new Date(d.created_at).getTime()
         return Math.abs(diff) < 60000 * 5 // within 5 min = same batch
       })
-      setIdeas(batch.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook, recommended: d.recommended })))
+      setIdeas(batch.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook, recommended: d.recommended, theme: d.theme })))
       // Charger idées sauvegardées
       const { data: savedIdeasData } = await supabase.from('saved_ideas').select('*').eq('user_id', userId||'').order('created_at', { ascending: false })
       if (savedIdeasData) setSavedIdeas(savedIdeasData.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook })))
@@ -536,6 +558,7 @@ export default function Home() {
       ideasToSave.map(idea => ({
         user_id: userId, topic: idea.topic, title: idea.title,
         hook: idea.hook, recommended: idea.recommended || false,
+        theme: idea.theme || null,
         created_at: now,
       }))
     )
@@ -1281,7 +1304,7 @@ export default function Home() {
                 <input type="checkbox" checked={selectedIdeaIds.has(i)} onChange={e=>{const s=new Set(selectedIdeaIds);e.target.checked?s.add(i):s.delete(i);setSelectedIdeaIds(s)}} style={{marginTop:3,accentColor:'var(--indigo)',width:14,height:14,flexShrink:0,cursor:'pointer'}}/>
                 <div style={{flex:1}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                    <span className="idea-tag">{idea.topic}</span>
+                    <span className="idea-tag">{themeLabel(idea.theme, lang) || idea.topic}</span>
                     {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--indigo)',border:'1px solid rgba(168,120,79,0.25)'}}>{T('recommended')}</span>}
                   </div>
                   <div className="idea-title">{idea.title}</div>
@@ -1475,7 +1498,7 @@ export default function Home() {
                 {ideas.filter(i=>i.recommended).slice(0,2).map((idea,idx)=>(
                   <div key={idx} style={{background:'var(--white)',border:'0.5px solid var(--border)',borderRadius:12,padding:'14px 16px'}}>
                     <div style={{marginBottom:6}}>
-                      <span style={{fontSize:9,fontWeight:600,color:'var(--indigo)',background:'rgba(61,82,160,0.08)',borderRadius:20,padding:'2px 8px',textTransform:'uppercase' as const,letterSpacing:'0.06em'}}>{idea.topic}</span>
+                      <span style={{fontSize:9,fontWeight:600,color:'var(--indigo)',background:'rgba(61,82,160,0.08)',borderRadius:20,padding:'2px 8px',textTransform:'uppercase' as const,letterSpacing:'0.06em'}}>{themeLabel(idea.theme, lang) || idea.topic}</span>
                       <span style={{marginLeft:4,fontSize:9,fontWeight:600,color:'#B7956A',background:'rgba(217,200,163,0.3)',borderRadius:20,padding:'2px 7px'}}>★ Recommandé</span>
                     </div>
                     <div style={{fontSize:15,fontWeight:500,color:'var(--text1)',lineHeight:1.4,marginBottom:6}}>{idea.title}</div>
@@ -2122,7 +2145,7 @@ export default function Home() {
                 ) : savedIdeas.map((idea,i)=>(
                   <div key={i} className="idea-card">
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                      <span className="idea-tag">{idea.topic}</span>
+                      <span className="idea-tag">{themeLabel(idea.theme, lang) || idea.topic}</span>
                     </div>
                     <div className="idea-title">{idea.title}</div>
                     <div className="idea-hook">{idea.hook}</div>

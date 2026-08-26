@@ -166,6 +166,7 @@ Réponds UNIQUEMENT avec le JSON, sans markdown.`
           title: idea.title,
           hook: idea.hook,
           recommended: !!idea.recommended,
+          theme: idea.theme || null,
           generated_at: new Date().toISOString().split('T')[0],
         }))
       )
