@@ -487,3 +487,22 @@ select.form-input { cursor: pointer; }
 .saved-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .saved-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; padding-top: 12px; border-top: 0.5px solid var(--border); }
 .saved-actions .btn { font-size: 12px; padding: 6px 14px; border-radius: 20px; }
+
+/* ── Scheduling date picker (bouton Planifier) ─────────────────────── */
+.sched-picker { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 18px; box-shadow: var(--shadow-sm); }
+.sched-nav { width: 30px; height: 30px; border-radius: 9px; border: 1px solid var(--border); background: var(--white); color: var(--text2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1; transition: all 0.15s; font-family: inherit; }
+.sched-nav:hover { border-color: var(--indigo); color: var(--indigo); }
+.sched-dow { text-align: center; font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 0.06em; padding: 4px 0; }
+.sched-day { position: relative; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1.5px solid transparent; background: transparent; color: var(--text1); font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.13s, border-color 0.13s, box-shadow 0.13s; font-family: inherit; padding: 0; }
+.sched-day:hover:not(:disabled) { background: rgba(61,82,160,0.10); }
+.sched-day:disabled { color: var(--text3); opacity: 0.4; cursor: not-allowed; }
+.sched-day.today { border-color: var(--indigo); color: var(--indigo); font-weight: 700; }
+.sched-day.selected { background: var(--indigo); color: #fff; border-color: var(--indigo); font-weight: 600; box-shadow: 0 4px 12px rgba(61,82,160,0.35); }
+.sched-day.selected:hover:not(:disabled) { background: var(--indigo); }
+.sched-dot { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--indigo); }
+.sched-day.selected .sched-dot { background: #fff; }
+.sched-time-btn { width: 100%; justify-content: center; font-weight: 600; border: 1px solid var(--border); border-radius: 9px; padding: 8px; background: var(--white); color: var(--text1); cursor: pointer; transition: border-color 0.15s; font-family: inherit; font-size: 13px; display: flex; align-items: center; }
+.sched-time-btn:hover { border-color: var(--indigo); }
+.sched-time-opt:hover { background: rgba(61,82,160,0.08) !important; }
+.sched-summary { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text2); text-align: center; }
+.sched-summary b { color: var(--text1); font-weight: 600; text-transform: capitalize; }

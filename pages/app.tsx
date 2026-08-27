@@ -1825,28 +1825,29 @@ export default function Home() {
 
                   {/* Picker date/heure inline (visible après choix planifier) */}
                   {showDatePicker && (
-                    <div style={{background:'var(--white)',border:'1px solid var(--border)',borderRadius:16,padding:16,boxShadow:'0 4px 20px rgba(0,0,0,0.1)'}}>
+                    <div className="sched-picker">
                       {/* Header mois */}
-                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-                        <button className="btn btn-ghost" style={{padding:'4px 8px',fontSize:13}} onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()-1);setPickerMonth(d);}}>←</button>
-                        <span style={{fontSize:13,fontWeight:600,color:'var(--text1)',textTransform:'capitalize' as const}}>
+                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14}}>
+                        <button type="button" className="sched-nav" onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()-1);setPickerMonth(d);}}>‹</button>
+                        <span style={{fontSize:14,fontWeight:600,color:'var(--text1)',textTransform:'capitalize' as const}}>
                           {pickerMonth.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{month:'long',year:'numeric'})}
                         </span>
-                        <button className="btn btn-ghost" style={{padding:'4px 8px',fontSize:13}} onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()+1);setPickerMonth(d);}}>→</button>
+                        <button type="button" className="sched-nav" onClick={()=>{const d=new Date(pickerMonth);d.setMonth(d.getMonth()+1);setPickerMonth(d);}}>›</button>
                       </div>
                       {/* Jours semaine */}
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',marginBottom:4}}>
-                        {lang==='fr'?['L','M','M','J','V','S','D']:['M','T','W','T','F','S','S'].map((d,i)=>(
-                          <div key={i} style={{textAlign:'center' as const,fontSize:10,fontWeight:600,color:'var(--text3)',padding:'2px 0'}}>{d}</div>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',marginBottom:6}}>
+                        {(lang==='fr'?['L','M','M','J','V','S','D']:['M','T','W','T','F','S','S']).map((d,i)=>(
+                          <div key={i} className="sched-dow">{d}</div>
                         ))}
                       </div>
                       {/* Grille jours */}
-                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:2}}>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4}}>
                         {(()=>{
                           const year=pickerMonth.getFullYear(),month=pickerMonth.getMonth()
                           const firstDay=new Date(year,month,1)
                           const lastDay=new Date(year,month+1,0)
                           const startDay=firstDay.getDay()===0?6:firstDay.getDay()-1
+                          const scheduledDays=new Set(scheduledPosts.map((p:any)=>(p.scheduled_at||'').split('T')[0]))
                           const cells=[]
                           for(let i=0;i<startDay;i++) cells.push(<div key={`e${i}`}/>)
                           for(let d=1;d<=lastDay.getDate();d++){
@@ -1855,9 +1856,11 @@ export default function Home() {
                             const selected=scheduleDateTime.split('T')[0]===dateStr
                             const isToday=date.toDateString()===new Date().toDateString()
                             const isPast=date<new Date(new Date().setHours(0,0,0,0))
+                            const hasPost=scheduledDays.has(dateStr)
                             cells.push(
-                              <button key={d} onClick={()=>{if(!isPast){setScheduleDateTime(dateStr+'T'+(scheduleDateTime.split('T')[1]||getNextQuarterHour()))}}} style={{padding:'5px 0',borderRadius:8,border:'none',cursor:isPast?'not-allowed':'pointer',background:selected?'var(--indigo)':isToday?'rgba(61,82,160,0.1)':'transparent',color:isPast?'var(--text3)':selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,opacity:isPast?0.4:1}}>
+                              <button key={d} type="button" disabled={isPast} className={`sched-day${selected?' selected':''}${isToday?' today':''}`} onClick={()=>{if(!isPast){setScheduleDateTime(dateStr+'T'+(scheduleDateTime.split('T')[1]||getNextQuarterHour()))}}}>
                                 {d}
+                                {hasPost&&<span className="sched-dot"/>}
                               </button>
                             )
                           }
@@ -1865,21 +1868,21 @@ export default function Home() {
                         })()}
                       </div>
                       {/* Heure */}
-                      <div style={{display:'flex',alignItems:'center',gap:8,marginTop:12,borderTop:'1px solid var(--border)',paddingTop:12}}>
-                        <span style={{fontSize:11,color:'var(--text2)',flexShrink:0}}>{T('time_label')}</span>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginTop:14,borderTop:'1px solid var(--border)',paddingTop:14}}>
+                        <span style={{fontSize:12,color:'var(--text2)',flexShrink:0}}>{T('time_label')}</span>
                         <div style={{position:'relative' as const,flex:1}}>
-                          <button className="btn btn-ghost" onClick={(e)=>{e.stopPropagation();setShowTimePicker(v=>!v);}} style={{fontSize:12,width:'100%',justifyContent:'center'}}>
+                          <button type="button" className="sched-time-btn" onClick={(e)=>{e.stopPropagation();setShowTimePicker(v=>!v);}}>
                             {scheduleDateTime.split('T')[1]||getNextQuarterHour()}
                           </button>
                           {showTimePicker && (
-                            <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:6,background:'var(--white)',border:'1px solid var(--border)',borderRadius:16,padding:12,boxShadow:'0 8px 32px rgba(0,0,0,0.12)',zIndex:150,width:160,maxHeight:220,overflowY:'auto' as const}} onClick={e=>e.stopPropagation()}>
+                            <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:6,background:'var(--white)',border:'1px solid var(--border)',borderRadius:12,padding:8,boxShadow:'var(--shadow)',zIndex:150,width:160,maxHeight:220,overflowY:'auto' as const}} onClick={e=>e.stopPropagation()}>
                               {Array.from({length:24*4},(_,i)=>{
                                 const h=Math.floor(i/4).toString().padStart(2,'0')
                                 const m=(i%4*15).toString().padStart(2,'0')
                                 const t=`${h}:${m}`
                                 const selected=scheduleDateTime.split('T')[1]===t
                                 return (
-                                  <button key={t} onClick={()=>{setScheduleDateTime((scheduleDateTime.split('T')[0]||new Date().toISOString().split('T')[0])+'T'+t);setShowTimePicker(false);}} style={{display:'block',width:'100%',padding:'6px 12px',border:'none',borderRadius:8,cursor:'pointer',background:selected?'var(--indigo)':'transparent',color:selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,textAlign:'left' as const}}>
+                                  <button key={t} type="button" className="sched-time-opt" onClick={()=>{setScheduleDateTime((scheduleDateTime.split('T')[0]||new Date().toISOString().split('T')[0])+'T'+t);setShowTimePicker(false);}} style={{display:'block',width:'100%',padding:'6px 12px',border:'none',borderRadius:8,cursor:'pointer',background:selected?'var(--indigo)':'transparent',color:selected?'white':'var(--text1)',fontSize:12,fontWeight:selected?600:400,textAlign:'left' as const}}>
                                     {t}
                                   </button>
                                 )
@@ -1887,10 +1890,16 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <button className="btn btn-primary" style={{background:'var(--indigo)',fontSize:12,flexShrink:0}} onClick={schedulePost} disabled={scheduling||!scheduleDateTime.split('T')[0]}>
+                        <button type="button" className="btn btn-primary" style={{background:'var(--indigo)',fontSize:12,flexShrink:0}} onClick={schedulePost} disabled={scheduling||!scheduleDateTime.split('T')[0]}>
                           {scheduling?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('schedule_arrow')}
                         </button>
                       </div>
+                      {/* Résumé sélection */}
+                      {scheduleDateTime.split('T')[0]&&(
+                        <div className="sched-summary">
+                          {lang==='en'?'Scheduled for ':'Planifié pour '}<b>{new Date(scheduleDateTime).toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long'})}</b>{lang==='en'?' at ':' à '}<b>{scheduleDateTime.split('T')[1]||getNextQuarterHour()}</b>
+                        </div>
+                      )}
                     </div>
                   )}
 
