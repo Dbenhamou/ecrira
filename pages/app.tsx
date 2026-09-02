@@ -644,12 +644,11 @@ export default function Home() {
     if (!t.trim()) { showToast(T('toast_enter_topic')); return }
     setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0); setAiImageUrl('')
     try {
-      const responses = await Promise.all([1,2,3].map(v =>
-        authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variant:v,seed:postAngle}) })
-          .then(r=>r.json()).catch(()=>null)
-      ))
-      const results: string[] = responses.filter((d:any)=>d&&d.content).map((d:any)=>d.content)
+      const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variants:3,seed:postAngle}) })
+      const data = await res.json()
+      const results: string[] = (data && Array.isArray(data.variants) && data.variants.length ? data.variants : (data && data.content ? [data.content] : [])).filter(Boolean)
       if (results.length > 0) { setPostVariants(results); setPostOutput(results[0]); setActiveVariant(0) }
+      else showToast((lang==='en'?'Error: ':'Erreur : ')+((data&&data.error)||'unknown'))
     } catch { showToast(T('toast_save_error')) }
     setLoadingPost(false)
   }

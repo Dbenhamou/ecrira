@@ -185,17 +185,24 @@ ${newsContext}
   }
 
   try {
+    const nbVariants = Math.min(Math.max(Number((req.body as any)?.variants) || 1, 1), 3)
+    const baseInstruction = 'Redige un ' + (formatMap[format] || formatMap.educational) + ' sur : "' + topic + '"\nLongueur : ' + (lengthMap[length] || lengthMap.medium) + '\nTon : ' + (tone || 'expert')
+    const userMessage = nbVariants > 1
+      ? baseInstruction + '\n\nProduis ' + nbVariants + ' VARIANTES DISTINCTES de ce post, pensees ensemble pour ne PAS se ressembler : angle different, type d\'accroche different, structure differente (par ex. une prise de position tranchee, une histoire de terrain, une statistique choc). Chaque variante doit etre publiable telle quelle. Separe CHAQUE variante par une ligne contenant UNIQUEMENT :\n---VARIANTE---\nNe numerote pas, n\'ajoute ni titre ni commentaire : juste les posts separes par ce delimiteur.'
+      : baseInstruction
+
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1200,
+      max_tokens: Math.min(1200 * nbVariants, 4000),
       system: systemPrompt,
-      messages: [{
-        role: 'user',
-        content: 'Redige un ' + (formatMap[format] || formatMap.educational) + ' sur : "' + topic + '"\nLongueur : ' + (lengthMap[length] || lengthMap.medium) + '\nTon : ' + (tone || 'expert'),
-      }],
+      messages: [{ role: 'user', content: userMessage }],
     })
 
-    const content = (message.content[0] as { text: string }).text
+    const raw = (message.content[0] as { text: string }).text
+    const variantsArr = nbVariants > 1
+      ? raw.split(/^\s*-{2,}\s*VARIANTE\s*-{2,}\s*$/im).map((s) => s.trim()).filter(Boolean).slice(0, nbVariants)
+      : [raw.trim()]
+    const content = variantsArr[0] || raw.trim()
 
     // Incrémenter le compteur pour tous les users
     await supabaseAdmin
@@ -203,7 +210,7 @@ ${newsContext}
       .update({ posts_count_this_month: postsCount + 1 })
       .eq('id', userId)
 
-    res.status(200).json({ content })
+    res.status(200).json({ content, variants: variantsArr })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Erreur generation post' })
