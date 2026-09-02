@@ -234,7 +234,7 @@ THÈMES AUTORISÉS (choisis-en un par idée, valeur exacte) :
 ${THEMES.join(', ')}
 
 Format JSON strict (tableau de 10 objets) :
-[{"topic":"étiquette courte","title":"titre accrocheur max 12 mots","hook":"première phrase percutante max 25 mots","theme":"un des thèmes autorisés","recommended":true}]
+[{"topic":"étiquette courte","title":"titre accrocheur max 12 mots","hook":"première phrase percutante max 25 mots","angle":"le PLAN de rédaction du post en 1 phrase : ouverture + 2-3 points de développement + chute/CTA (PAS le post lui-même)","theme":"un des thèmes autorisés","recommended":true}]
 
 Les 2 premiers objets ont "recommended":true, les 8 suivants ont "recommended":false.
 ${isEn ? "IMPORTANT: Write ALL content (topic, title, hook) in English, but keep the theme value exactly as listed. Respond ONLY with valid JSON." : "Réponds UNIQUEMENT avec le JSON valide. La valeur de theme doit être reprise exactement telle qu'écrite dans la liste."}`

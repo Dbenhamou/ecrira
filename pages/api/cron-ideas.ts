@@ -137,7 +137,7 @@ RÈGLES :
 THÈMES AUTORISÉS (choisis-en un par idée, valeur exacte) :
 ${THEMES.join(', ')}
 
-Format JSON strict : [{"topic":"sujet court","title":"titre accrocheur","hook":"phrase d'accroche percutante","theme":"un des thèmes autorisés"}]
+Format JSON strict : [{"topic":"sujet court","title":"titre accrocheur","hook":"phrase d'accroche percutante","angle":"plan de rédaction du post en 1 phrase : ouverture + 2-3 points + chute/CTA","theme":"un des thèmes autorisés"}]
 Réponds UNIQUEMENT avec le JSON, sans markdown.`
 
       const message = await anthropic.messages.create({
@@ -165,6 +165,7 @@ Réponds UNIQUEMENT avec le JSON, sans markdown.`
           topic: idea.topic,
           title: idea.title,
           hook: idea.hook,
+          angle: idea.angle || null,
           recommended: !!idea.recommended,
           theme: idea.theme || null,
           generated_at: new Date().toISOString().split('T')[0],

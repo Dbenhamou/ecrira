@@ -8,7 +8,7 @@ import { useProfile } from '../lib/useProfile'
 import { t, type Lang } from '../lib/i18n'
 import DOMPurify from 'isomorphic-dompurify'
 
-type Idea = { topic: string; title: string; hook: string; recommended?: boolean; theme?: string }
+type Idea = { topic: string; title: string; hook: string; angle?: string; recommended?: boolean; theme?: string }
 
 const THEME_LABELS: Record<string, { fr: string; en: string }> = {
   reglementation_conformite: { fr: 'Réglementation', en: 'Regulation' },
@@ -313,6 +313,7 @@ export default function Home() {
   const [ideas, setIdeas] = useState<Idea[]>([])
   const [ideasGeneratedAt, setIdeasGeneratedAt] = useState<Date | null>(null)
   const [ideasNewsCount, setIdeasNewsCount] = useState(0)
+  const [postAngle, setPostAngle] = useState('')
   const [savedPosts, setSavedPosts] = useState<Post[]>([])
   const [savedIdeas, setSavedIdeas] = useState<Idea[]>([])
   const [libraryTab, setLibraryTab] = useState<'posts'|'ideas'>('posts')
@@ -484,7 +485,7 @@ export default function Home() {
         const diff = new Date(latestDate).getTime() - new Date(d.created_at).getTime()
         return Math.abs(diff) < 60000 * 5 // within 5 min = same batch
       })
-      setIdeas(batch.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook, recommended: d.recommended, theme: d.theme })))
+      setIdeas(batch.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook, angle: d.angle, recommended: d.recommended, theme: d.theme })))
       // Charger idées sauvegardées
       const { data: savedIdeasData } = await supabase.from('saved_ideas').select('*').eq('user_id', userId||'').order('created_at', { ascending: false })
       if (savedIdeasData) setSavedIdeas(savedIdeasData.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook })))
@@ -558,6 +559,7 @@ export default function Home() {
       ideasToSave.map(idea => ({
         user_id: userId, topic: idea.topic, title: idea.title,
         hook: idea.hook, recommended: idea.recommended || false,
+        angle: idea.angle || null,
         theme: idea.theme || null,
         created_at: now,
       }))
@@ -643,7 +645,7 @@ export default function Home() {
     setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0); setAiImageUrl('')
     try {
       const responses = await Promise.all([1,2,3].map(v =>
-        authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variant:v}) })
+        authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variant:v,seed:postAngle}) })
           .then(r=>r.json()).catch(()=>null)
       ))
       const results: string[] = responses.filter((d:any)=>d&&d.content).map((d:any)=>d.content)
@@ -1308,9 +1310,9 @@ export default function Home() {
                     {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--indigo)',border:'1px solid rgba(168,120,79,0.25)'}}>{T('recommended')}</span>}
                   </div>
                   <div className="idea-title">{idea.title}</div>
-                  <div className="idea-hook">{idea.hook}</div>
+                  <div className="idea-hook">{idea.hook}</div>{idea.angle && <div className="idea-angle" style={{fontSize:12,color:'var(--text3)',marginTop:6,paddingLeft:10,borderLeft:'2px solid rgba(61,82,160,0.25)',lineHeight:1.45}}><strong style={{color:'var(--indigo)',fontWeight:600}}>{lang==='en'?'Plan: ':'Plan : '}</strong>{idea.angle}</div>}
                   <div className="idea-actions">
-                    <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
+                    <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostAngle(idea.angle||'');setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
                     <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>saveIdea(idea)}>{savedIdeas.some(s=>s.title===idea.title)?'★':'☆'} {lang==='en'?'Save':'Sauvegarder'}</button>
                   </div>
                 </div>
