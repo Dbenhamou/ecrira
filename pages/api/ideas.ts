@@ -224,11 +224,18 @@ ${isEn
 RÈGLE DE DIVERSITÉ :
 ${isEn
   ? `- Maximum 3 ideas out of 10 can use the direct keywords from the profile (${keywords || sector})
-- The other ideas must explore the PERIPHERY of the sector: regulation, macro trends, HR/business stakes, new uses, AI impact, field feedback`
+- The other ideas must explore the PERIPHERY of the sector: regulation, macro trends, HR/business stakes, new uses, field feedback`
   : `- Maximum 3 idées sur 10 peuvent utiliser les mots-clés directs du profil (${keywords || sector})
-- Les autres doivent explorer les PÉRIPHÉRIES du secteur : réglementation, tendances macro, enjeux RH/business, nouveaux usages, impact IA, retours terrain`}
+- Les autres doivent explorer les PÉRIPHÉRIES du secteur : réglementation, tendances macro, enjeux RH/business, nouveaux usages, retours terrain`}
 
 Les 2 premières idées doivent être les plus originales et percutantes.
+
+RÈGLE D'ANCRAGE SECTORIEL (prioritaire sur le choix des thèmes) :
+- Le thème choisi n'est qu'un ANGLE : il doit TOUJOURS être traité sous l'angle du secteur${sector ? ` « ${sector} »` : ''}, jamais de façon générale.
+- "innovation_ia" = comment l'IA transforme concrètement CE secteur, jamais l'IA en général.
+- "securite_risques" = les risques et la sécurité PROPRES à ce secteur (opérationnels, juridiques, financiers), et NON la cybersécurité — sauf si la cybersécurité EST le secteur du professionnel.
+- "technologie_outils" = les outils réellement utilisés dans ce secteur.
+- Une idée qui ne parle pas directement du métier du professionnel est invalide.
 
 THÈMES AUTORISÉS (choisis-en un par idée, valeur exacte) :
 ${THEMES.join(', ')}

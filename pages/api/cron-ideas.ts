@@ -133,6 +133,11 @@ RÈGLE DE ROTATION THÉMATIQUE (prioritaire) :
 RÈGLES :
 - Chaque idée doit être DIRECTEMENT liée au secteur et au rôle du professionnel ci-dessus.
 - Reste concret et spécifique au métier — évite les banalités génériques.
+- Le thème choisi n'est qu'un ANGLE : il doit TOUJOURS être traité sous l'angle du secteur${sector ? ` « ${sector} »` : ''}, jamais de façon générale.
+- "innovation_ia" = comment l'IA transforme concrètement CE secteur, jamais l'IA en général.
+- "securite_risques" = les risques et la sécurité PROPRES à ce secteur (opérationnels, juridiques, financiers), et NON la cybersécurité — sauf si la cybersécurité EST le secteur du professionnel.
+- "technologie_outils" = les outils réellement utilisés dans ce secteur.
+- Une idée qui ne parle pas directement du métier du professionnel est invalide.
 
 THÈMES AUTORISÉS (choisis-en un par idée, valeur exacte) :
 ${THEMES.join(', ')}
