@@ -5,6 +5,7 @@ import { BILLING_ENABLED } from '../lib/config'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
 import { useProfile } from '../lib/useProfile'
+import OnboardingTour from '../components/OnboardingTour'
 import { t, type Lang } from '../lib/i18n'
 import DOMPurify from 'isomorphic-dompurify'
 
@@ -389,6 +390,7 @@ export default function Home() {
   const [generatingByTab, setGeneratingByTab] = useState<Record<number,boolean>>({})
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [onboardingStep, setOnboardingStep] = useState(0)
+  const [tourRun, setTourRun] = useState(false)
   const [newRefPost, setNewRefPost] = useState('')
   const [showAddRef, setShowAddRef] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
@@ -1333,6 +1335,11 @@ export default function Home() {
   return (
     <>
       {trialBanner}
+      <OnboardingTour
+        run={tourRun || (!loading && !!userId && !showOnboarding && !(profile as any).onboarding_done && !!profile.role && page==='apercu')}
+        lang={lang}
+        onDone={async () => { setTourRun(false); if (userId) { try { await supabase.from('profiles').update({ onboarding_done: true }).eq('id', userId); setProfile({ ...(profile as any), onboarding_done: true }) } catch {} } }}
+      />
       <Head><title>Ecrira</title><link rel="icon" href="/favicon-32-bleu.png" type="image/png"/><script defer data-domain="ecrira.com" src="https://plausible.io/js/pa-JoffvncprLIz4FmqjAnDr.js"></script><link rel="apple-touch-icon" href="/logo-ecrira-icon-bleu.png"/><meta name="theme-color" content="#3D52A0"/></Head>
       <div className="app">
         {/* ── TOP HEADER ── */}
@@ -1390,6 +1397,7 @@ export default function Home() {
                   {[
                     {label:lang==='en'?'My profile':'Mon profil',action:()=>{setPage('profil');setShowAvatarMenu(false)},icon:'👤'},
                     {label:lang==='en'?'Visuals':'Visuels',action:()=>{setPage('visuels');setShowAvatarMenu(false)},icon:''},
+                    {label:lang==='en'?'Replay tour':'Revoir le tour',action:()=>{setShowAvatarMenu(false);setPage('apercu');setTourRun(true)},icon:'🧭'},
                   ].map((item,i)=>(
                     <button key={i} onClick={item.action} style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'10px 14px',border:'none',background:'transparent',cursor:'pointer',fontSize:12,color:'var(--text1)',textAlign:'left' as const,fontFamily:'inherit',borderBottom:'0.5px solid var(--border)'}}>
                       <span>{item.icon}</span>{item.label}
@@ -1435,7 +1443,7 @@ export default function Home() {
             <div className="page-sub" style={{marginBottom:24}}>{new Date().toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
 
             {/* Stats */}
-            <div className="stats-grid" style={{marginBottom:28}}>
+            <div className="stats-grid" data-tour="stats" style={{marginBottom:28}}>
               <div className="stat-card">
                 <div className="stat-icon" style={{background:'rgba(61,82,160,0.08)'}}>
                   <svg viewBox="0 0 24 24" fill="none" stroke="#3D52A0" strokeWidth="1.5" width="16" height="16"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16Z"/></svg>
@@ -1484,7 +1492,7 @@ export default function Home() {
 
             {/* Idées du jour — 2 recommandées */}
             <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',marginBottom:4}}>
-              <div style={{fontSize:12,fontWeight:600,color:'var(--indigo)',letterSpacing:'0.1em',textTransform:'uppercase' as const,cursor:'pointer'}} onClick={()=>setPage('idees')}>Idées du jour →</div>
+              <div style={{fontSize:12,fontWeight:600,color:'var(--indigo)',letterSpacing:'0.1em',textTransform:'uppercase' as const,cursor:'pointer'}} data-tour="ideas" onClick={()=>setPage('idees')}>Idées du jour →</div>
               <span style={{fontSize:10,color:'var(--indigo)',cursor:'pointer',fontWeight:500}} onClick={()=>setPage('idees')}>{lang==='en'?'See all ideas →':'Voir toutes les idées →'}</span>
             </div>
             {ideasGeneratedAt&&<div style={{fontSize:10,color:'var(--text3)',marginBottom:12}}>{lang==='en'?'Generated':'Générées'} {ideasGeneratedAt.toLocaleDateString(lang==='fr'?'fr-FR':'en-GB',{day:'numeric',month:'long'})}{lang==='en'?' at ':' à '}{ideasGeneratedAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>}
@@ -2446,7 +2454,7 @@ export default function Home() {
           {id:'idees' as const, label:'Idées', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M12 2a7 7 0 0 1 7 7c0 2.5-1.3 4.7-3.3 6L15 20H9l-.7-5C6.3 13.7 5 11.5 5 9a7 7 0 0 1 7-7Z"/><path d="M9 21h6"/></svg>},
           {id:'rediger' as const, label:'Rédiger', icon:<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="20" height="20"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"/></svg>},
         ]).map(item=>(
-          <div key={item.id} className="pill-btn-wrap">
+          <div key={item.id} data-tour={`nav-${item.id}`} className="pill-btn-wrap">
             <span className="pill-tooltip">{item.label}</span>
             <button onClick={()=>setPage(item.id)} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page===item.id?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page===item.id?'white':'var(--text3)'}}>
               {item.icon}
@@ -2456,7 +2464,7 @@ export default function Home() {
         <div style={{width:'0.5px',height:20,background:'var(--border)',margin:'0 2px'}}/>
         <div className="pill-btn-wrap">
           <span className="pill-tooltip">Calendrier</span>
-          <button onClick={()=>{ if(!isPro){setShowUpgradeModal(true);return;} setPage('calendrier') }} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page==='calendrier'?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='calendrier'?'white':'var(--text3)'}}>
+          <button data-tour="nav-calendrier" onClick={()=>{ if(!isPro){setShowUpgradeModal(true);return;} setPage('calendrier') }} style={{width:42,height:42,borderRadius:'50%',border:'none',background:page==='calendrier'?'var(--indigo)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',transition:'background 0.15s',color:page==='calendrier'?'white':'var(--text3)'}}>
             <CalIcon/>
           </button>
         </div>
