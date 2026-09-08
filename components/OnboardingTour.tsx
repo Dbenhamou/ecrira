@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import Joyride, { CallBackProps, STATUS, Step, TooltipRenderProps } from 'react-joyride'
 
+const LS_KEY = 'ecrira_onboarding_done'
+
 type Props = { run: boolean; lang?: string; onDone: () => void }
 
 // Bulle custom aux tokens Ecrira (Clash Display + Inter, var(--...)).
@@ -140,14 +142,22 @@ function EcriraTooltip({
 export default function OnboardingTour({ run, lang = 'fr', onDone }: Props) {
   const isEn = lang === 'en'
   const [ready, setReady] = useState(false)
+  const [done, setDone] = useState(false)
+
+  // Verrou navigateur : si le tour a deja ete vu ici, on ne le relance jamais.
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(LS_KEY) === '1') setDone(true)
+    } catch {}
+  }, [])
 
   useEffect(() => {
-    if (run) {
+    if (run && !done) {
       const t = setTimeout(() => setReady(true), 450)
       return () => clearTimeout(t)
     }
     setReady(false)
-  }, [run])
+  }, [run, done])
 
   const stepsFr: Step[] = [
     {
@@ -201,13 +211,18 @@ export default function OnboardingTour({ run, lang = 'fr', onDone }: Props) {
 
   const handleCallback = (data: CallBackProps) => {
     const { status } = data
-    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) onDone()
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      // Verrou immediat cote navigateur + latch local, puis persistance DB.
+      try { localStorage.setItem(LS_KEY, '1') } catch {}
+      setDone(true)
+      onDone()
+    }
   }
 
   return (
     <Joyride
       steps={isEn ? stepsEn : stepsFr}
-      run={run && ready}
+      run={run && ready && !done}
       continuous
       showSkipButton
       scrollToFirstStep
