@@ -1,30 +1,10 @@
 // lib/news.ts
-// Actualités sectorielles depuis des FLUX RSS directs — fiables depuis un
-// datacenter (contrairement à Google News qui bloque les IP serveur).
-// Cyber par défaut (fuites, ransomware, CVE) ; repli tech/général sinon.
-// Repli optionnel GNews.io si GNEWS_API_KEY est défini.
-// Ne jette jamais : renvoie [] en cas de problème (la génération continue).
+// Actualites pilotees UNIQUEMENT par le secteur d'activite du user.
+// Aucune source ni thematique codee en dur : la requete d'actu est
+// construite a partir du secteur + mots-cles du profil, dans sa langue.
+// Ne jette jamais : renvoie [] en cas de probleme (la generation continue).
 
 export type NewsArticle = { title: string; source: string; date: string }
-
-type Feed = { url: string; source: string }
-
-const CYBER_FEEDS: Feed[] = [
-  { url: 'https://www.zataz.com/feed/', source: 'ZATAZ' },
-  { url: 'https://www.lemagit.fr/rss/Securite.xml', source: 'LeMagIT' },
-  { url: 'https://www.cert.ssi.gouv.fr/feed/', source: 'CERT-FR' },
-  { url: 'https://www.bleepingcomputer.com/feed/', source: 'BleepingComputer' },
-  { url: 'https://feeds.feedburner.com/TheHackersNews', source: 'The Hacker News' },
-  { url: 'https://www.lemondeinformatique.fr/flux-rss/thematique/securite/rss.xml', source: 'Le Monde Informatique' },
-]
-
-const GENERAL_FEEDS: Feed[] = [
-  { url: 'https://www.numerama.com/feed/', source: 'Numerama' },
-  { url: 'https://www.lemondeinformatique.fr/rss/rss.xml', source: 'Le Monde Informatique' },
-  { url: 'https://feeds.feedburner.com/TheHackersNews', source: 'The Hacker News' },
-]
-
-const CYBER_RE = /cyber|s[ée]curit|infosec|\bsoc\b|mssp|\bmsp\b|ransomware|pentest|siem|\bedr\b|\bxdr\b|rssi|ciso|phishing|malware|vuln|\bcve\b|iso ?27|nis ?2|\bdora\b|hacking|menace|threat|dfir|\bgrc\b/i
 
 function decodeEntities(s: string): string {
   return (s || '')
@@ -39,50 +19,72 @@ function decodeEntities(s: string): string {
     .trim()
 }
 
-function parseItems(xml: string, feedSource: string): NewsArticle[] {
+function parseItems(xml: string, fallbackSource: string): NewsArticle[] {
   const out: NewsArticle[] = []
   const isAtom = xml.includes('<entry')
   const blocks = isAtom ? xml.split(/<entry[ >]/).slice(1) : xml.split('<item').slice(1)
   for (const b of blocks) {
-    const title = decodeEntities(b.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] || '')
+    let title = decodeEntities(b.match(/<title[^>]*>([\s\S]*?)<\/title>/)?.[1] || '')
     if (!title || title.length < 12) continue
+    // Google News suffixe souvent le titre par " - Nom du media" : on l'extrait.
+    let source = fallbackSource
+    const dash = title.lastIndexOf(' - ')
+    if (dash > 20) {
+      source = title.slice(dash + 3).trim() || fallbackSource
+      title = title.slice(0, dash).trim()
+    }
     const date = (
       b.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ||
       b.match(/<published>([\s\S]*?)<\/published>/)?.[1] ||
       b.match(/<updated>([\s\S]*?)<\/updated>/)?.[1] ||
       b.match(/<dc:date>([\s\S]*?)<\/dc:date>/)?.[1] || ''
     ).trim()
-    out.push({ title, source: feedSource, date })
+    out.push({ title, source, date })
   }
   return out
 }
 
-async function fetchFeed(feed: Feed): Promise<NewsArticle[]> {
+// Construit la requete de recherche a partir du secteur + mots-cles du user.
+// 100% pilote par le profil : aucun secteur n'est code en dur.
+export function buildNewsQuery(sector: string, keywords: string): string {
+  const sec = (sector || '').trim()
+  const kws = (keywords || '')
+    .split(/[,;]/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+  const parts = [sec, ...kws].filter(Boolean)
+  if (!parts.length) return ''
+  // Expressions multi-mots entre guillemets, reliees par OR pour elargir.
+  return parts.map((p) => (p.includes(' ') ? `"${p}"` : p)).join(' OR ')
+}
+
+// Source 1 : Google News RSS recherche — pilotee par la requete, sans cle.
+async function fetchGoogleNews(query: string, isEn: boolean, limit: number): Promise<NewsArticle[]> {
+  if (!query) return []
+  const hl = isEn ? 'en-US' : 'fr'
+  const gl = isEn ? 'US' : 'FR'
+  const ceid = isEn ? 'US:en' : 'FR:fr'
+  const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=${hl}&gl=${gl}&ceid=${ceid}`
   try {
-    const res = await fetch(feed.url, {
+    const res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; EcriraBot/1.0; +https://ecrira.com)' },
       signal: AbortSignal.timeout(6000),
     })
     if (!res.ok) return []
-    return parseItems(await res.text(), feed.source)
+    return parseItems(await res.text(), 'Google News').slice(0, limit * 2)
   } catch {
     return []
   }
 }
 
-export function buildNewsQuery(sector: string, keywords: string): string {
-  const source = (keywords || sector || '').trim()
-  if (!source) return ''
-  return source.split(',').map((t) => t.trim()).filter(Boolean).slice(0, 2).join(' ')
-}
-
-// Repli GNews.io (clé gratuite optionnelle) — couvre les secteurs non-cyber.
-async function fetchGNews(q: string, isEn: boolean, limit: number): Promise<NewsArticle[]> {
+// Source 2 (repli) : GNews.io — pilotee par la meme requete, cle optionnelle.
+async function fetchGNews(query: string, isEn: boolean, limit: number): Promise<NewsArticle[]> {
   const key = process.env.GNEWS_API_KEY
-  if (!key || !q) return []
+  if (!key || !query) return []
   try {
     const lang = isEn ? 'en' : 'fr'
-    const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(q)}&lang=${lang}&max=${limit}&sortby=publishedAt&apikey=${key}`
+    const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=${lang}&max=${limit}&sortby=publishedAt&apikey=${key}`
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) })
     if (!res.ok) return []
     const data: any = await res.json()
@@ -113,19 +115,22 @@ export async function fetchSectorNews(opts: {
   const days = opts.days || 14
   const limit = opts.limit || 10
 
-  const feeds = CYBER_RE.test(`${sector} ${keywords}`) ? CYBER_FEEDS : GENERAL_FEEDS
+  const query = buildNewsQuery(sector, keywords)
+  // Pas de secteur renseigne => pas d'actu forcee (le prompt reste qualitatif).
+  if (!query) return []
 
-  const settled = await Promise.allSettled(feeds.map(fetchFeed))
   const items: NewsArticle[] = []
-  for (const r of settled) if (r.status === 'fulfilled') items.push(...r.value)
+  items.push(...(await fetchGoogleNews(query, isEn, limit)))
+  if (items.length < 3) {
+    items.push(...(await fetchGNews(query, isEn, limit)))
+  }
+  if (!items.length) return []
 
-  // Repli GNews (si clé) — utile hors cyber
-  const gn = await fetchGNews(buildNewsQuery(sector, keywords), isEn, limit)
-  items.push(...gn)
-
+  // Termes du secteur pour scorer la pertinence (bonus, pas un filtre dur :
+  // la requete garantit deja que les resultats concernent le secteur).
   const terms = Array.from(new Set(
-    `${keywords},${sector}`.toLowerCase().split(/[,\s]+/).map((t) => t.trim()).filter((t) => t.length >= 3)
-  )).slice(0, 10)
+    `${keywords},${sector}`.toLowerCase().split(/[,;\s]+/).map((t) => t.trim()).filter((t) => t.length >= 3)
+  )).slice(0, 12)
 
   const now = Date.now()
   const windowMs = days * 86400_000
