@@ -4,6 +4,7 @@ import { usePlan } from '../lib/usePlan'
 import { BILLING_ENABLED } from '../lib/config'
 import Head from 'next/head'
 import { supabase } from '../lib/supabase'
+import AssistantPanel from '../components/AssistantPanel'
 import { useProfile } from '../lib/useProfile'
 import OnboardingTour from '../components/OnboardingTour'
 import { t, type Lang } from '../lib/i18n'
@@ -1335,6 +1336,7 @@ export default function Home() {
   return (
     <>
       {trialBanner}
+      <AssistantPanel />
       <OnboardingTour
         run={tourRun || (!loading && !!userId && !showOnboarding && !(profile as any).onboarding_done && !!profile.role && page==='apercu')}
         lang={lang}
