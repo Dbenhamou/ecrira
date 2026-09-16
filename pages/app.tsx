@@ -369,8 +369,6 @@ export default function Home() {
   const [aiSvgContent, setAiSvgContent] = useState('')
   const [customVisualBase64, setCustomVisualBase64] = useState<string|null>(null)
   const [customVisualName, setCustomVisualName] = useState('')
-  const [improvementNote, setImprovementNote] = useState('')
-  const [improving, setImproving] = useState(false)
   const [visualType, setVisualType] = useState('classique')
   const [hideWatermark, setHideWatermark] = useState(false)
   const [hideCompanyLogo, setHideCompanyLogo] = useState(false)
@@ -1053,39 +1051,6 @@ export default function Home() {
     return '#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('')
   }
 
-  const improvePost = async () => {
-    if (!improvementNote.trim() || !postOutput) return
-    setImproving(true)
-    try {
-      const res = await authFetch('/api/generate', {
-        method: 'POST',
-        body: JSON.stringify({
-          topic: postTopic,
-          format: postFormat,
-          length: postLength,
-          tone: postTone,
-          profile: {...profile, lang},
-          improvement: improvementNote,
-          previousPost: postOutput,
-          seed: Math.random().toString(36).substring(2),
-        }),
-      })
-      const data = await res.json()
-      if (data.content) {
-        setPostOutput(data.content)
-        try { localStorage.removeItem('ecrira_draft_topic') } catch {}
-        // Extraire + suggérer des hashtags
-        const existingTags = (data.content.match(/#[\w\u00C0-\u024F]+/g) || []).map((t:string)=>t)
-        setSuggestedHashtags(existingTags.slice(0,5))
-        setImprovementNote('')
-        showToast('Post amélioré ✓')
-      }
-    } catch(e) {
-      showToast(T('toast_improve_error'))
-    } finally {
-      setImproving(false)
-    }
-  }
 
   const handleVisualUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -1336,7 +1301,7 @@ export default function Home() {
   return (
     <>
       {trialBanner}
-      <AssistantPanel />
+      <AssistantPanel currentPost={postOutput} onApplyPost={setPostOutput} />
       <OnboardingTour
         run={tourRun || (!loading && !!userId && !showOnboarding && !(profile as any).onboarding_done && !!profile.role && page==='apercu')}
         lang={lang}
@@ -1708,31 +1673,6 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* Zone amélioration post */}
-                {postOutput && (
-                  <div style={{marginTop:8,border:'1px solid var(--border)',borderRadius:12,overflow:'hidden',background:'white'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:6,padding:'8px 12px',borderBottom:'1px solid var(--border)',background:'rgba(61,82,160,0.04)'}}>
-                      <span style={{fontSize:11,fontWeight:600,color:'var(--indigo)'}}>{T('improve_post')}</span>
-                    </div>
-                    <div style={{padding:'10px 12px',display:'flex',gap:8,alignItems:'flex-end'}}>
-                      <textarea
-                        value={improvementNote}
-                        onChange={e=>setImprovementNote(e.target.value)}
-                        placeholder={T('improve_placeholder')}
-                        rows={2}
-                        style={{flex:1,fontSize:12,padding:'7px 10px',borderRadius:8,border:'1px solid var(--border)',outline:'none',resize:'none' as const,fontFamily:'inherit',color:'var(--text1)',background:'var(--bg)',lineHeight:1.4}}
-                      />
-                      <button
-                        className="btn btn-primary"
-                        onClick={improvePost}
-                        disabled={improving||!improvementNote.trim()}
-                        style={{fontSize:11,padding:'7px 12px',background:'var(--indigo)',flexShrink:0,borderRadius:8}}
-                      >
-                        {improving?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('apply_arrow')}
-                      </button>
-                    </div>
-                  </div>
-                )}
 
                 {/* Action bar — always visible */}
                 <div style={{marginTop:16,display:'flex',flexDirection:'column' as const,gap:10}}>
