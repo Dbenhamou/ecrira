@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const {data:j7} = await supabase.from('profiles').select('email,name,plan').gte('created_at',w(7).s).lte('created_at',w(7).e)
   for (const u of (j7||[])) {
     if (!u.email||u.plan==='pro') continue
-    await send(u.email,"⏰ Ton essai Pro se termine aujourd'hui",`<div style="font-family:'Inter',sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#FAF9F7;"><p>Bonjour${u.name?` ${u.name}`:''} 👋</p><p>Ton essai Pro de 7 jours se termine aujourd'hui. Continue à <strong>15,90€/mois</strong> sans engagement.</p><a href="${appUrl}/pricing" style="display:inline-block;background:#3D52A0;color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600;margin:16px 0;">Continuer avec Pro →</a><p style="font-size:11px;color:#9EA39C;margin-top:24px;"><a href="${appUrl}/unsubscribe" style="color:#9EA39C;">Se désabonner</a></p></div>`)
+    await send(u.email,"⏰ Ton essai Pro se termine aujourd'hui",`<div style="font-family:'Inter',sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#FAF9F7;"><p>Bonjour${u.name?` ${u.name}`:''} 👋</p><p>Ton essai Pro de 7 jours se termine aujourd'hui. Continue à <strong>17,90€/mois</strong> sans engagement.</p><a href="${appUrl}/pricing" style="display:inline-block;background:#3D52A0;color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600;margin:16px 0;">Continuer avec Pro →</a><p style="font-size:11px;color:#9EA39C;margin-top:24px;"><a href="${appUrl}/unsubscribe" style="color:#9EA39C;">Se désabonner</a></p></div>`)
     sent++
   }
   res.status(200).json({sent})

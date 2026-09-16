@@ -167,7 +167,7 @@ export default function CGV() {
           </tr>
           <tr>
             <td style={td}>Pro</td>
-            <td style={td}>15,90 € / mois</td>
+            <td style={td}>17,90 € / mois</td>
             <td style={td}>Posts et visuels illimités, planification et publication LinkedIn, voix personnalisée, support prioritaire</td>
           </tr>
           <tr>

@@ -144,8 +144,8 @@ export default function Landing() {
   ]
 
   const faqs = [
-    { q:"Ecrira est-il vraiment gratuit ?", a:"Oui — 7 jours Pro offerts à l'inscription, sans carte bancaire. Après l'essai, vous pouvez continuer en Free (fonctionnalités limitées) ou passer à Pro à 15,90€/mois." },
-    { q:"Quelle différence avec un ghostwriter LinkedIn humain ?", a:"Un ghostwriter coûte entre 500€ et 2 000€/mois. Ecrira fait 80% du travail pour 15,90€/mois. Vous gardez le contrôle de votre voix et publiez à votre rythme." },
+    { q:"Ecrira est-il vraiment gratuit ?", a:"Oui — 7 jours Pro offerts à l'inscription, sans carte bancaire. Après l'essai, vous pouvez continuer en Free (fonctionnalités limitées) ou passer à Pro à 17,90€/mois." },
+    { q:"Quelle différence avec un ghostwriter LinkedIn humain ?", a:"Un ghostwriter coûte entre 500€ et 2 000€/mois. Ecrira fait 80% du travail pour 17,90€/mois. Vous gardez le contrôle de votre voix et publiez à votre rythme." },
     { q:"Comment fonctionne la planification de posts LinkedIn ?", a:"Connectez votre compte LinkedIn via OAuth. Choisissez une date et une heure, Ecrira publie automatiquement pour vous. Aucune manipulation manuelle." },
     { q:"Mon compte LinkedIn est-il en sécurité ?", a:"Oui. Nous utilisons l'API officielle LinkedIn via OAuth. Nous ne stockons jamais votre mot de passe LinkedIn." },
     { q:"Puis-je annuler mon abonnement à tout moment ?", a:"Oui, sans engagement ni frais de résiliation. L'annulation prend effet à la fin de la période en cours." },
@@ -456,7 +456,7 @@ export default function Landing() {
                 <div style={{position:'absolute' as const,top:-12,left:'50%',transform:'translateX(-50%)',background:F,color:'white',fontSize:11,fontWeight:600,padding:'3px 12px',borderRadius:20,whiteSpace:'nowrap' as const}}>Le plus populaire</div>
                 <div style={{fontSize:14,fontWeight:600,color:CH,marginBottom:4}}>Pro</div>
                 <div style={{fontSize:12,color:'#6B7069',marginBottom:16}}>Pour publier régulièrement.</div>
-                <div style={{fontSize:32,fontWeight:700,color:CH,marginBottom:4}}>15,90€</div>
+                <div style={{fontSize:32,fontWeight:700,color:CH,marginBottom:4}}>17,90€</div>
                 <div style={{fontSize:12,color:'#9EA39C',marginBottom:20}}>/ mois</div>
                 {['Posts illimités','Visuels illimités','Planification LinkedIn','Voix personnalisée','Support prioritaire'].map(f=>(
                   <div key={f} style={{fontSize:13,color:CH,marginBottom:8,display:'flex',gap:8}}><span style={{color:F,flexShrink:0}}>✓</span>{f}</div>
