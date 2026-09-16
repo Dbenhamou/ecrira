@@ -10,6 +10,22 @@ const supabaseAdmin = createClient(
 )
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// Retire tout Markdown pour un rendu LinkedIn brut et uniforme
+function cleanMarkdown(s: string): string {
+  if (!s) return s
+  return s
+    .replace(/\*\*([\s\S]*?)\*\*/g, '$1')
+    .replace(/__([\s\S]*?)__/g, '$1')
+    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '• ')
+    .replace(/[—–]/g, '-')
+    .replace(/\*/g, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 // Finalise l'onboarding conversationnel :
 //  - enregistre le ton + (optionnel) un post référent dans writing_style
 //  - marque onboarding_done = true
@@ -58,11 +74,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     'Ton souhaité : ' + (tone || 'expert et accessible') + '\n' +
     (cleanSample ? '\n=== EXEMPLE DE SON STYLE (à imiter) ===\n' + cleanSample + '\n' : '') +
     '\n=== DATE ===\nNous sommes le ' + todayStr + ' (année ' + currentYear + ').\n\n' +
-    '=== RÈGLES ===\n' +
+    '=== RÈGLES DE FORMAT (STRICTES) ===\n' +
     '1. Écris en ' + lang + '. ' + (formality === 'tutoiement' ? 'Tutoie le lecteur.' : 'Vouvoie le lecteur.') + '\n' +
-    '2. Post LinkedIn : hook fort dès la 1re ligne, phrases courtes, texte brut (jamais de Markdown), 3-5 hashtags à la fin.\n' +
-    '3. Sujet : choisis un angle pertinent et engageant pour son audience et son objectif.\n' +
-    '4. Rends-le publiable tel quel.\n' +
+    '2. TEXTE BRUT UNIQUEMENT — AUCUN Markdown : jamais de ** ni * (gras/italique), jamais de #, ' +
+    'jamais de puces markdown, jamais de séparateurs ---. Que des tirets simples (-), jamais de tirets longs (— ou –).\n' +
+    '3. Hook fort dès la 1re ligne, phrases courtes, 3-5 hashtags à la fin.\n' +
+    '4. Choisis un angle pertinent et engageant pour son audience et son objectif. Rends-le publiable tel quel.\n' +
     '5. Encadre le post EXACTEMENT entre ===POST=== et ===POST=== (sur leurs propres lignes), sans aucun autre texte autour.'
 
   try {
@@ -74,12 +91,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
     const raw = (message.content[0] as { text: string }).text || ''
     const match = raw.match(/===POST===\s*([\s\S]*?)\s*===POST===/)
-    const firstPost = (match ? match[1] : raw).trim()
+    const firstPost = cleanMarkdown((match ? match[1] : raw).trim())
 
-    // Sauvegardes profil (non destructives)
     const update: Record<string, any> = { onboarding_done: true }
     if (tone && tone.trim()) update.tone = tone.trim()
-    // Si l'utilisateur a fourni un post référent et qu'il n'a pas encore de style : on l'enregistre
     if (cleanSample && !(p?.writing_style || '').trim()) {
       update.writing_style = JSON.stringify([cleanSample])
     }
@@ -88,7 +103,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(200).json({ firstPost })
   } catch (err) {
     console.error('onboarding error', err)
-    // On marque quand même l'onboarding fait pour ne pas bloquer l'utilisateur
     await supabaseAdmin.from('profiles').update({ onboarding_done: true }).eq('id', userId)
     return res.status(500).json({ error: 'Erreur génération du premier post' })
   }
