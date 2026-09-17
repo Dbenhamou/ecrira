@@ -11,10 +11,10 @@ const supabaseAdmin = createClient(
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// --- Quotas ---
-const HOURLY_LIMIT = 40            // messages assistant / heure (anti-abus)
-const MONTHLY_LIMIT_PRO = 300      // messages / mois plan Pro
-const MONTHLY_LIMIT_AGENCY = 1000  // messages / mois plan Pro Agency
+// --- Quotas (réduits pour maîtriser le coût) ---
+const HOURLY_LIMIT = 40             // messages assistant / heure (anti-abus)
+const MONTHLY_LIMIT_PRO = 150       // messages / mois plan Pro
+const MONTHLY_LIMIT_AGENCY = 500    // messages / mois plan Pro Agency
 const MONTH_MS = 30 * 24 * 3600 * 1000
 
 type Msg = { role: 'user' | 'assistant'; content: string }
@@ -23,15 +23,15 @@ type Msg = { role: 'user' | 'assistant'; content: string }
 function cleanMarkdown(s: string): string {
   if (!s) return s
   return s
-    .replace(/\*\*([\s\S]*?)\*\*/g, '$1')     // **gras** -> gras
-    .replace(/__([\s\S]*?)__/g, '$1')         // __gras__ -> gras
-    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')    // `code` -> code
-    .replace(/^\s{0,3}#{1,6}\s+/gm, '')       // # titres
-    .replace(/^\s*[-*_]{3,}\s*$/gm, '')       // séparateurs --- ***
-    .replace(/^\s*[-*+]\s+/gm, '• ')          // puces markdown -> •
-    .replace(/[—–]/g, '-')                    // tirets longs -> tiret simple
-    .replace(/\*/g, '')                       // astérisques résiduels
-    .replace(/\n{3,}/g, '\n\n')               // max 1 ligne vide
+    .replace(/\*\*([\s\S]*?)\*\*/g, '$1')
+    .replace(/__([\s\S]*?)__/g, '$1')
+    .replace(/`{1,3}([^`]*)`{1,3}/g, '$1')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s*[-*_]{3,}\s*$/gm, '')
+    .replace(/^\s*[-*+]\s+/gm, '• ')
+    .replace(/[—–]/g, '-')
+    .replace(/\*/g, '')
+    .replace(/\n{3,}/g, '\n\n')
     .trim()
 }
 
@@ -54,10 +54,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({ error: 'messages requis' })
   }
+  // Historique court pour limiter les tokens réinjectés
   const cleanMessages: Msg[] = messages
     .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
-    .slice(-20)
-    .map((m) => ({ role: m.role, content: m.content.slice(0, 6000) }))
+    .slice(-8)
+    .map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }))
 
   const { data: p } = await supabaseAdmin
     .from('profiles')
@@ -102,50 +103,42 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     'Rôle : ' + (p?.role || 'Professionnel') + (p?.company ? ' chez ' + p.company : '') + '\n' +
     'Secteur : ' + (p?.sector || 'Non précisé') + '\n' +
     'Audience cible : ' + (p?.audience || 'Professionnels LinkedIn') + '\n' +
-    (p?.summary ? 'Positionnement : ' + p.summary + '\n' : '') +
-    (p?.keywords ? 'Expertise clé : ' + p.keywords + '\n' : '') +
-    (p?.pain_points ? 'Problèmes résolus : ' + p.pain_points + '\n' : '') +
-    (p?.tech_stack ? 'Outils/Stack : ' + p.tech_stack + '\n' : '')
+    (p?.pain_points ? 'Problèmes résolus : ' + p.pain_points + '\n' : '')
 
+  // 1 seul exemple de style, tronqué, pour limiter les tokens
   let refPosts: string[] = []
   const ws = (p?.writing_style || '').trim()
   if (ws) { try { refPosts = JSON.parse(ws) } catch { refPosts = [ws] } }
-  refPosts = refPosts.slice(0, 3).map((x) => String(x).slice(0, 800))
+  refPosts = refPosts.slice(0, 1).map((x) => String(x).slice(0, 500))
   const styleBlock = refPosts.length
-    ? '\n=== STYLE D\'ÉCRITURE DE L\'UTILISATEUR (à imiter) ===\n' +
-      refPosts.map((x, i) => '--- Exemple ' + (i + 1) + ' ---\n' + x).join('\n\n') + '\n'
+    ? '\n=== STYLE D\'ÉCRITURE (à imiter) ===\n' + refPosts[0] + '\n'
     : ''
 
   const postBlock = currentPost && currentPost.trim()
-    ? '\n=== POST ACTUELLEMENT DANS L\'ÉDITEUR ===\n' + currentPost.slice(0, 4000) + '\n=== FIN DU POST ===\n'
+    ? '\n=== POST ACTUEL DANS L\'ÉDITEUR ===\n' + currentPost.slice(0, 1500) + '\n=== FIN ===\n'
     : ''
 
   const systemPrompt =
-    "Tu es l'assistant Ecrira : le copilote LinkedIn de l'utilisateur, intégré dans l'app Ecrira. " +
-    "Tu es un ghostwriter B2B expert, chaleureux, direct et concis.\n\n" +
-    "TON RÔLE : aider l'utilisateur sur tout ce qui touche à LinkedIn — réécrire et améliorer ses posts, " +
-    "trouver des idées de contenu, structurer un calendrier éditorial, réagir à l'actualité de son secteur, " +
-    "conseiller sur ses visuels et son personal branding.\n\n" +
+    "Tu es l'assistant Ecrira : le copilote LinkedIn de l'utilisateur. " +
+    "Ghostwriter B2B expert, chaleureux, direct et concis.\n\n" +
+    "Tu aides sur tout ce qui touche à LinkedIn : réécrire/améliorer des posts, trouver des idées, " +
+    "structurer un calendrier, réagir à l'actu du secteur, conseiller sur les visuels et le personal branding.\n\n" +
     profileBlock + styleBlock + postBlock + '\n' +
-    "=== DATE ===\nNous sommes le " + todayStr + " (année en cours : " + currentYear + "). " +
-    "Toute référence temporelle porte sur " + currentYear + ".\n\n" +
+    "Date : " + todayStr + " (année " + currentYear + ").\n\n" +
     "=== RÈGLES DE FORMAT (STRICTES) ===\n" +
     "1. Réponds en " + lang + ".\n" +
     "2. " + (formality === 'tutoiement' ? "Tutoie l'utilisateur." : "Vouvoie l'utilisateur.") + "\n" +
-    "3. TEXTE BRUT UNIQUEMENT — AUCUN Markdown, dans TOUTES tes réponses (chat compris) : " +
-    "jamais de ** ni * (pas de gras ni d'italique), jamais de # (titres), jamais de puces markdown, " +
-    "jamais de séparateurs ---. Pour une liste, utilise le symbole • ou des numéros (1. 2. 3.). " +
-    "N'utilise que des tirets simples (-), jamais de tirets longs (— ou –).\n" +
-    "4. Posts LinkedIn : hook fort dans les 2 premières lignes, phrases courtes, 3 à 5 hashtags à la fin, chiffres vérifiables uniquement.\n" +
+    "3. TEXTE BRUT UNIQUEMENT — aucun Markdown : jamais de ** ni * ni #, pas de puces markdown, pas de ---. " +
+    "Listes avec • ou numéros. Que des tirets simples (-).\n" +
+    "4. Posts LinkedIn : hook fort dès les 2 premières lignes, phrases courtes, 3-5 hashtags à la fin, chiffres vérifiables uniquement.\n" +
     "5. Sois bref et actionnable.\n" +
-    "6. IMPORTANT : quand tu produis un post LinkedIn finalisé et prêt à publier, encadre-le EXACTEMENT entre " +
-    "les balises ===POST=== et ===POST=== (sur leurs propres lignes) pour que l'app propose un bouton « Appliquer ». " +
-    "N'utilise ces balises que pour un post complet prêt à l'emploi, pas pour un brouillon ou une explication."
+    "6. Quand tu produis un post finalisé prêt à publier, encadre-le EXACTEMENT entre ===POST=== et ===POST=== " +
+    "(sur leurs propres lignes) pour que l'app propose un bouton « Appliquer ». Seulement pour un post complet."
 
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 2000,
+      model: 'claude-haiku-4-5',
+      max_tokens: 1200,
       system: systemPrompt,
       messages: cleanMessages.map((m) => ({ role: m.role, content: m.content })),
     })
