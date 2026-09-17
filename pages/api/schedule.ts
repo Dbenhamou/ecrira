@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!userId) return
 
   // Vérification plan Pro pour planifier
-  const { data: userPlan } = await supabase.from('profiles').select('plan, trial_ends_at').eq('id', userId).single()
+  const { data: userPlan } = await supabase.from('profiles').select('plan, trial_ends_at, linkedin_token_expiry').eq('id', userId).single()
   const trialActive = userPlan?.plan === 'trial' && userPlan?.trial_ends_at && new Date(userPlan.trial_ends_at) > new Date()
   const isPro = userPlan?.plan === 'pro' || trialActive
   if (!isPro) return res.status(403).json({ error: 'UPGRADE_REQUIRED', message: 'La planification requiert le plan Pro.' })
@@ -73,5 +73,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const { data: profile } = await supabase.from('profiles').select('email').eq('id', userId).single()
     await sendNotification({ userId, type: 'post_scheduled', title: 'Post planifié 📅', body: schedDate, userEmail: profile?.email })
   } catch(e) { console.error('[notify] schedule error:', e) }
+  // Garde-fou : post planifie apres l'expiration du token LinkedIn
+  if (userPlan?.linkedin_token_expiry && new Date(scheduled_at) > new Date(userPlan.linkedin_token_expiry)) {
+    try {
+      await supabase.from('notifications').insert({ user_id: userId, type: 'post_error', title: 'Reconnecte LinkedIn', body: 'Ce post est planifie apres l expiration de ta connexion LinkedIn. Reconnecte-toi avant cette date, sinon il ne sera pas publie.' })
+    } catch {}
+  }
   res.status(200).json({ success: true, post: data })
 }

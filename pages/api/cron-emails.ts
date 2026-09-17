@@ -23,5 +23,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await send(u.email,"⏰ Ton essai Pro se termine aujourd'hui",`<div style="font-family:'Inter',sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#FAF9F7;"><p>Bonjour${u.name?` ${u.name}`:''} 👋</p><p>Ton essai Pro de 7 jours se termine aujourd'hui. Continue à <strong>17,90€/mois</strong> sans engagement.</p><a href="${appUrl}/pricing" style="display:inline-block;background:#3D52A0;color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600;margin:16px 0;">Continuer avec Pro →</a><p style="font-size:11px;color:#9EA39C;margin-top:24px;"><a href="${appUrl}/unsubscribe" style="color:#9EA39C;">Se désabonner</a></p></div>`)
     sent++
   }
+  // Rappel : connexion LinkedIn qui expire (~3 jours)
+  const exp = { s: new Date(now.getTime()+3*86400000-12*3600000).toISOString(), e: new Date(now.getTime()+3*86400000+12*3600000).toISOString() }
+  const { data: expiring } = await supabase.from('profiles').select('email,name,linkedin_token_expiry').gte('linkedin_token_expiry', exp.s).lte('linkedin_token_expiry', exp.e)
+  for (const u of (expiring||[])) {
+    if (!u.email) continue
+    await send(u.email, 'Ta connexion LinkedIn expire bientot', `<div style='font-family:Inter,sans-serif;max-width:520px;margin:0 auto;padding:32px;background:#FAF9F7;'><p>Bonjour${u.name?` ${u.name}`:''} 👋</p><p>Ta connexion LinkedIn expire dans ~3 jours. Reconnecte-toi pour que tes posts planifies continuent de partir automatiquement.</p><a href='${appUrl}' style='display:inline-block;background:#3D52A0;color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600;margin:16px 0;'>Reconnecter LinkedIn</a><p style='font-size:11px;color:#9EA39C;margin-top:24px;'><a href='${appUrl}/unsubscribe' style='color:#9EA39C;'>Se desabonner</a></p></div>`)
+    sent++
+  }
   res.status(200).json({sent})
 }

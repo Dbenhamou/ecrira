@@ -15,7 +15,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const now = new Date().toISOString()
   const { data: posts, error } = await supabase
     .from('scheduled_posts')
-    .select('*, profiles(linkedin_token, linkedin_token_expiry, linkedin_id)')
+    .select('*, profiles(linkedin_token, linkedin_token_expiry, linkedin_id, email)')
     .eq('status', 'pending')
     .lte('scheduled_at', now)
 
@@ -38,6 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const expiryWithMargin = new Date(new Date(profile.linkedin_token_expiry).getTime() - 5 * 60 * 1000)
       if (expiryWithMargin < new Date()) {
         await supabase.from('scheduled_posts').update({ status: 'error' }).eq('id', post.id)
+        await sendNotification({ userId: post.user_id, type: 'post_error', title: 'Connexion LinkedIn expiree', body: 'Ton token LinkedIn a expire, reconnecte-toi dans Ecrira pour republier ce post.', userEmail: profile.email }).catch(()=>{})
         failed++
         continue
       }
