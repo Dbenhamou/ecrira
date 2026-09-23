@@ -34,6 +34,25 @@ function themeLabel(theme: string | undefined, lang: string): string {
   if (!theme) return ''
   return THEME_LABELS[theme]?.[lang === 'en' ? 'en' : 'fr'] || theme.replace(/_/g, ' ')
 }
+// Plan d'une idee : 3 lignes (ouverture / idee centrale / chute).
+function IdeaPlan({ angle, lang }: { angle?: string; lang: string }) {
+  if (!angle) return null
+  const steps = angle.split('\n').map(s => s.trim()).filter(Boolean)
+  if (steps.length < 2) {
+    return <div style={{fontSize:12,color:'var(--text3)',marginTop:6,lineHeight:1.45,display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as const,overflow:'hidden'}}>{angle}</div>
+  }
+  const labels = lang === 'en' ? ['Opening', 'Core idea', 'Ending'] : ['Ouverture', 'Idée centrale', 'Chute']
+  return (
+    <div style={{marginTop:8,display:'grid',gap:4}}>
+      {steps.slice(0, 3).map((s, i) => (
+        <div key={i} style={{display:'flex',gap:8,fontSize:12,lineHeight:1.45}}>
+          <span style={{flexShrink:0,width:92,fontSize:10,fontWeight:600,color:'var(--indigo)',textTransform:'uppercase' as const,letterSpacing:'0.04em',paddingTop:2}}>{labels[i]}</span>
+          <span style={{color:'var(--text2)'}}>{s}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
 type Post = { id: string; topic: string; content: string; format: string; created_at: string; visual_base64?: string | null }
 
 const PALETTES = [
@@ -339,7 +358,7 @@ export default function Home() {
   const [previewExpanded, setPreviewExpanded] = useState(false)
   const [selectedIdeaIds, setSelectedIdeaIds] = useState<Set<number>>(new Set())
   const [showBatchModal, setShowBatchModal] = useState(false)
-  const [batchFormat, setBatchFormat] = useState('storytelling')
+  const [batchFormat, setBatchFormat] = useState('story')
   const [batchLength, setBatchLength] = useState('medium')
   const [batchTone, setBatchTone] = useState('expert')
   const [batchPosts, setBatchPosts] = useState<{topic:string,content:string}[]>([])
@@ -394,9 +413,10 @@ export default function Home() {
   const [newRefPost, setNewRefPost] = useState('')
   const [showAddRef, setShowAddRef] = useState(false)
   const [savingProfile, setSavingProfile] = useState(false)
-  const [ideasRefreshCountdown, setIdeasRefreshCountdown] = useState<number | null>(null)
-  const ideasLastRefresh = useRef<number | null>(null)
-  const IDEAS_REFRESH_MS = 2 * 60 * 60 * 1000
+  const [postHook, setPostHook] = useState('')
+  const [batchMeta, setBatchMeta] = useState<{hook:string,angle:string}[]>([])
+  const [ideasLoaded, setIdeasLoaded] = useState(false)
+  const autoIdeasDone = useRef(false)
 
   // Load theme
   useEffect(() => {
@@ -437,6 +457,7 @@ export default function Home() {
   // Load Supabase data once userId is available
   useEffect(() => {
     if (!userId) return
+    supabase.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', userId).then(() => {})
     loadPosts()
     loadIdeas()
     loadCount()
@@ -475,28 +496,19 @@ export default function Home() {
 
   // ── Supabase: load ideas ──
   const loadIdeas = async () => {
-    const { data } = await supabase
-      .from('daily_ideas').select('*')
-      .order('created_at', { ascending: false })
-      .limit(10)
+    const [{ data }, { data: savedIdeasData }] = await Promise.all([
+      supabase.from('daily_ideas').select('*').eq('user_id', userId || '').order('created_at', { ascending: false }).limit(10),
+      supabase.from('saved_ideas').select('*').eq('user_id', userId || '').order('created_at', { ascending: false }),
+    ])
+    if (savedIdeasData) setSavedIdeas(savedIdeasData.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook, theme: d.theme })))
     if (data && data.length > 0) {
-      // Group by generated_at date — take the latest batch
-      const latest = data[0]
-      const latestDate = latest.created_at
-      const batch = data.filter((d: any) => {
-        const diff = new Date(latestDate).getTime() - new Date(d.created_at).getTime()
-        return Math.abs(diff) < 60000 * 5 // within 5 min = same batch
-      })
+      // Dernier lot : idees creees a moins de 5 min d'intervalle
+      const latestDate = data[0].created_at
+      const batch = data.filter((d: any) => Math.abs(new Date(latestDate).getTime() - new Date(d.created_at).getTime()) < 60000 * 5)
       setIdeas(batch.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook, angle: d.angle, recommended: d.recommended, theme: d.theme })))
-      // Charger idées sauvegardées
-      const { data: savedIdeasData } = await supabase.from('saved_ideas').select('*').eq('user_id', userId||'').order('created_at', { ascending: false })
-      if (savedIdeasData) setSavedIdeas(savedIdeasData.map((d: any) => ({ topic: d.topic, title: d.title, hook: d.hook })))
-      const generatedAt = new Date(latestDate)
-      setIdeasGeneratedAt(generatedAt)
-      ideasLastRefresh.current = generatedAt.getTime()
-      const remaining = IDEAS_REFRESH_MS - (Date.now() - generatedAt.getTime())
-      setIdeasRefreshCountdown(remaining > 0 ? remaining : 0)
+      setIdeasGeneratedAt(new Date(latestDate))
     }
+    setIdeasLoaded(true)
   }
 
   // ── Supabase: load generated count ──
@@ -527,52 +539,6 @@ export default function Home() {
     if (data?.posts_count_this_month !== undefined) setGeneratedCount(data.posts_count_this_month)
   }
 
-  // Auto-refresh ideas every 2h
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (ideasLastRefresh.current !== null) {
-        const elapsed = Date.now() - ideasLastRefresh.current
-        const remaining = IDEAS_REFRESH_MS - elapsed
-        if (remaining <= 0) {
-          authFetch('/api/ideas', { method:'POST', body:JSON.stringify({profile: {...profile, lang}, pastTitles: ideas.slice(0,10).map((i:any)=>i.title).filter(Boolean)}) })
-            .then(r=>r.json()).then(async data=>{
-              if (data.ideas) {
-                setIdeas(data.ideas)
-                ideasLastRefresh.current = Date.now()
-                setIdeasRefreshCountdown(IDEAS_REFRESH_MS)
-                await saveIdeasToSupabase(data.ideas)
-              }
-            }).catch(()=>{})
-        } else {
-          setIdeasRefreshCountdown(remaining)
-        }
-      }
-    }, 60000)
-    return () => clearInterval(interval)
-  }, [profile])
-
-  const saveIdeasToSupabase = async (ideasToSave: Idea[]) => {
-    if (!userId) return
-    // Delete old ideas for this user
-    await supabase.from('daily_ideas').delete().eq('user_id', userId)
-    // Insert new batch
-    const now = new Date().toISOString()
-    await supabase.from('daily_ideas').insert(
-      ideasToSave.map(idea => ({
-        user_id: userId, topic: idea.topic, title: idea.title,
-        hook: idea.hook, recommended: idea.recommended || false,
-        angle: idea.angle || null,
-        theme: idea.theme || null,
-        created_at: now,
-      }))
-    )
-  }
-
-  const formatCountdown = (ms: number) => {
-    const m = Math.floor(ms / 60000); const h = Math.floor(m / 60)
-    return h > 0 ? `${h}h${String(m % 60).padStart(2,'0')}` : `${m}m`
-  }
-
   const formatIdeasDate = (date: Date) => {
     const loc = lang === 'en' ? 'en-GB' : 'fr-FR'
     const sep = lang === 'en' ? ' at ' : ' à '
@@ -601,13 +567,14 @@ export default function Home() {
     setBatchLoading(true)
     setBatchPosts([])
     setBatchIndex(0)
-    const selectedTopics = ideas.filter((_,i) => selectedIdeaIds.has(i)).map(idea => idea.title)
+    const selectedIdeas = ideas.filter((_,i) => selectedIdeaIds.has(i))
     const results: {topic:string,content:string}[] = []
-    for (const topic of selectedTopics) {
+    for (const idea of selectedIdeas) {
+      const topic = idea.title
       try {
         const res = await authFetch('/api/generate', {
           method: 'POST',
-          body: JSON.stringify({ topic, format: batchFormat, length: batchLength, tone: batchTone, profile: {...profile, lang} })
+          body: JSON.stringify({ topic, format: batchFormat, length: batchLength, tone: batchTone, profile: {...profile, lang}, hook: idea.hook || '', plan: idea.angle || '' })
         })
         const data = await res.json()
         if (data.content) results.push({ topic, content: data.content })
@@ -633,20 +600,26 @@ export default function Home() {
         setIdeasNewsCount(data.newsCount || 0)
         const now = new Date()
         setIdeasGeneratedAt(now)
-        ideasLastRefresh.current = now.getTime()
-        setIdeasRefreshCountdown(IDEAS_REFRESH_MS)
-        await saveIdeasToSupabase(data.ideas)
-      } else showToast((lang==='en'?'Error: ':'Erreur : ')+(data.error||'unknown'))
+      } else showToast((lang==='en'?'Error: ':'Erreur : ')+(data.message||data.error||'unknown'))
     } catch { showToast(lang==='en'?'Network error':'Erreur réseau') }
     setLoadingIdeas(false)
   }
+
+  // Premiere ouverture du jour sans idees du jour : generation automatique, une seule fois.
+  useEffect(() => {
+    if (!ideasLoaded || autoIdeasDone.current || !isProfileComplete()) return
+    const today = new Date().toDateString()
+    if (ideasGeneratedAt && ideasGeneratedAt.toDateString() === today) { autoIdeasDone.current = true; return }
+    autoIdeasDone.current = true
+    generateIdeas()
+  }, [ideasLoaded, profile])
 
   const generate3Variants = async () => {
     const t = postTopic
     if (!t.trim()) { showToast(T('toast_enter_topic')); return }
     setLoadingPost(true); setPostOutput(''); setPostVariants([]); setActiveVariant(0); setAiImageUrl('')
     try {
-      const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variants:3,seed:postAngle}) })
+      const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile:{...profile,lang},variants:3,hook:postHook,plan:postAngle}) })
       const data = await res.json()
       const results: string[] = (data && Array.isArray(data.variants) && data.variants.length ? data.variants : (data && data.content ? [data.content] : [])).filter(Boolean)
       if (results.length > 0) { setPostVariants(results); setPostOutput(results[0]); setActiveVariant(0) }
@@ -668,7 +641,7 @@ export default function Home() {
     }
     setPostOutput('')
     try {
-      const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile: {...profile, lang}}) })
+      const res = await authFetch('/api/generate', { method:'POST', body:JSON.stringify({topic:t,format:postFormat,length:postLength,tone:postTone,profile: {...profile, lang},hook:postHook,plan:postAngle}) })
       const data = await res.json()
       if (data.error === 'LIMIT_REACHED') { setShowUpgradeModal(true); setLoadingPost(false); return }
       if (data.content) {
@@ -686,7 +659,7 @@ export default function Home() {
     } else {
       setLoadingPost(false)
     }
-  }, [postTopic,postFormat,postLength,postTone,profile,batchTopics,activeBatchTab])
+  }, [postTopic,postFormat,postLength,postTone,profile,batchTopics,activeBatchTab,postHook,postAngle])
 
   // ── Supabase: save post ──
   const saveIdea = async (idea: Idea) => {
@@ -1230,9 +1203,6 @@ export default function Home() {
           {ideasGeneratedAt && (
             <div style={{fontSize:11,color:'var(--text3)'}}>
               {lang==='en'?'Generated on':'Générées le'} {formatIdeasDate(ideasGeneratedAt)}
-              {ideasRefreshCountdown !== null && ideasRefreshCountdown > 0 && (
-                <span style={{marginLeft:8,color:'var(--indigo)'}}>{lang==='en'?'· Refresh in':'· Refresh dans'} {formatCountdown(ideasRefreshCountdown)}</span>
-              )}
               {ideasNewsCount > 0 && (
                 <span style={{marginLeft:8,color:'var(--text3)'}}>🗞️ {ideasNewsCount} {lang==='en'?'news used':'actus intégrées'}</span>
               )}
@@ -1254,8 +1224,12 @@ export default function Home() {
               <div style={{display:'flex',gap:8}}>
                 <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>setSelectedIdeaIds(new Set())}>{lang==='en'?'Deselect all':'Tout désélectionner'}</button>
                 <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>{
-                  const topics = ideas.filter((_,i)=>selectedIdeaIds.has(i)).map(idea=>idea.title)
+                  const picked = ideas.filter((_,i)=>selectedIdeaIds.has(i))
+                  const topics = picked.map(idea=>idea.title)
                   setBatchTopics(topics)
+                  setBatchMeta(picked.map(p=>({hook:p.hook||'',angle:p.angle||''})))
+                  setPostHook(picked[0]?.hook||'')
+                  setPostAngle(picked[0]?.angle||'')
                   setActiveBatchTab(0)
                   setBatchTabOutputs({})
                   setPostTopic(topics[0])
@@ -1278,9 +1252,9 @@ export default function Home() {
                     {idea.recommended && <span style={{fontSize:10,fontWeight:600,padding:'2px 8px',borderRadius:20,background:'rgba(168,120,79,0.12)',color:'var(--indigo)',border:'1px solid rgba(168,120,79,0.25)'}}>{T('recommended')}</span>}
                   </div>
                   <div className="idea-title">{idea.title}</div>
-                  <div className="idea-hook">{idea.hook}</div>{idea.angle && <div className="idea-angle" style={{fontSize:12,color:'var(--text3)',marginTop:6,paddingLeft:10,borderLeft:'2px solid rgba(61,82,160,0.25)',lineHeight:1.45}}><strong style={{color:'var(--indigo)',fontWeight:600}}>{lang==='en'?'Plan: ':'Plan : '}</strong>{idea.angle}</div>}
+                  <div className="idea-hook">{idea.hook}</div><IdeaPlan angle={idea.angle} lang={lang}/>
                   <div className="idea-actions">
-                    <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostAngle(idea.angle||'');setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
+                    <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostHook(idea.hook||'');setPostAngle(idea.angle||'');setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
                     <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>saveIdea(idea)}>{savedIdeas.some(s=>s.title===idea.title)?'★':'☆'} {lang==='en'?'Save':'Sauvegarder'}</button>
                   </div>
                 </div>
@@ -1482,7 +1456,7 @@ export default function Home() {
                     <div style={{fontSize:15,fontWeight:500,color:'var(--text1)',lineHeight:1.4,marginBottom:6}}>{idea.title}</div>
                     <div style={{fontSize:13,color:'var(--text2)',lineHeight:1.5,marginBottom:12}}>{idea.hook}</div>
                     <div style={{display:'flex',gap:6}}>
-                      <button className="btn btn-primary" style={{fontSize:10,padding:'5px 12px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
+                      <button className="btn btn-primary" style={{fontSize:10,padding:'5px 12px'}} onClick={()=>{setPostTopic(idea.title);setPostHook(idea.hook||'');setPostAngle(idea.angle||'');setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
                       <button className="btn btn-ghost" style={{fontSize:10,padding:'5px 12px'}} onClick={async()=>{
                         const{data:u}=await supabase.auth.getUser()
                         if(!u?.user)return
@@ -1577,6 +1551,8 @@ export default function Home() {
                     setAiVisualUrl(savedVisual?.url||'')
                     setActiveBatchTab(i)
                     setPostTopic(batchTopics[i])
+                    setPostHook(batchMeta[i]?.hook||'')
+                    setPostAngle(batchMeta[i]?.angle||'')
                     setPostOutput(batchTabOutputs[i]||'')
                     setPostVariants([])
                     setAiSvgContent(batchTabVisuals[i]?.svg||'')
@@ -1586,7 +1562,7 @@ export default function Home() {
                     {batchTabOutputs[i] && <span style={{marginLeft:4,fontSize:9,color:'#27ae60'}}>✓</span>}
                   </button>
                 ))}
-                <button onClick={()=>{setBatchTopics([]);setBatchTabOutputs({});setBatchTabConfigs({});setBatchTabVisuals({});setActiveBatchTab(0);setAiSvgContent('');setAiVisualUrl('')}} style={{fontSize:10,padding:'4px 8px',borderRadius:6,border:'1px solid var(--border)',background:'transparent',color:'var(--text3)',cursor:'pointer',fontFamily:'inherit',marginLeft:'auto'}}>✕ {lang==='en'?'Close':'Fermer'}</button>
+                <button onClick={()=>{setBatchTopics([]);setBatchMeta([]);setBatchTabOutputs({});setBatchTabConfigs({});setBatchTabVisuals({});setActiveBatchTab(0);setAiSvgContent('');setAiVisualUrl('')}} style={{fontSize:10,padding:'4px 8px',borderRadius:6,border:'1px solid var(--border)',background:'transparent',color:'var(--text3)',cursor:'pointer',fontFamily:'inherit',marginLeft:'auto'}}>✕ {lang==='en'?'Close':'Fermer'}</button>
               </div>
             )}
             <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:16,alignItems:'start'}} className="rediger-grid">
@@ -1596,6 +1572,16 @@ export default function Home() {
                   <label className="form-label">{T('subject_label')}</label>
                   <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopicWithSave(e.target.value)} placeholder={T('subject_placeholder')}/>
                 </div>
+                {(postAngle || postHook) && (
+                  <div style={{marginBottom:10,padding:'10px 12px',background:'rgba(61,82,160,0.04)',border:'1px solid rgba(61,82,160,0.15)',borderRadius:8}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+                      <span style={{fontSize:11,fontWeight:600,color:'var(--indigo)'}}>{lang==='en'?'Idea plan (used for writing)':"Plan de l'idée (utilisé pour la rédaction)"}</span>
+                      <button onClick={()=>{setPostHook('');setPostAngle('')}} style={{fontSize:10,border:'none',background:'transparent',color:'var(--text3)',cursor:'pointer',fontFamily:'inherit'}}>✕ {lang==='en'?'Remove':'Retirer'}</button>
+                    </div>
+                    {postHook && <div style={{fontSize:12,color:'var(--text1)',fontStyle:'italic' as const,lineHeight:1.45}}>« {postHook} »</div>}
+                    <IdeaPlan angle={postAngle} lang={lang}/>
+                  </div>
+                )}
                 <div className="form-group" style={{marginBottom:10}}>
                     <label className="form-label">{T('format_label')}</label>
                     <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
@@ -1941,7 +1927,7 @@ export default function Home() {
                 <button className="btn btn-ghost" style={{fontSize:13,padding:'5px 10px'}} onClick={()=>moveCalendar(1)}>→</button>
                 <button className="btn btn-ghost" style={{fontSize:11}} onClick={()=>setCalDate(new Date())}>{T('today_btn')}</button>
               </div>
-              <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>setPage('rediger')}>{T('new_post_btn')}</button>
+              <button className="btn btn-primary" style={{fontSize:12}} onClick={()=>{setPostHook('');setPostAngle('');setPage('rediger')}}>{T('new_post_btn')}</button>
             </div>
 
             {/* Vue Semaine */}
@@ -2069,7 +2055,7 @@ export default function Home() {
                     </div>
                   )}
                   <div style={{display:'flex',gap:8}}>
-                    <button className="btn btn-secondary" style={{fontSize:12,flex:1,justifyContent:'center'}} onClick={()=>{setPostOutput(selectedCalPost.content);setPostTopic(selectedCalPost.topic);setPage('rediger');setSelectedCalPost(null)}}>{T('edit_post_btn')}</button>
+                    <button className="btn btn-secondary" style={{fontSize:12,flex:1,justifyContent:'center'}} onClick={()=>{setPostHook('');setPostAngle('');setPostOutput(selectedCalPost.content);setPostTopic(selectedCalPost.topic);setPage('rediger');setSelectedCalPost(null)}}>{T('edit_post_btn')}</button>
                     {selectedCalPost.status==='pending'&&(
                       <button className="btn btn-ghost" style={{fontSize:12,color:'#c0392b',flex:1,justifyContent:'center'}} onClick={()=>{if(window.confirm(lang==='en'?'Cancel this scheduled post?':'Annuler ce post planifié ?')){cancelScheduled(selectedCalPost.id);setSelectedCalPost(null)}}}>{T('cancel_post_btn')}</button>
                     )}
@@ -2112,7 +2098,7 @@ export default function Home() {
                     <div className="idea-title">{idea.title}</div>
                     <div className="idea-hook">{idea.hook}</div>
                     <div className="idea-actions">
-                      <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
+                      <button className="btn btn-primary" style={{fontSize:12,padding:'7px 13px'}} onClick={()=>{setPostTopic(idea.title);setPostHook(idea.hook||'');setPostAngle(idea.angle||'');setPostOutput('');setAiImageUrl('');setPage('rediger')}}>{T('develop')}</button>
                       <button className="btn btn-ghost" onClick={()=>copyText(idea.title+'\n\n'+(idea.hook||''))}>{T('copy')}</button>
                       <button className="btn btn-ghost" style={{fontSize:11,color:'#c0392b'}} onClick={()=>deleteSavedIdea(undefined,idea.title)}>🗑</button>
                     </div>
@@ -2171,8 +2157,8 @@ export default function Home() {
                 {/* Actions */}
                 <div style={{display:'flex',gap:7,flexWrap:'wrap' as const}}>
                   <button className="btn btn-secondary" style={{fontSize:12}} onClick={()=>copyText(p.content)}>{T('copy_post_btn')}</button>
-                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);if(p.visual_base64){setAiImageUrl('data:image/png;base64,'+p.visual_base64)}else{setAiImageUrl('')};setPage('rediger')}}>{T('use_post')}</button>
-                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostOutput(p.content);setPostTopic(p.topic);setPage('calendrier');setTimeout(()=>document.getElementById('new-post-btn')?.click(),100)}}>{T('schedule_from_lib')}</button>
+                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostHook('');setPostAngle('');setPostOutput(p.content);setPostTopic(p.topic);if(p.visual_base64){setAiImageUrl('data:image/png;base64,'+p.visual_base64)}else{setAiImageUrl('')};setPage('rediger')}}>{T('use_post')}</button>
+                  <button className="btn btn-ghost" style={{fontSize:12}} onClick={()=>{setPostHook('');setPostAngle('');setPostOutput(p.content);setPostTopic(p.topic);setPage('calendrier');setTimeout(()=>document.getElementById('new-post-btn')?.click(),100)}}>{T('schedule_from_lib')}</button>
                 </div>
               </div>
             ))}
@@ -2616,8 +2602,8 @@ export default function Home() {
                 <div className="form-group" style={{marginBottom:12}}>
                   <label className="form-label">{lang==='en'?'Format':'Format'}</label>
                   <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
-                    {['storytelling','liste','conseils','prise_de_position','inspiration','etude_de_cas'].map(f=>(
-                      <span key={f} className={`chip ${batchFormat===f?'on':''}`} onClick={()=>setBatchFormat(f)} style={{fontSize:11,padding:'4px 11px',cursor:'pointer'}}>{f.charAt(0).toUpperCase()+f.slice(1).replace(/_/g,' ')}</span>
+                    {['educational','alert','opinion','story','list'].map(f=>(
+                      <span key={f} className={`chip ${batchFormat===f?'on':''}`} onClick={()=>setBatchFormat(f)} style={{fontSize:11,padding:'4px 11px',cursor:'pointer'}}>{fmtLabels[f]||f}</span>
                     ))}
                   </div>
                 </div>

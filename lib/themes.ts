@@ -1,6 +1,6 @@
 // lib/themes.ts
 // Taxonomie de themes de fond, volontairement generique pour couvrir
-// tous les secteurs. Sert a garantir la rotation thematique des idees.
+// tous les secteurs. Sert a varier les idees d'un jour a l'autre.
 
 export const THEMES = [
   'reglementation_conformite',
@@ -22,11 +22,14 @@ export const THEMES = [
 
 export type Theme = typeof THEMES[number]
 
-// Nombre d'idees sur un meme theme au-dela duquel on le considere sature.
-export const SATURATION_THRESHOLD = 3
+// Fenetre d'analyse de l'usage des themes.
+export const THEME_WINDOW_DAYS = 30
 
-// Fenetre glissante : au-dela, un theme redevient disponible.
-export const HISTORY_DAYS = 90
+// Nombre de themes les plus utilises a eviter lors d'une generation.
+export const AVOID_TOP_N = 3
+
+// Fenetre pour les sujets deja publies (posts sauvegardes / planifies).
+export const WRITTEN_WINDOW_DAYS = 90
 
 const STOP_WORDS = new Set([
   'le', 'la', 'les', 'de', 'des', 'du', 'un', 'une', 'et', 'en', 'pour',
@@ -59,75 +62,45 @@ export function tooClose(a: string, b: string): boolean {
   return false
 }
 
-export type IdeaLike = { topic?: string; title?: string; theme?: string; recommended?: boolean }
+export type IdeaLike = { topic?: string; title?: string; hook?: string; angle?: string; theme?: string; recommended?: boolean }
 
 export type ThemeContext = {
-  saturated: string[]
-  untouched: string[]
-  writtenTopics: string[]
+  avoid: string[]          // themes les plus utilises recemment (a eviter)
+  writtenTopics: string[]  // sujets deja publies par l'utilisateur
+  recentTitles: string[]   // titres d'idees deja proposees recemment
 }
 
-// Construit le bloc de contraintes injecte dans le prompt.
-export function buildThemeBlock(ctx: ThemeContext, isEn = false): string {
-  const parts: string[] = []
-
-  if (ctx.untouched.length) {
-    parts.push(
-      isEn
-        ? `THEMES NEVER COVERED (prioritize — at least 6 of the ideas must come from this list):\n${ctx.untouched.join(', ')}`
-        : `THEMES JAMAIS TRAITES (a privilegier — au moins 6 idees doivent en venir) :\n${ctx.untouched.join(', ')}`
-    )
-  }
-
-  if (ctx.saturated.length) {
-    parts.push(
-      isEn
-        ? `SATURATED THEMES (forbidden, already covered extensively):\n${ctx.saturated.join(', ')}`
-        : `THEMES SATURES (interdits, deja largement couverts) :\n${ctx.saturated.join(', ')}`
-    )
-  }
-
-  if (ctx.writtenTopics.length) {
-    parts.push(
-      isEn
-        ? `SUBJECTS THE USER ALREADY PUBLISHED (never suggest these again, not even from a different angle):\n${ctx.writtenTopics.map((t) => `- ${t}`).join('\n')}`
-        : `SUJETS DEJA PUBLIES PAR L'UTILISATEUR (ne jamais reproposer, meme sous un autre angle) :\n${ctx.writtenTopics.map((t) => `- ${t}`).join('\n')}`
-    )
-  }
-
-  return parts.length ? parts.join('\n\n') + '\n\n' : ''
+// Classe les themes par usage et renvoie les N plus utilises.
+export function topThemes(counts: Record<string, number>, n = AVOID_TOP_N): string[] {
+  return Object.entries(counts)
+    .filter(([t, c]) => c > 0 && (THEMES as readonly string[]).includes(t))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([t]) => t)
 }
 
 // Filtre et reordonne les idees generees.
 // Ne renvoie jamais moins que `minCount` : les idees ecartees servent de
 // complement si le filtrage est trop agressif.
-export function rankIdeas(
-  ideas: IdeaLike[],
-  ctx: ThemeContext,
-  minCount: number
-): IdeaLike[] {
-  const saturated = new Set(ctx.saturated)
-
+export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number): IdeaLike[] {
+  const avoid = new Set(ctx.avoid)
   const kept: IdeaLike[] = []
   const rejected: IdeaLike[] = []
+  const usedThemes = new Set<string>()
 
   for (const idea of ideas) {
     const label = `${idea.topic || ''} ${idea.title || ''}`
-    const duplicate = ctx.writtenTopics.some((t) => tooClose(t, label))
-    if (duplicate || (idea.theme && saturated.has(idea.theme))) {
+    const duplicate =
+      ctx.writtenTopics.some((t) => tooClose(t, label)) ||
+      ctx.recentTitles.some((t) => tooClose(t, idea.title || ''))
+    const themeClash = !!idea.theme && (avoid.has(idea.theme) || usedThemes.has(idea.theme))
+    if (duplicate || themeClash) {
       rejected.push(idea)
     } else {
       kept.push(idea)
+      if (idea.theme) usedThemes.add(idea.theme)
     }
   }
-
-  // Themes vierges en premier
-  const untouched = new Set(ctx.untouched)
-  kept.sort((a, b) => {
-    const sa = a.theme && untouched.has(a.theme) ? 0 : 1
-    const sb = b.theme && untouched.has(b.theme) ? 0 : 1
-    return sa - sb
-  })
 
   const out = kept.concat(rejected).slice(0, Math.max(minCount, kept.length))
   return out.map((idea, i) => ({ ...idea, recommended: i < 2 }))

@@ -13,40 +13,6 @@ const supabaseAdmin = createClient(
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-// Rate limiting — max 20 générations par heure par user
-const generateRateLimit = new Map<string, {count: number, reset: number}>()
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now()
-  const limit = generateRateLimit.get(userId)
-  if (!limit || now > limit.reset) {
-    generateRateLimit.set(userId, { count: 1, reset: now + 3600_000 })
-    return true
-  }
-  if (limit.count >= 20) return false
-  limit.count++
-  return true
-}
-
-async function fetchNews(sector: string, topic: string, isEn: boolean): Promise<string> {
-  try {
-    const queryTopic = encodeURIComponent(topic.split(' ').slice(0, 4).join(' '))
-    const querySector = encodeURIComponent(sector.split(' ').slice(0, 2).join(' '))
-    const [r1, r2] = await Promise.all([
-      fetch(`https://newsapi.org/v2/everything?q=${queryTopic}&language=${isEn?'en':'fr'}&sortBy=publishedAt&pageSize=3&apiKey=${process.env.NEWS_API_KEY}`),
-      fetch(`https://newsapi.org/v2/everything?q=${querySector}&language=${isEn?'en':'fr'}&sortBy=publishedAt&pageSize=2&apiKey=${process.env.NEWS_API_KEY}`),
-    ])
-    const [d1, d2] = await Promise.all([r1.json(), r2.json()])
-    const seen = new Set<string>()
-    const articles = [...(d1.articles||[]), ...(d2.articles||[])]
-      .filter((a: {title:string}) => { if(seen.has(a.title)) return false; seen.add(a.title); return true; })
-      .slice(0, 4)
-    if (!articles.length) return ''
-    return articles.map((a: {title:string; description:string; source:{name:string}}) =>
-      `- [${a.source?.name||'Source'}] ${a.title}${a.description ? ' : ' + a.description.slice(0,120) : ''}`
-    ).join('\n')
-  } catch { return '' }
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end()
 
@@ -55,8 +21,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (!(await rateLimitHit('gen:' + userId, 20, 3600))) return res.status(429).json({ error: 'RATE_LIMIT', message: 'Limite de 20 générations par heure atteinte.' })
 
-  const { topic, format, length, tone, profile, seed, improvement, previousPost, variant = 0 } = req.body
+  const { topic, format, length, tone, profile, seed, hook, plan, variant = 0 } = req.body
   if (topic && topic.length > 500) return res.status(400).json({ error: 'Sujet trop long (max 500 car.)' })
+  const ideaHook = typeof hook === 'string' ? hook.trim().slice(0, 300) : ''
+  const ideaPlan = (typeof plan === 'string' ? plan : typeof seed === 'string' ? seed : '').trim().slice(0, 1200)
 
   const formatMap: Record<string, string> = {
     educational: 'post éducatif avec conseil actionnable',
@@ -77,8 +45,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const audience = profile?.audience || 'Professionnels LinkedIn'
   const summary = profile?.summary || ''
   const keywords = profile?.keywords || ''
-  const profileTone = profile?.tone || ''
-  const contentThemes = profile?.content_themes || ''
   const painPoints = profile?.pain_points || ''
   const techStack = profile?.tech_stack || ''
   const isEn = (profile?.lang || 'fr') === 'en'
@@ -166,7 +132,6 @@ ${newsContext}
     + formalityInstruction + '\n\n'
     + styleSection + '\n\n'
     + 'Langue : ' + lang + '. ' + langInstruction + variantInstruction + '\n'
-    + (seed ? 'Angle : ' + seed + '\n' : '')
     + 'Réponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
 
   // Vérification plan Free (5 posts à vie)
@@ -187,6 +152,8 @@ ${newsContext}
   try {
     const nbVariants = Math.min(Math.max(Number((req.body as any)?.variants) || 1, 1), 3)
     const baseInstruction = 'Redige un ' + (formatMap[format] || formatMap.educational) + ' sur : "' + topic + '"\nLongueur : ' + (lengthMap[length] || lengthMap.medium) + '\nTon : ' + (tone || 'expert')
+      + (ideaHook ? '\nAccroche proposee (tu peux l\'ameliorer, garde l\'idee) : ' + ideaHook : '')
+      + (ideaPlan ? '\nPlan a suivre :\n' + ideaPlan.split('\n').map((l: string, i: number) => (i + 1) + '. ' + l.trim()).join('\n') : '')
     const userMessage = nbVariants > 1
       ? baseInstruction + '\n\nProduis ' + nbVariants + ' VARIANTES DISTINCTES de ce post, pensees ensemble pour ne PAS se ressembler : angle different, type d\'accroche different, structure differente (par ex. une prise de position tranchee, une histoire de terrain, une statistique choc). Chaque variante doit etre publiable telle quelle. Separe CHAQUE variante par une ligne contenant UNIQUEMENT :\n---VARIANTE---\nNe numerote pas, n\'ajoute ni titre ni commentaire : juste les posts separes par ce delimiteur.'
       : baseInstruction
