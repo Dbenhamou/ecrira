@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Vérification plan Pro pour planifier
   const { data: userPlan } = await supabase.from('profiles').select('plan, trial_ends_at, linkedin_token_expiry').eq('id', userId).single()
   const trialActive = userPlan?.plan === 'trial' && userPlan?.trial_ends_at && new Date(userPlan.trial_ends_at) > new Date()
-  const isPro = userPlan?.plan === 'pro' || trialActive
+  const isPro = userPlan?.plan === 'pro' || userPlan?.plan === 'pro_agency' || trialActive
   if (!isPro) return res.status(403).json({ error: 'UPGRADE_REQUIRED', message: 'La planification requiert le plan Pro.' })
 
   // Supprimer un post planifié

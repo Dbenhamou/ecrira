@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js'
 import { requireAuth } from '../../lib/auth-helper'
 import { fetchSectorNews, formatNewsBlock } from '../../lib/news'
 import { rateLimitHit } from '../../lib/rateLimit'
+import { keywordsOf } from '../../lib/themes'
 
 const DAILY_LIMIT = 20
 const supabaseAdmin = createClient(
@@ -88,19 +89,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       + "Tu DOIS produire un post qui ressemble stylistiquement a ces exemples. Un lecteur habituel de ses posts doit reconnaitre son style."
   } else {
     styleSection = 'Style obligatoire :\n'
-      + '- Phrases courtes et percutantes\n'
-      + '- Structure avec emojis et fleches (→, ↳, ▸)\n'
-      + '- Numeros pour les listes d\'actions\n'
-      + '- Hook fort dans les 2 premieres lignes\n'
-      + '- 3 a 5 hashtags seulement a la toute fin\n'
-      + "- Adapte le vocabulaire et les exemples au secteur de l'utilisateur"
+      + '- Ecris comme un professionnel qui parle a un pair, pas comme une publicite\n'
+      + '- Phrases courtes, mais rythme varie (pas une phrase par ligne tout le long)\n'
+      + '- 0 a 2 emojis maximum dans tout le post, aucun symbole decoratif (pas de fleches ni de puces fantaisie)\n'
+      + '- Numeros uniquement si le format est une liste\n'
+      + '- Accroche forte dans les 2 premieres lignes\n'
+      + '- 3 hashtags maximum a la toute fin\n'
+      + "- Vocabulaire et exemples concrets du secteur de l'utilisateur"
   }
 
-  // Fetch actualités liées au sujet
-  const newsArticles = await fetchSectorNews({ sector, keywords: [topic, sector].filter(Boolean).join(', '), lang: profile?.lang, days: 14, limit: 5 })
+  // Actus : uniquement celles qui parlent vraiment du sujet du post
+  // (au moins 2 mots significatifs en commun), sinon aucune.
+  const topicWords = new Set(keywordsOf(`${topic || ''} ${ideaHook}`))
+  const rawNews = topicWords.size
+    ? await fetchSectorNews({ sector, keywords, lang: profile?.lang, days: 7, limit: 10 })
+    : []
+  const newsArticles = rawNews
+    .filter((a) => keywordsOf(a.title).filter((w) => topicWords.has(w)).length >= 2)
+    .slice(0, 3)
   const newsContext = formatNewsBlock(newsArticles)
-  const newsBlock = newsContext ? `=== ACTUALITÉS RÉCENTES SUR CE SUJET ===
-Ces informations sont réelles et vérifiées. Tu PEUX t'en inspirer pour ancrer le post dans l'actualité.
+  const newsBlock = newsContext ? `=== ACTUALITÉS LIÉES AU SUJET (facultatif) ===
+Utilise une de ces actualités UNIQUEMENT si elle sert directement le sujet du post. Sinon, ignore-les complètement.
 ${newsContext}
 === FIN ACTUALITÉS ===
 
@@ -123,12 +132,13 @@ ${newsContext}
     + 'Pour le futur proche, parle de ' + currentYear + ' ou ' + (currentYear + 1) + '.\n'
     + '\n=== RÈGLES ABSOLUES ===\n'
     + '1. AUDIENCE : Chaque phrase doit résonner avec "' + audience + '". Parle LEURS problèmes, LEUR vocabulaire, LEURS enjeux spécifiques.\n'
-    + '2. CHIFFRES : Utilise uniquement des chiffres issus des actualités fournies ci-dessus ou de faits vérifiables. Si incertain, reformule sans chiffre plutôt que d\'inventer.\n'
-    + '3. TENSION : Commence par un fait contre-intuitif, une statistique réelle ou une situation concrète. Jamais de généralités en ouverture.\n'
-    + '4. VOIX : 1ère personne (je/nous). Point de vue tranché et assumé. Pas de conseils génériques.\n'
-    + '5. FORMAT : Phrases courtes. Retours à la ligne fréquents. Jamais de ** ni Markdown. Texte brut LinkedIn.\n'
-    + '6. HASHTAGS : 3-5 maximum, à la toute fin.\n'
-    + '7. SPÉCIFICITÉ : privilégie les noms d\'outils réels, normes/incidents nommés, chiffres et exemples datés. Bannis les formules passe-partout ("dans un monde où", "aujourd\'hui plus que jamais", "à l\'ère du...").\n'
+    + '2. CHIFFRES : AUCUN chiffre, pourcentage, montant ou étude inventé. Un chiffre n\'est autorisé que s\'il figure dans les actualités ci-dessus. En cas de doute, pas de chiffre.\n'
+    + '3. OUVERTURE : commence par une situation concrète, une observation de terrain ou une question précise. Jamais de généralité ni de statistique en ouverture.\n'
+    + '4. VOIX : 1ère personne (je/nous), ton d\'un praticien qui partage son expérience. Pas de conseils génériques, pas de ton de coach.\n'
+    + '5. FORMAT : texte brut LinkedIn, jamais de ** ni Markdown. Paragraphes de 1 à 3 phrases.\n'
+    + '6. HASHTAGS : 3 maximum, à la toute fin.\n'
+    + '7. SPÉCIFICITÉ : exemples concrets du métier (outils, situations clients, erreurs réelles). Ne cite une entreprise ou un produit que si le sujet en parle.\n'
+    + '8. TICS INTERDITS (ils font « texte d\'IA ») : « dans un monde où », « aujourd\'hui plus que jamais », « à l\'ère de », « et si », « spoiler », « le vrai problème », « la vérité, c\'est que », « personne n\'en parle », « ce n\'est pas X, c\'est Y », « game changer », « levier », « véritable », « crucial », « en résumé », « Qu\'en pensez-vous ? » en conclusion. Pas de question rhétorique suivie de sa réponse. Pas de tirets cadratins (—).\n'
     + formalityInstruction + '\n\n'
     + styleSection + '\n\n'
     + 'Langue : ' + lang + '. ' + langInstruction + variantInstruction + '\n'
@@ -142,7 +152,7 @@ ${newsContext}
     .single()
 
   const trialActive = userProfile?.plan === 'trial' && !!userProfile?.trial_ends_at && new Date(userProfile.trial_ends_at) > new Date()
-  const isPro = userProfile?.plan === 'pro' || trialActive
+  const isPro = userProfile?.plan === 'pro' || userProfile?.plan === 'pro_agency' || trialActive
   const postsCount = userProfile?.posts_count_this_month ?? 0
 
   if (!isPro && postsCount >= 5) {

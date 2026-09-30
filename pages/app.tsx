@@ -441,7 +441,7 @@ export default function Home() {
           const { createClient } = await import('@supabase/supabase-js')
           const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!)
           const { data } = await sb.from('profiles').select('plan').eq('id', userId).single()
-          if (data?.plan === 'pro' || retries >= 5) {
+          if (data?.plan === 'pro' || data?.plan === 'pro_agency' || retries >= 5) {
             window.history.replaceState({}, '', '/');
             window.location.reload();
           } else {

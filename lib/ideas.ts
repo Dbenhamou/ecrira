@@ -11,6 +11,7 @@ import {
   topThemes,
   rankIdeas,
   keywordsOf,
+  tooClose,
   type ThemeContext,
   type IdeaLike,
 } from './themes'
@@ -19,6 +20,13 @@ import { fetchSectorNews, formatNewsBlock, type NewsArticle } from './news'
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export const IDEAS_PER_DAY = 10
+// On en demande plus a l'IA pour pouvoir ecarter doublons et formules.
+const OVERSAMPLE = 6
+// Memoire des idees deja proposees (anti-repetition).
+const RECENT_TITLES_DAYS = 21
+// Actus : uniquement tres recentes, et au plus 2 idees par jour.
+const NEWS_DAYS = 3
+const MAX_NEWS_IDEAS = 2
 
 export type GeneratedIdea = {
   topic: string
@@ -35,11 +43,11 @@ export async function loadThemeContext(supabase: SupabaseClient, userId: string)
   try {
     const sinceThemes = new Date(Date.now() - THEME_WINDOW_DAYS * 86400_000).toISOString()
     const sinceWritten = new Date(Date.now() - WRITTEN_WINDOW_DAYS * 86400_000).toISOString()
-    const sinceTitles = new Date(Date.now() - 7 * 86400_000).toISOString()
+    const sinceTitles = new Date(Date.now() - RECENT_TITLES_DAYS * 86400_000).toISOString()
 
     const [hist, titles, saved, scheduled] = await Promise.all([
       supabase.from('topic_history').select('theme').eq('user_id', userId).gte('created_at', sinceThemes).limit(2000),
-      supabase.from('topic_history').select('title').eq('user_id', userId).gte('created_at', sinceTitles).order('created_at', { ascending: false }).limit(40),
+      supabase.from('topic_history').select('title').eq('user_id', userId).gte('created_at', sinceTitles).order('created_at', { ascending: false }).limit(250),
       supabase.from('saved_posts').select('topic').eq('user_id', userId).gte('created_at', sinceWritten).limit(120),
       supabase.from('scheduled_posts').select('topic').eq('user_id', userId).gte('created_at', sinceWritten).limit(120),
     ])
@@ -133,13 +141,17 @@ export async function generateIdeas(opts: {
   const year = new Date().getFullYear()
 
   const [rawNews, ctx] = await Promise.all([
-    fetchSectorNews({ sector, keywords, lang: profile?.lang, limit: 12 }),
+    fetchSectorNews({ sector, keywords, lang: profile?.lang, limit: 12, days: NEWS_DAYS }),
     loadThemeContext(supabase, userId),
   ])
-  const news = relevantNews(rawNews, sector, keywords).slice(0, 8)
+  // On retire les actus deja exploitees ces 21 derniers jours (meme article
+  // ou meme entreprise : "Ingram Micro", "HarfangLab"...).
+  const news = relevantNews(rawNews, sector, keywords)
+    .filter((a) => !ctx.recentTitles.some((t) => tooClose(t, a.title)))
+    .slice(0, 5)
   const newsBlock = formatNewsBlock(news)
 
-  const alreadyProposed = Array.from(new Set([...(opts.pastTitles || []), ...ctx.recentTitles])).slice(0, 40)
+  const alreadyProposed = Array.from(new Set([...(opts.pastTitles || []), ...ctx.recentTitles])).slice(0, 60)
   const allowedThemes = THEMES.filter((t) => !ctx.avoid.includes(t))
   const examples = styleExamples(profile?.writing_style)
 
@@ -153,13 +165,15 @@ Audience : ${audience}
 ${keywords ? `Expertise : ${keywords}` : ''}
 ${examples ? `\nSES POSTS (pour comprendre ses sujets et son angle, ne pas recopier) :\n${examples}\n` : ''}`
 
-  const user = `${newsBlock ? `ACTUALITÉS RÉCENTES DU SECTEUR :\n${newsBlock}\n\n` : ''}${alreadyProposed.length ? `DÉJÀ PROPOSÉS (ne pas reproposer, même reformulé) :\n${alreadyProposed.map((t) => `- ${t}`).join('\n')}\n\n` : ''}${ctx.writtenTopics.length ? `DÉJÀ PUBLIÉS PAR L'UTILISATEUR (exclus) :\n${ctx.writtenTopics.slice(0, 30).map((t) => `- ${t}`).join('\n')}\n\n` : ''}Propose exactement ${count} idées de posts LinkedIn. Nous sommes en ${year}.
+  const user = `${newsBlock ? `ACTUALITÉS RÉCENTES DU SECTEUR :\n${newsBlock}\n\n` : ''}${alreadyProposed.length ? `DÉJÀ PROPOSÉS (ne pas reproposer, même reformulé) :\n${alreadyProposed.map((t) => `- ${t}`).join('\n')}\n\n` : ''}${ctx.writtenTopics.length ? `DÉJÀ PUBLIÉS PAR L'UTILISATEUR (exclus) :\n${ctx.writtenTopics.slice(0, 30).map((t) => `- ${t}`).join('\n')}\n\n` : ''}Propose exactement ${count + OVERSAMPLE} idées de posts LinkedIn. Nous sommes en ${year}.
 
-4 RÈGLES :
-1. MÉTIER : chaque idée parle directement du quotidien, des clients ou des enjeux de ce professionnel et de son audience. Rien de générique.
-2. FAITS : aucun pourcentage, montant ou statistique inventé. Un chiffre n'est autorisé que s'il figure dans une actualité ci-dessus. Maximum 2 idées de type prédiction ou « ${year + 1} : ... ».
-3. ACTU : ${newsBlock ? `jusqu'à 4 idées peuvent partir d'une actualité ci-dessus, uniquement si elle concerne vraiment ce métier. Ignore les actus hors sujet.` : 'pas d\'actualité disponible : reste sur du vécu terrain, des méthodes et des prises de position.'}
-4. VARIÉTÉ : un thème différent par idée, et des types d'accroche variés (prise de position, histoire terrain, erreur fréquente, question, conseil concret, coulisses).
+6 RÈGLES :
+1. MÉTIER : chaque idée parle directement du quotidien, des clients ou des enjeux de ce professionnel et de son audience. Rien de générique ni de philosophique (pas de réflexions vagues sur les réunions, le silence, la productivité...).
+2. FAITS : aucun pourcentage, montant ou statistique inventé. Un chiffre n'est autorisé que s'il figure dans une actualité ci-dessus. Au maximum 1 idée de type prédiction (« ${year + 1} : ... »).
+3. ACTU : ${newsBlock ? `au maximum ${MAX_NEWS_IDEAS} idées peuvent partir d'une actualité ci-dessus, chacune sur une actu DIFFÉRENTE, uniquement si elle concerne vraiment ce métier. Toutes les autres idées viennent du terrain.` : 'pas d\'actualité disponible : reste sur du vécu terrain, des méthodes et des prises de position.'}
+4. VARIÉTÉ : un thème différent par idée, et des types d'accroche variés (histoire terrain, erreur fréquente, question, conseil concret, coulisses, prise de position). Deux titres ne commencent jamais par les mêmes mots.
+5. FORMULES INTERDITES dans les titres et accroches : « l'illusion de », « le vrai problème », « la vraie raison », « personne ne », « ce n'est pas X, c'est Y », « et si ».
+6. NOUVEAUTÉ : aucune idée proche de la liste « DÉJÀ PROPOSÉS », même avec d'autres mots. Cherche des angles concrets et inattendus.
 
 THÈMES AUTORISÉS (valeur exacte) : ${allowedThemes.join(', ')}
 
@@ -177,7 +191,7 @@ Réponds UNIQUEMENT avec un tableau JSON valide :
 
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 3500,
+    max_tokens: 5000,
     system,
     messages: [{ role: 'user', content: user }],
   })

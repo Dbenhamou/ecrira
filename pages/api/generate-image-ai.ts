@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Plan lu en base (jamais depuis le body : sinon contournable)
   const { data: dbProfile } = await supabaseAdmin.from('profiles').select('plan, trial_ends_at').eq('id', userId).single()
   const trialActive = dbProfile?.plan === 'trial' && !!dbProfile?.trial_ends_at && new Date(dbProfile.trial_ends_at) > new Date()
-  const isPro = dbProfile?.plan === 'pro' || trialActive
+  const isPro = dbProfile?.plan === 'pro' || dbProfile?.plan === 'pro_agency' || trialActive
   if (!isPro) return res.status(403).json({ error: 'PRO_ONLY', message: 'Les visuels IA sont réservés au plan Pro.' })
 
   const imgLimit = trialActive ? 3 : 10

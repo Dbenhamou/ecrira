@@ -36,7 +36,7 @@ export function usePlan(userId: string | null): PlanState {
 
       const postsCount = data.posts_count_this_month ?? 0;
       const trialActive = data.plan === 'trial' && data.trial_ends_at && new Date(data.trial_ends_at) > new Date();
-      const plan: Plan = data.plan === 'pro' ? 'pro' : trialActive ? 'trial' : 'free';
+      const plan: Plan = (data.plan === 'pro' || data.plan === 'pro_agency') ? 'pro' : trialActive ? 'trial' : 'free';
       const isPro = plan === 'pro' || plan === 'trial';
       const trialDaysLeft = trialActive ? Math.ceil((new Date(data.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
       const canGenerate = isPro || postsCount < 5;

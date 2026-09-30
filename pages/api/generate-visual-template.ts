@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
 import { requireAuth } from '../../lib/auth-helper'
+import { isProUser } from '../../lib/serverPlan'
 import sharp from 'sharp'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -217,7 +218,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { postContent, profile, templateType, hideWatermark } = req.body
   if (!postContent?.trim()) return res.status(400).json({ error: 'Contenu du post manquant' })
 
-  const isPro = profile?.plan === 'pro' || profile?.plan === 'trial'
+  const isPro = await isProUser(userId)
   if (!isPro) return res.status(403).json({ error: 'PRO_ONLY', message: 'Les visuels sont reserves au plan Pro.' })
 
   const imgLimit = profile?.plan === 'trial' ? 3 : 10

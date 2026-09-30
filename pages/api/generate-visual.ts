@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import Anthropic from '@anthropic-ai/sdk'
 import { requireAuth } from '../../lib/auth-helper'
+import { isProUser } from '../../lib/serverPlan'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -23,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     visualCustomTitle = '',
   } = req.body
 
-  const isPro = req.body.isPro || profile?.plan === 'pro' || profile?.plan === 'trial'
+  const isPro = await isProUser(userId)
   const showWatermark = !(isPro && hideWatermark)
   const showCompanyLogo = req.body.showCompanyLogo || false
   const companyLogo = req.body.companyLogo || ''
