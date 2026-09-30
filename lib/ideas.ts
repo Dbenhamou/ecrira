@@ -12,6 +12,7 @@ import {
   rankIdeas,
   keywordsOf,
   tooClose,
+  learnOverused,
   type ThemeContext,
   type IdeaLike,
 } from './themes'
@@ -27,6 +28,10 @@ const RECENT_TITLES_DAYS = 21
 // Actus : uniquement tres recentes, et au plus 2 idees par jour.
 const NEWS_DAYS = 3
 const MAX_NEWS_IDEAS = 2
+// Fenetre d'apprentissage des formules / mots qui reviennent trop.
+const LEARN_DAYS = 7
+// En dessous de ce nombre d'idees neuves, on relance UNE fois la generation.
+export const MIN_FRESH = 7
 
 export type GeneratedIdea = {
   topic: string
@@ -38,7 +43,7 @@ export type GeneratedIdea = {
 }
 
 // ── Historique de l'utilisateur ──
-export async function loadThemeContext(supabase: SupabaseClient, userId: string): Promise<ThemeContext> {
+export async function loadThemeContext(supabase: SupabaseClient, userId: string, protectedText = ''): Promise<ThemeContext> {
   const empty: ThemeContext = { avoid: [], writtenTopics: [], recentTitles: [] }
   try {
     const sinceThemes = new Date(Date.now() - THEME_WINDOW_DAYS * 86400_000).toISOString()
@@ -47,7 +52,7 @@ export async function loadThemeContext(supabase: SupabaseClient, userId: string)
 
     const [hist, titles, saved, scheduled] = await Promise.all([
       supabase.from('topic_history').select('theme').eq('user_id', userId).gte('created_at', sinceThemes).limit(2000),
-      supabase.from('topic_history').select('title').eq('user_id', userId).gte('created_at', sinceTitles).order('created_at', { ascending: false }).limit(250),
+      supabase.from('topic_history').select('title, created_at').eq('user_id', userId).gte('created_at', sinceTitles).order('created_at', { ascending: false }).limit(250),
       supabase.from('saved_posts').select('topic').eq('user_id', userId).gte('created_at', sinceWritten).limit(120),
       supabase.from('scheduled_posts').select('topic').eq('user_id', userId).gte('created_at', sinceWritten).limit(120),
     ])
@@ -64,11 +69,18 @@ export async function loadThemeContext(supabase: SupabaseClient, userId: string)
     ].filter((t: string) => t && t.trim()).slice(0, 60)
 
     const recentTitles = (titles.data || []).map((r: any) => r.title).filter(Boolean)
+    const since7 = Date.now() - LEARN_DAYS * 86400_000
+    const lastWeek = (titles.data || [])
+      .filter((r: any) => r.title && new Date(r.created_at).getTime() >= since7)
+      .map((r: any) => r.title as string)
+    const overused = learnOverused(lastWeek, protectedText)
 
     return {
       avoid: topThemes(counts),
       writtenTopics: Array.from(new Set(writtenTopics)),
       recentTitles: Array.from(new Set(recentTitles)) as string[],
+      overusedOpeners: overused.openers,
+      overusedWords: overused.words,
     }
   } catch (e) {
     console.error('[ideas] loadThemeContext:', e)
@@ -128,7 +140,7 @@ export async function generateIdeas(opts: {
   profile: any
   count?: number
   pastTitles?: string[]
-}): Promise<{ ideas: GeneratedIdea[]; newsCount: number }> {
+}): Promise<{ ideas: GeneratedIdea[]; newsCount: number; freshCount: number }> {
   const { supabase, userId, profile } = opts
   const count = opts.count || IDEAS_PER_DAY
 
@@ -142,7 +154,7 @@ export async function generateIdeas(opts: {
 
   const [rawNews, ctx] = await Promise.all([
     fetchSectorNews({ sector, keywords, lang: profile?.lang, limit: 12, days: NEWS_DAYS }),
-    loadThemeContext(supabase, userId),
+    loadThemeContext(supabase, userId, `${sector} ${keywords} ${company}`),
   ])
   // On retire les actus deja exploitees ces 21 derniers jours (meme article
   // ou meme entreprise : "Ingram Micro", "HarfangLab"...).
@@ -171,7 +183,7 @@ ${examples ? `\nSES POSTS (pour comprendre ses sujets et son angle, ne pas recop
 1. MÉTIER : chaque idée parle directement du quotidien, des clients ou des enjeux de ce professionnel et de son audience. Rien de générique ni de philosophique (pas de réflexions vagues sur les réunions, le silence, la productivité...).
 2. FAITS : aucun pourcentage, montant ou statistique inventé. Un chiffre n'est autorisé que s'il figure dans une actualité ci-dessus. Au maximum 1 idée de type prédiction (« ${year + 1} : ... »).
 3. ACTU : ${newsBlock ? `au maximum ${MAX_NEWS_IDEAS} idées peuvent partir d'une actualité ci-dessus, chacune sur une actu DIFFÉRENTE, uniquement si elle concerne vraiment ce métier. Toutes les autres idées viennent du terrain.` : 'pas d\'actualité disponible : reste sur du vécu terrain, des méthodes et des prises de position.'}
-4. VARIÉTÉ : un thème différent par idée, et des types d'accroche variés (histoire terrain, erreur fréquente, question, conseil concret, coulisses, prise de position). Deux titres ne commencent jamais par les mêmes mots.
+4. VARIÉTÉ : un thème différent par idée, et des types d'accroche variés (histoire terrain, erreur fréquente, question, conseil concret, coulisses, prise de position). Deux titres ne commencent jamais par les mêmes mots. Varie aussi la forme des titres : question, affirmation, chiffre issu d'une actu, « Comment... », récit à la 1ère personne. Au maximum 3 titres sur le modèle « Phrase courte. Chute. ».
 5. FORMULES INTERDITES dans les titres et accroches : « l'illusion de », « le vrai problème », « la vraie raison », « personne ne », « ce n'est pas X, c'est Y », « et si ».
 6. NOUVEAUTÉ : aucune idée proche de la liste « DÉJÀ PROPOSÉS », même avec d'autres mots. Cherche des angles concrets et inattendus.
 
@@ -189,31 +201,56 @@ Classe les idées de la plus forte à la moins forte.
 Réponds UNIQUEMENT avec un tableau JSON valide :
 [{"topic":"...","title":"...","hook":"...","plan":["...","...","..."],"theme":"..."}]`
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 5000,
-    system,
-    messages: [{ role: 'user', content: user }],
-  })
+  // Mots et debuts de titre appris automatiquement (sans IA) sur 7 jours.
+  const learned = [...(ctx.overusedOpeners || []).map((o) => `« ${o}... »`), ...(ctx.overusedWords || [])]
+  const learnedBlock = learned.length
+    ? `DÉJÀ TROP UTILISÉS CES DERNIERS JOURS (à ne pas employer dans les titres) : ${learned.join(', ')}\n\n`
+    : ''
 
-  const raw = (message.content[0] as { text: string }).text || ''
-  const clean = raw.replace(/```json|```/g, '').trim()
-  const start = clean.indexOf('[')
-  const end = clean.lastIndexOf(']')
-  const parsed = JSON.parse(start >= 0 && end > start ? clean.slice(start, end + 1) : clean)
+  const callModel = async (extraAvoid: string[]): Promise<IdeaLike[]> => {
+    const extra = extraAvoid.length
+      ? `\n\nREFUSÉES CAR TROP PROCHES DE L'HISTORIQUE (propose des sujets totalement différents) :\n${extraAvoid.map((t) => `- ${t}`).join('\n')}`
+      : ''
+    const message = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 5000,
+      system,
+      messages: [{ role: 'user', content: learnedBlock + user + extra }],
+    })
+    const raw = (message.content[0] as { text: string }).text || ''
+    const clean = raw.replace(/```json|```/g, '').trim()
+    const s0 = clean.indexOf('[')
+    const e0 = clean.lastIndexOf(']')
+    const parsed = JSON.parse(s0 >= 0 && e0 > s0 ? clean.slice(s0, e0 + 1) : clean)
+    return (Array.isArray(parsed) ? parsed : [])
+      .filter((i: any) => i && i.title)
+      .map((i: any) => ({
+        topic: String(i.topic || '').trim(),
+        title: String(i.title || '').trim(),
+        hook: String(i.hook || '').trim(),
+        angle: toPlan(i),
+        theme: (THEMES as readonly string[]).includes(i.theme) ? i.theme : undefined,
+      }))
+  }
 
-  const normalized: IdeaLike[] = (Array.isArray(parsed) ? parsed : [])
-    .filter((i: any) => i && i.title)
-    .map((i: any) => ({
-      topic: String(i.topic || '').trim(),
-      title: String(i.title || '').trim(),
-      hook: String(i.hook || '').trim(),
-      angle: toPlan(i),
-      theme: (THEMES as readonly string[]).includes(i.theme) ? i.theme : undefined,
-    }))
+  let pool = await callModel([])
+  let ranked = rankIdeas(pool, ctx, count)
+  let freshCount = ranked.filter((i) => i.fresh).length
 
-  const ranked = rankIdeas(normalized, ctx, count).slice(0, count)
-  const ideas: GeneratedIdea[] = ranked.map((i) => ({
+  // Auto-correction : trop peu d'idees neuves => UNE seule relance.
+  if (freshCount < MIN_FRESH) {
+    try {
+      const rejected = pool.filter((p) => !ranked.some((r) => r.title === p.title && r.fresh)).map((p) => p.title || '')
+      const second = await callModel(rejected.slice(0, 20))
+      pool = pool.concat(second)
+      ranked = rankIdeas(pool, ctx, count)
+      freshCount = ranked.filter((i) => i.fresh).length
+    } catch (e) {
+      console.error('[ideas] relance:', e)
+    }
+  }
+
+  const ideas: GeneratedIdea[] = ranked.slice(0, count).map((i) => ({
     topic: i.topic || '',
     title: i.title || '',
     hook: i.hook || '',
@@ -222,7 +259,7 @@ Réponds UNIQUEMENT avec un tableau JSON valide :
     recommended: !!i.recommended,
   }))
 
-  return { ideas, newsCount: news.length }
+  return { ideas, newsCount: news.length, freshCount }
 }
 
 // Historique persistant (non bloquant).

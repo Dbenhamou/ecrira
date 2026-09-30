@@ -62,12 +62,39 @@ export function tooClose(a: string, b: string, minCommon = 2): boolean {
   return false
 }
 
-export type IdeaLike = { topic?: string; title?: string; hook?: string; angle?: string; theme?: string; recommended?: boolean }
+export type IdeaLike = { topic?: string; title?: string; hook?: string; angle?: string; theme?: string; recommended?: boolean; fresh?: boolean }
 
 export type ThemeContext = {
   avoid: string[]          // themes les plus utilises recemment (a eviter)
   writtenTopics: string[]  // sujets deja publies par l'utilisateur
   recentTitles: string[]   // titres d'idees deja proposees recemment
+  overusedOpeners?: string[] // debuts de titre qui reviennent trop (appris automatiquement)
+  overusedWords?: string[]   // mots / entreprises qui reviennent trop (appris automatiquement)
+}
+
+// Apprentissage automatique, sans IA : repere dans les idees des derniers
+// jours les debuts de titre et les mots qui reviennent trop souvent.
+// `protectedText` = secteur + mots-cles du profil (jamais bannis).
+export const OPENER_MAX = 2 // un meme debut de titre au plus 2 fois
+export const WORD_MAX = 5   // un meme mot au plus 5 fois
+export function learnOverused(titles: string[], protectedText: string): { openers: string[]; words: string[] } {
+  const protectedWords = new Set(keywordsOf(protectedText))
+  const openers: Record<string, number> = {}
+  const words: Record<string, number> = {}
+  for (const t of titles) {
+    const o = openerOf(t)
+    if (o) openers[o] = (openers[o] || 0) + 1
+    for (const w of Array.from(new Set(keywordsOf(t)))) {
+      if (!protectedWords.has(w)) words[w] = (words[w] || 0) + 1
+    }
+  }
+  // Seuils relatifs : un utilisateur qui regenere souvent a plus de titres.
+  const openerMax = Math.max(OPENER_MAX, Math.ceil(titles.length * 0.04))
+  const wordMax = Math.max(WORD_MAX, Math.ceil(titles.length * 0.1))
+  return {
+    openers: Object.keys(openers).filter((o) => openers[o] >= openerMax),
+    words: Object.keys(words).filter((w) => words[w] >= wordMax).sort((a, b) => words[b] - words[a]).slice(0, 25),
+  }
 }
 
 // Classe les themes par usage et renvoie les N plus utilises.
@@ -115,7 +142,8 @@ function isPrediction(title: string): boolean {
 export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number): IdeaLike[] {
   const avoid = new Set(ctx.avoid)
   // recentTitles est trie du plus recent au plus ancien : ~3 derniers jours
-  const recentOpeners = new Set(ctx.recentTitles.slice(0, 30).map(openerOf))
+  const recentOpeners = new Set([...ctx.recentTitles.slice(0, 30).map(openerOf), ...(ctx.overusedOpeners || [])])
+  const overusedWords = new Set(ctx.overusedWords || [])
   const kept: IdeaLike[] = []
   const softRejected: IdeaLike[] = [] // theme deja pris : acceptable en complement
   const hardRejected: IdeaLike[] = [] // dernier recours si l'IA a trop peu produit
@@ -134,6 +162,7 @@ export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number
       isFormulaic(`${title} ${idea.hook || ''}`) ||
       usedOpeners.has(opener) ||
       recentOpeners.has(opener) ||
+      keywordsOf(title).some((w) => overusedWords.has(w)) ||
       (isPrediction(title) && predictions >= 1)
     if (hardReject) {
       if (!isFormulaic(`${title} ${idea.hook || ''}`)) hardRejected.push(idea)
@@ -151,6 +180,10 @@ export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number
     if (isPrediction(title)) predictions++
   }
 
-  const out = kept.concat(softRejected, hardRejected).slice(0, minCount)
+  const out = [
+    ...kept.map((i) => ({ ...i, fresh: true })),
+    ...softRejected.map((i) => ({ ...i, fresh: true })), // theme repete mais sujet neuf
+    ...hardRejected.map((i) => ({ ...i, fresh: false })),
+  ].slice(0, minCount)
   return out.map((idea, i) => ({ ...idea, recommended: i < 2 }))
 }
