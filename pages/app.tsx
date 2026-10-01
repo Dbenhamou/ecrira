@@ -930,6 +930,7 @@ export default function Home() {
       const data = await res.json()
       if (data.image) {
         setAiImageUrl('data:' + (data.mimeType || 'image/png') + ';base64,' + data.image)
+        setAiSvgContent(''); setAiVisualUrl(''); setCustomVisualBase64(null); setCustomVisualName('')
         showToast('Visuel genere ✓')
       } else if (data.error === 'RATE_LIMIT') {
         showToast(data.message || 'Limite atteinte')
@@ -958,6 +959,7 @@ export default function Home() {
       const data = await res.json()
       if (data.image) {
         setAiImageUrl(`data:${data.mimeType || 'image/png'};base64,${data.image}`)
+        setAiSvgContent(''); setAiVisualUrl(''); setCustomVisualBase64(null); setCustomVisualName('')
         showToast('Visuel IA généré ✓')
       } else if (data.error === 'RATE_LIMIT') {
         showToast('Limite de 10 visuels IA par heure atteinte')
@@ -1009,6 +1011,8 @@ export default function Home() {
           setAiVisualUrl(url)
           setAiSvgContent(data.svgContent)
         }
+        // Un seul visuel a la fois
+        setAiImageUrl(''); setCustomVisualBase64(null); setCustomVisualName('')
         // Init editor with known values
         setSvgEditTitle(visualCustomTitle || postTopic || '')
         setSvgEditPoints(visualCustomPoints ? visualCustomPoints.split('\n').filter((p:string)=>p.trim()).slice(0,3) : [])
@@ -1060,8 +1064,10 @@ export default function Home() {
       const result = ev.target?.result as string
       setCustomVisualBase64(result.split(',')[1])
       setCustomVisualName(file.name)
-      // Reset AI visual
+      // Un seul visuel a la fois : l'import remplace les visuels crees
       setAiSvgContent('')
+      setAiVisualUrl('')
+      setAiImageUrl('')
       showToast(T('visual_imported_label') + ' ✓')
     }
     reader.readAsDataURL(file)
@@ -2737,11 +2743,13 @@ export default function Home() {
                   })()}
                 </div>
                 {/* Visuel si présent */}
-                {(aiSvgContent || customVisualBase64) && (
+                {(aiSvgContent || aiImageUrl || customVisualBase64) && (
                   <div style={{marginBottom:10,borderRadius:6,overflow:'hidden',border:'1px solid #e0e0e0'}}>
                     {aiSvgContent
                       ? <div style={{width:'100%',pointerEvents:'none'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(aiSvgContent).replace(/<svg/, '<svg style="width:100%;height:auto;display:block"')}}/>
-                      : <img src={`data:image/png;base64,${customVisualBase64}`} alt="" style={{width:'100%',display:'block'}}/>
+                      : aiImageUrl
+                        ? <img src={aiImageUrl} alt="" style={{width:'100%',display:'block'}}/>
+                        : <img src={`data:image/png;base64,${customVisualBase64}`} alt="" style={{width:'100%',display:'block'}}/>
                     }
                   </div>
                 )}
