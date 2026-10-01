@@ -512,13 +512,38 @@ export default function Home() {
   }
 
   // ── Supabase: load generated count ──
+  // Calendrier : on charge d'abord les posts SANS les visuels (tres lourds,
+  // ils faisaient expirer la requete), puis les visuels par petits paquets
+  // pour les posts proches de la date du jour.
   const loadScheduledPosts = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('scheduled_posts')
-      .select('*')
+      .select('id,user_id,content,scheduled_at,status,created_at,topic,theme')
       .order('scheduled_at', { ascending: true })
-    if (data) setScheduledPosts(data)
+    if (error) { console.error('[calendrier]', error.message); return }
+    if (!data) return
+    setScheduledPosts(data)
+    const now = Date.now()
+    const ids = data
+      .filter((p: any) => { const t = new Date(p.scheduled_at).getTime(); return t > now - 45 * 86400_000 && t < now + 120 * 86400_000 })
+      .map((p: any) => p.id)
+    for (let i = 0; i < ids.length; i += 3) {
+      const { data: imgs } = await supabase.from('scheduled_posts').select('id,svg_content').in('id', ids.slice(i, i + 3))
+      const map = new Map((imgs || []).map((r: any) => [r.id, r.svg_content]))
+      if (map.size) setScheduledPosts(prev => prev.map((p: any) => map.has(p.id) ? { ...p, svg_content: map.get(p.id) } : p))
+    }
   }
+
+  // Visuel charge a la demande quand on ouvre un post plus ancien.
+  useEffect(() => {
+    const p = selectedCalPost
+    if (!p || p.svg_content !== undefined) return
+    supabase.from('scheduled_posts').select('svg_content').eq('id', p.id).single().then(({ data }) => {
+      const svg = data?.svg_content ?? null
+      setScheduledPosts(prev => prev.map((x: any) => x.id === p.id ? { ...x, svg_content: svg } : x))
+      setSelectedCalPost((cur: any) => cur && cur.id === p.id ? { ...cur, svg_content: svg } : cur)
+    })
+  }, [selectedCalPost?.id])
 
   const loadNotifications = async () => {
     const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false }).limit(20)
