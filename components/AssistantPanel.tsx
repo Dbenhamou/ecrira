@@ -10,6 +10,31 @@ const ASSISTANT_NAME = 'Assistant Ecrira'
 const INDIGO = '#3D52A0'
 const INDIGO_LIGHT = '#EEF1FB'
 
+// Styles responsive : le mobile (<= 768px) passe en plein ecran.
+const CSS = `
+.eca-fab{position:fixed;bottom:24px;right:24px;z-index:1000;width:60px;height:60px;border-radius:50%;border:none;
+  background:${INDIGO};color:#fff;font-size:26px;cursor:pointer;box-shadow:0 6px 20px rgba(61,82,160,.45);
+  display:flex;align-items:center;justify-content:center;transition:transform .15s ease}
+.eca-fab:hover{transform:scale(1.06)}
+.eca-panel{position:fixed;top:0;right:0;z-index:1001;height:100vh;height:100dvh;width:min(420px,100vw);background:#fff;
+  box-shadow:-8px 0 30px rgba(0,0,0,.12);display:flex;flex-direction:column;font-family:Inter,system-ui,sans-serif;overscroll-behavior:contain}
+.eca-head{padding:16px 18px;padding-top:calc(16px + env(safe-area-inset-top));flex-shrink:0}
+.eca-chips{padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;border-bottom:1px solid #eee;flex-shrink:0}
+.eca-chips button{font-size:12.5px;padding:6px 11px;border-radius:999px;border:1px solid ${INDIGO};background:${INDIGO_LIGHT};
+  color:${INDIGO};font-weight:600;white-space:nowrap;flex-shrink:0}
+.eca-msgs{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:16px 14px;background:#FAFAFB}
+.eca-input{padding:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom));border-top:1px solid #eee;display:flex;gap:8px;background:#fff;flex-shrink:0}
+.eca-input textarea{flex:1;resize:none;border:1px solid #ddd;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;outline:none;max-height:120px}
+@media (max-width:768px){
+  .eca-fab{width:52px;height:52px;font-size:22px;right:16px;bottom:calc(92px + env(safe-area-inset-bottom))}
+  .eca-panel{left:0;width:100vw;box-shadow:none}
+  .eca-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:10px 12px}
+  .eca-chips::-webkit-scrollbar{display:none}
+  .eca-msgs{padding:14px 12px}
+  .eca-input textarea{font-size:16px}
+}
+`
+
 type Msg = { role: 'user' | 'assistant'; content: string; postSuggestion?: string | null }
 
 const QUICK_ACTIONS: { label: string; prompt: string; needsPost?: boolean }[] = [
@@ -35,6 +60,30 @@ export default function AssistantPanel({ currentPost, onApplyPost }: Props) {
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [copied, setCopied] = useState<number | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Mobile : la hauteur suit la zone visible (le clavier ne cache plus la saisie)
+  // et la page derriere ne defile plus.
+  const [vp, setVp] = useState<{ h: number; top: number } | null>(null)
+  useEffect(() => {
+    if (!open || typeof window === 'undefined') return
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const vv = window.visualViewport
+    const update = () => {
+      if (vv && window.innerWidth <= 768) setVp({ h: Math.round(vv.height), top: Math.round(vv.offsetTop) })
+      else setVp(null)
+    }
+    update()
+    vv?.addEventListener('resize', update)
+    vv?.addEventListener('scroll', update)
+    window.addEventListener('resize', update)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      vv?.removeEventListener('resize', update)
+      vv?.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [open])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -96,21 +145,13 @@ export default function AssistantPanel({ currentPost, onApplyPost }: Props) {
 
   return (
     <>
+      <style>{CSS}</style>
       {/* Bouton flottant */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
           aria-label="Ouvrir l'assistant Ecrira"
-          style={{
-            position: 'fixed', bottom: 24, right: 24, zIndex: 1000,
-            width: 60, height: 60, borderRadius: '50%', border: 'none',
-            background: INDIGO, color: '#fff', fontSize: 26, cursor: 'pointer',
-            boxShadow: '0 6px 20px rgba(61,82,160,0.45)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            transition: 'transform .15s ease',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.06)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          className="eca-fab"
         >
           ✨
         </button>
@@ -119,16 +160,13 @@ export default function AssistantPanel({ currentPost, onApplyPost }: Props) {
       {/* Panneau */}
       {open && (
         <div
-          style={{
-            position: 'fixed', top: 0, right: 0, zIndex: 1001,
-            height: '100vh', width: 'min(420px, 100vw)',
-            background: '#fff', boxShadow: '-8px 0 30px rgba(0,0,0,0.12)',
-            display: 'flex', flexDirection: 'column',
-            fontFamily: 'Inter, system-ui, sans-serif',
-          }}
+          className="eca-panel"
+          role="dialog"
+          aria-label={ASSISTANT_NAME}
+          style={vp ? { height: vp.h, top: vp.top } : undefined}
         >
           {/* Header */}
-          <div style={{ padding: '16px 18px', background: INDIGO, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="eca-head" style={{ background: INDIGO, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: 22 }}>✨</span>
               <div>
@@ -137,25 +175,21 @@ export default function AssistantPanel({ currentPost, onApplyPost }: Props) {
               </div>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Fermer"
-              style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 24, cursor: 'pointer', lineHeight: 1 }}>×</button>
+              style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 28, cursor: 'pointer', lineHeight: 1, width: 44, height: 44, marginRight: -10 }}>×</button>
           </div>
 
           {/* Chips */}
-          <div style={{ padding: '12px 14px', display: 'flex', flexWrap: 'wrap', gap: 8, borderBottom: '1px solid #eee' }}>
+          <div className="eca-chips">
             {QUICK_ACTIONS.map((a) => (
               <button key={a.label} onClick={() => send(a.prompt)} disabled={loading}
-                style={{
-                  fontSize: 12.5, padding: '6px 11px', borderRadius: 999,
-                  border: `1px solid ${INDIGO}`, background: INDIGO_LIGHT, color: INDIGO,
-                  cursor: loading ? 'default' : 'pointer', fontWeight: 600, whiteSpace: 'nowrap',
-                }}>
+                style={{ cursor: loading ? 'default' : 'pointer' }}>
                 {a.label}
               </button>
             ))}
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 14px', background: '#FAFAFB' }}>
+          <div ref={scrollRef} className="eca-msgs">
             {messages.length === 0 && !proBlocked && (
               <div style={{ color: '#777', fontSize: 14, textAlign: 'center', marginTop: 30, lineHeight: 1.6 }}>
                 Salut 👋 Je suis ton assistant Ecrira.<br />
@@ -217,22 +251,19 @@ export default function AssistantPanel({ currentPost, onApplyPost }: Props) {
           </div>
 
           {/* Input */}
-          <div style={{ padding: 12, borderTop: '1px solid #eee', display: 'flex', gap: 8, background: '#fff' }}>
+          <div className="eca-input">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input) } }}
               placeholder="Écris à ton assistant…"
               rows={1}
-              style={{
-                flex: 1, resize: 'none', border: '1px solid #ddd', borderRadius: 10,
-                padding: '10px 12px', fontSize: 14, fontFamily: 'inherit', outline: 'none', maxHeight: 120,
-              }}
+              enterKeyHint="send"
             />
             <button onClick={() => send(input)} disabled={loading || !input.trim()}
               style={{
                 background: input.trim() && !loading ? INDIGO : '#C7CFE8', color: '#fff', border: 'none',
-                borderRadius: 10, padding: '0 16px', fontWeight: 700, fontSize: 15,
+                borderRadius: 10, padding: '0 16px', minWidth: 48, fontWeight: 700, fontSize: 15,
                 cursor: input.trim() && !loading ? 'pointer' : 'default',
               }}>
               →
