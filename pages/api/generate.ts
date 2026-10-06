@@ -27,6 +27,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const ideaHook = typeof hook === 'string' ? hook.trim().slice(0, 300) : ''
   const ideaPlan = (typeof plan === 'string' ? plan : typeof seed === 'string' ? seed : '').trim().slice(0, 1200)
 
+  // Retouche rapide en 1 clic (Plus court, Accroche plus forte...) :
+  // ne compte pas dans le quota et n'utilise pas les actus.
+  const REWRITE_ACTIONS: Record<string, string> = {
+    expert: "Rends le post plus expert : vocabulaire precis du metier, exemples concrets et techniques, sans jargon inutile.",
+    natural: "Rends le post plus naturel et humain, comme si l'auteur le racontait a un pair. Supprime les tournures qui sonnent comme un texte genere.",
+    shorter: "Raccourcis le post d'environ 40 % en gardant l'accroche, le message cle et la conclusion.",
+    hook: "Reecris uniquement les 2 premieres lignes pour une accroche beaucoup plus forte et concrete. Garde le reste du post quasi identique.",
+    cta: "Reecris uniquement la conclusion pour un appel a l'action plus engageant et naturel (question precise ou invitation claire). Garde le reste du post quasi identique.",
+  }
+  const rewriteAction = typeof req.body?.rewriteAction === 'string' ? req.body.rewriteAction : ''
+  const currentPost = typeof req.body?.currentPost === 'string' ? req.body.currentPost.trim().slice(0, 3000) : ''
+  const isRewrite = !!REWRITE_ACTIONS[rewriteAction] && !!currentPost
+
   const formatMap: Record<string, string> = {
     educational: 'post éducatif avec conseil actionnable',
     alert: "post d'alerte sur une menace ou actualité récente",
@@ -101,7 +114,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   // Actus : uniquement celles qui parlent vraiment du sujet du post
   // (au moins 2 mots significatifs en commun), sinon aucune.
   const topicWords = new Set(keywordsOf(`${topic || ''} ${ideaHook}`))
-  const rawNews = topicWords.size
+  const rawNews = topicWords.size && !isRewrite
     ? await fetchSectorNews({ sector, keywords, lang: profile?.lang, days: 7, limit: 10 })
     : []
   const newsArticles = rawNews
@@ -143,6 +156,26 @@ ${newsContext}
     + styleSection + '\n\n'
     + 'Langue : ' + lang + '. ' + langInstruction + variantInstruction + '\n'
     + 'Réponds UNIQUEMENT avec le post LinkedIn, sans introduction ni commentaire.'
+
+  if (isRewrite) {
+    try {
+      const instruction = 'Voici le post actuel :\n<post>\n' + currentPost + '\n</post>\n\n'
+        + REWRITE_ACTIONS[rewriteAction]
+        + "\nConserve le fond, les faits, la langue et le style de l'auteur. Reponds UNIQUEMENT avec le post reecrit, sans balise."
+      const message = await anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: instruction }],
+      })
+      const content = ((message.content[0] as { text: string }).text || '').replace(/<\/?post>/g, '').trim()
+      if (!content) return res.status(500).json({ error: 'Erreur retouche' })
+      return res.status(200).json({ content, variants: [content], rewrite: true })
+    } catch (err) {
+      console.error('[rewrite]', err)
+      return res.status(500).json({ error: 'Erreur retouche' })
+    }
+  }
 
   // Vérification plan Free (5 posts à vie)
   const { data: userProfile } = await supabaseAdmin

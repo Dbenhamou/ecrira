@@ -940,6 +940,74 @@ export default function Home() {
     } catch { showToast('Erreur reseau') }
     setGeneratingTemplate(false)
   }
+  // ── Espace Créer : préférences repliées, retouches en 1 clic, visuel unique ──
+  const [prefsOpen, setPrefsOpen] = useState(false)
+  const [rewriting, setRewriting] = useState('')
+  const [prevPostOutput, setPrevPostOutput] = useState('')
+  const hasVisual = !!(aiSvgContent || aiImageUrl || customVisualBase64)
+
+  // Préférences par défaut : ton du profil, puis derniers choix de l'utilisateur.
+  const prefsLoaded = useRef(false)
+  useEffect(() => {
+    if (prefsLoaded.current || loading || !userId) return
+    prefsLoaded.current = true
+    const profileTone = ((profile as any).tone || '').toString().toLowerCase()
+    if (['expert','accessible','direct','storyteller'].includes(profileTone)) setPostTone(profileTone)
+    try {
+      const saved = JSON.parse(localStorage.getItem('ecrira_prefs') || '{}')
+      if (saved.format) setPostFormat(saved.format)
+      if (saved.length) setPostLength(saved.length)
+      if (saved.tone) setPostTone(saved.tone)
+    } catch {}
+  }, [profile, loading, userId])
+  useEffect(() => {
+    if (!prefsLoaded.current) return
+    try { localStorage.setItem('ecrira_prefs', JSON.stringify({ format: postFormat, length: postLength, tone: postTone })) } catch {}
+  }, [postFormat, postLength, postTone])
+
+  const rewritePost = async (action: string) => {
+    if (!postOutput.trim() || rewriting) return
+    setRewriting(action)
+    try {
+      const res = await authFetch('/api/generate', { method:'POST', body: JSON.stringify({ rewriteAction: action, currentPost: postOutput, topic: postTopic, format: postFormat, length: postLength, tone: postTone, profile: {...profile, lang} }) })
+      const data = await res.json()
+      if (data.content) {
+        setPrevPostOutput(postOutput)
+        setPostOutput(data.content)
+        if (batchTopics.length > 1) setBatchTabOutputs(prev => ({...prev, [activeBatchTab]: data.content}))
+      } else showToast(data.message || data.error || (lang==='en'?'Error':'Erreur'))
+    } catch { showToast(lang==='en'?'Network error':'Erreur réseau') }
+    setRewriting('')
+  }
+
+  // La zone du post grandit avec le texte (pas de barre de défilement interne).
+  const postEditorRef = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    const el = postEditorRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = el.scrollHeight + 2 + 'px'
+  }, [postOutput, page])
+
+  const removeVisual = () => {
+    setAiSvgContent(''); setAiVisualUrl(''); setAiImageUrl(''); setCustomVisualBase64(null); setCustomVisualName('')
+  }
+
+  // Créneau suggéré : prochain mardi, mercredi ou jeudi à 8h30 sans post déjà prévu.
+  const suggestedSlot = (): string => {
+    const busy = new Set(scheduledPosts.map((p:any) => new Date(p.scheduled_at).toDateString()))
+    const d = new Date()
+    for (let i = 0; i < 21; i++) {
+      const c = new Date(d.getFullYear(), d.getMonth(), d.getDate() + i, 8, 30)
+      if ([2,3,4].includes(c.getDay()) && c.getTime() > Date.now() + 15*60000 && !busy.has(c.toDateString())) {
+        return `${c.getFullYear()}-${String(c.getMonth()+1).padStart(2,'0')}-${String(c.getDate()).padStart(2,'0')}T08:30`
+      }
+    }
+    const t = new Date(Date.now() + 86400000)
+    return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}T08:30`
+  }
+  const slotLabel = (v: string) => new Date(v).toLocaleDateString(lang==='fr'?'fr-FR':'en-GB', { weekday:'short', day:'numeric', month:'short' }) + (lang==='en'?' at ':' à ') + v.split('T')[1].replace(':','h')
+
   const [generatingImageAI, setGeneratingImageAI] = useState(false)
 
   const generateImageAI = async () => {
@@ -1093,14 +1161,17 @@ export default function Home() {
     setDraggedPostId(null)
   }
 
-  const schedulePost = async () => {
+  // whenOverride / withVisualOverride : utilisés par « Programmer » en 1 clic.
+  const schedulePost = async (whenOverride?: string, withVisualOverride?: boolean) => {
+    const when = typeof whenOverride === 'string' ? whenOverride : scheduleDateTime
+    const withVisual = typeof withVisualOverride === 'boolean' ? withVisualOverride : scheduleWithVisual
     if (!postOutput.trim()) { showToast(T('toast_no_schedule')); return }
-    if (!scheduleDateTime) { showToast(T('toast_pick_date')); return }
+    if (!when) { showToast(T('toast_pick_date')); return }
     if (!userId) return
     setScheduling(true)
     try {
       // SVG généré → brut ; PNG importé → base64 ; sinon null
-      const visualToStore = scheduleWithVisual
+      const visualToStore = withVisual
         ? (aiSvgContent || (aiImageUrl ? `__png__${aiImageUrl.split(',')[1]}` : null) || (customVisualBase64 ? `__png__${customVisualBase64}` : null) || null)
         : null
 
@@ -1109,7 +1180,7 @@ export default function Home() {
         body: JSON.stringify({
           content: postOutput,
           topic: postTopic || T('sans_titre'),
-          scheduled_at: new Date(scheduleDateTime).toISOString(),
+          scheduled_at: new Date(when).toISOString(),
           svg_content: visualToStore,
         }),
       })
@@ -1596,15 +1667,20 @@ export default function Home() {
                 <button onClick={()=>{setBatchTopics([]);setBatchMeta([]);setBatchTabOutputs({});setBatchTabConfigs({});setBatchTabVisuals({});setActiveBatchTab(0);setAiSvgContent('');setAiVisualUrl('')}} style={{fontSize:10,padding:'4px 8px',borderRadius:6,border:'1px solid var(--border)',background:'transparent',color:'var(--text3)',cursor:'pointer',fontFamily:'inherit',marginLeft:'auto'}}>✕ {lang==='en'?'Close':'Fermer'}</button>
               </div>
             )}
-            <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:16,alignItems:'start'}} className="rediger-grid">
-              {/* LEFT: Formulaire */}
-              <div className="card" style={{padding:'16px 18px'}}>
-                <div className="form-group" style={{marginBottom:10}}>
-                  <label className="form-label">{T('subject_label')}</label>
-                  <textarea className="post-editor" style={{minHeight:70,fontSize:13}} value={postTopic} onChange={e=>setPostTopicWithSave(e.target.value)} placeholder={T('subject_placeholder')}/>
+            <div style={{display:'grid',gridTemplateColumns:'340px 1fr',gap:16,alignItems:'start',paddingBottom:110}} className="rediger-grid">
+              <div className="rediger-col">
+              {/* GAUCHE : idée + préférences + générer */}
+              <div className="card rd-idea" style={{padding:'16px 18px'}}>
+                <label className="form-label" htmlFor="ecr-idea">{lang==='en'?'Your idea':'Votre idée'}</label>
+                <div style={{position:'relative',marginTop:4}}>
+                  <textarea id="ecr-idea" className="post-editor" style={{minHeight:110,fontSize:13,paddingBottom:22}} value={postTopic} maxLength={500}
+                    onChange={e=>setPostTopicWithSave(e.target.value)}
+                    onKeyDown={e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){ e.preventDefault(); if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost() } }}
+                    placeholder={T('subject_placeholder')}/>
+                  <div style={{position:'absolute',bottom:8,right:10,fontSize:10,color:'var(--text3)',pointerEvents:'none'}}>{postTopic.length}/500</div>
                 </div>
                 {(postAngle || postHook) && (
-                  <div style={{marginBottom:10,padding:'10px 12px',background:'rgba(61,82,160,0.04)',border:'1px solid rgba(61,82,160,0.15)',borderRadius:8}}>
+                  <div style={{marginTop:10,padding:'10px 12px',background:'rgba(61,82,160,0.04)',border:'1px solid rgba(61,82,160,0.15)',borderRadius:8}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
                       <span style={{fontSize:11,fontWeight:600,color:'var(--indigo)'}}>{lang==='en'?'Idea plan (used for writing)':"Plan de l'idée (utilisé pour la rédaction)"}</span>
                       <button onClick={()=>{setPostHook('');setPostAngle('')}} style={{fontSize:10,border:'none',background:'transparent',color:'var(--text3)',cursor:'pointer',fontFamily:'inherit'}}>✕ {lang==='en'?'Remove':'Retirer'}</button>
@@ -1613,186 +1689,272 @@ export default function Home() {
                     <IdeaPlan angle={postAngle} lang={lang}/>
                   </div>
                 )}
-                <div className="form-group" style={{marginBottom:10}}>
-                    <label className="form-label">{T('format_label')}</label>
-                    <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
-                      {([
-                        {value:'educational',label:lang==='en'?'Advice':'Conseil'},
-                        {value:'alert',label:lang==='en'?'Alert':'Alerte'},
-                        {value:'opinion',label:lang==='en'?'Opinion':'Opinion'},
-                        {value:'story',label:lang==='en'?'Story':'Storytelling'},
-                        {value:'list',label:lang==='en'?'List':'Liste'},
-                      ]).map(f=>(
-                        <span key={f.value} className={`chip ${postFormat===f.value?'on':''}`} onClick={()=>setPostFormat(f.value)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{f.label}</span>
-                      ))}
-                    </div>
-                  </div>
-                <div className="form-group" style={{marginBottom:10}}>
-                    <label className="form-label">{T('length_label')}</label>
-                    <div style={{display:'flex',gap:4,marginTop:4}}>
-                      {([
-                        {value:'short',label:lang==='en'?'Short':'Court'},
-                        {value:'medium',label:lang==='en'?'Medium':'Moyen'},
-                        {value:'long',label:lang==='en'?'Long':'Long'},
-                      ]).map(l=>(
-                        <span key={l.value} className={`chip ${postLength===l.value?'on':''}`} onClick={()=>setPostLength(l.value)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{l.label}</span>
-                      ))}
-                    </div>
-                  </div>
-                <div className="form-group" style={{marginBottom:12}}>
-                  <label className="form-label">{T('tone_label')}</label>
-                  <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
-                    {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
-                  </div>
+
+                {/* Préférences : résumé + Modifier */}
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:14,marginBottom:6}}>
+                  <span className="form-label" style={{margin:0}}>{lang==='en'?'Preferences (automatic)':'Préférences (automatique)'}</span>
+                  <button type="button" aria-expanded={prefsOpen} onClick={()=>setPrefsOpen(o=>!o)} style={{fontSize:11,color:'var(--indigo)',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontWeight:500,padding:0}}>
+                    {prefsOpen?(lang==='en'?'Done':'Terminé'):(lang==='en'?'Edit':'Modifier')}
+                  </button>
                 </div>
-                <div style={{display:'flex',gap:6}}><button className="btn btn-primary" style={{flex:1,justifyContent:'center'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate}>{loadingPost?<><span className="spinner"/> {genPhase||T('generating')}</>:canGenerate?`✦ Générer le post${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}</button>{isPro&&<button className="btn btn-secondary" style={{fontSize:12,padding:'0 12px',flexShrink:0}} onClick={()=>{ if(!canGenerate){setShowUpgradeModal(true);return;} generate3Variants(); }} disabled={loadingPost}>×3</button>}</div>
+                {!prefsOpen && (
+                  <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginBottom:12}}>
+                    {[
+                      postTone.charAt(0).toUpperCase()+postTone.slice(1),
+                      ({short:lang==='en'?'Short':'Court',medium:lang==='en'?'Medium':'Moyen',long:'Long'} as Record<string,string>)[postLength]||postLength,
+                      ({educational:lang==='en'?'Advice':'Conseil',alert:lang==='en'?'Alert':'Alerte',opinion:'Opinion',story:'Storytelling',list:lang==='en'?'List':'Liste'} as Record<string,string>)[postFormat]||postFormat,
+                    ].map(l=>(
+                      <span key={l} className="chip" onClick={()=>setPrefsOpen(true)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{l}</span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Action principale */}
+                <div style={{display:'flex',gap:6}}>
+                  <button className="btn btn-primary" style={{flex:1,justifyContent:'center',padding:'11px 14px'}} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } generatePost(); }} disabled={loadingPost||!canGenerate||!postTopic.trim()}>
+                    {loadingPost?<><span className="spinner"/> {genPhase||T('generating')}</>:canGenerate?`✦ ${lang==='en'?'Generate the post':'Générer le post'}${!isPro?' ('+Math.max(0,5-postsThisMonth)+T('posts_remaining')+')':''}`:T('limit_reached')}
+                  </button>
+                  {isPro&&<button className="btn btn-secondary" title={lang==='en'?'3 variants':'3 variantes'} style={{fontSize:12,padding:'0 12px',flexShrink:0}} onClick={()=>{ if(!canGenerate){setShowUpgradeModal(true);return;} generate3Variants(); }} disabled={loadingPost||!postTopic.trim()}>×3</button>}
+                </div>
+                <div style={{fontSize:10,color:'var(--text3)',textAlign:'center' as const,marginTop:6}}>⌘ / Ctrl + Entrée</div>
+
+                {/* Préférences avancées */}
+                {prefsOpen && (
+                  <div style={{marginTop:14,paddingTop:12,borderTop:'1px solid var(--border)'}}>
+                    <div className="form-group" style={{marginBottom:10}}>
+                      <label className="form-label">{T('format_label')}</label>
+                      <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
+                        {([
+                          {value:'educational',label:lang==='en'?'Advice':'Conseil'},
+                          {value:'alert',label:lang==='en'?'Alert':'Alerte'},
+                          {value:'opinion',label:lang==='en'?'Opinion':'Opinion'},
+                          {value:'story',label:lang==='en'?'Story':'Storytelling'},
+                          {value:'list',label:lang==='en'?'List':'Liste'},
+                        ]).map(f=>(
+                          <span key={f.value} className={`chip ${postFormat===f.value?'on':''}`} onClick={()=>setPostFormat(f.value)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{f.label}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="form-group" style={{marginBottom:10}}>
+                      <label className="form-label">{T('length_label')}</label>
+                      <div style={{display:'flex',gap:4,marginTop:4}}>
+                        {([
+                          {value:'short',label:lang==='en'?'Short':'Court'},
+                          {value:'medium',label:lang==='en'?'Medium':'Moyen'},
+                          {value:'long',label:lang==='en'?'Long':'Long'},
+                        ]).map(l=>(
+                          <span key={l.value} className={`chip ${postLength===l.value?'on':''}`} onClick={()=>setPostLength(l.value)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{l.label}</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="form-group" style={{marginBottom:0}}>
+                      <label className="form-label">{T('tone_label')}</label>
+                      <div style={{display:'flex',flexWrap:'wrap' as const,gap:4,marginTop:4}}>
+                        {['expert','accessible','direct','storyteller'].map(t=>(<span key={t} className={`chip ${postTone===t?'on':''}`} onClick={()=>setPostTone(t)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{t.charAt(0).toUpperCase()+t.slice(1)}</span>))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+                {/* VISUEL : sous l'idée, une fois le post généré */}
+                {postOutput && (
+                  <div className="card rd-visual" style={{padding:'16px 18px'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10,gap:8,flexWrap:'wrap' as const}}>
+                      <div className="section-label" style={{marginBottom:0}}>{lang==='en'?'Visual':'Visuel'}</div>
+                      {hasVisual && (
+                        <div style={{display:'flex',gap:6}}>
+                          {(aiImageUrl||customVisualBase64) && <a className="btn btn-ghost" style={{fontSize:11,textDecoration:'none'}} href={aiImageUrl||`data:image/png;base64,${customVisualBase64}`} download="visuel-ecrira.png">↓ {lang==='en'?'Download':'Télécharger'}</a>}
+                          <button type="button" className="btn btn-ghost" style={{fontSize:11,color:'#c0392b'}} onClick={removeVisual}>✕ {lang==='en'?'Remove':'Retirer'}</button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Style du visuel */}
+                    {!customVisualBase64 && !aiSvgContent && (
+                      <div style={{display:'flex',gap:4,flexWrap:'wrap' as const,alignItems:'center',marginBottom:10}}>
+                        <span style={{fontSize:11,color:'var(--text3)',marginRight:2}}>{lang==='en'?'Style:':'Style :'}</span>
+                        {[{id:'editorial',label:'Editorial'},{id:'stat',label:'Stat'},{id:'comparaison',label:'VS'},{id:'citation',label:'Citation'},{id:'liste',label:lang==='en'?'List':'Liste'}].map(t=>(
+                          <span key={t.id} className={`chip ${selectedTemplate===t.id?'on':''}`} onClick={()=>setSelectedTemplate(t.id)} style={{fontSize:11,padding:'3px 10px',cursor:'pointer'}}>{t.label}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    {generatingTemplate && <div style={{marginBottom:10}}><div className="strip"/><div style={{fontSize:11,color:'var(--text3)',marginTop:6}}>{lang==='en'?'Creating your visual…':'Création du visuel…'}</div></div>}
+
+                    {aiImageUrl && !generatingTemplate && (
+                      <img src={aiImageUrl} alt={lang==='en'?'Generated visual':'Visuel généré'} style={{width:'100%',maxWidth:420,borderRadius:10,display:'block',border:'1px solid var(--border)',marginBottom:10}}/>
+                    )}
+                    {customVisualBase64 && (
+                      <img src={`data:image/png;base64,${customVisualBase64}`} alt={T('visual_imported_alt')} style={{width:'100%',maxWidth:420,borderRadius:10,display:'block',border:'1px solid var(--border)',marginBottom:10}}/>
+                    )}
+
+                    <div style={{display:'flex',gap:6,flexWrap:'wrap' as const,alignItems:'center'}}>
+                      {!customVisualBase64 && !aiSvgContent && (
+                        <button type="button" className={hasVisual?'btn btn-secondary':'btn btn-primary'} style={{fontSize:12}} disabled={generatingTemplate} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateTemplate(); }}>
+                          {generatingTemplate?<><span className="spinner"/> {lang==='en'?'Generating…':'Génération…'}</>:aiImageUrl?`↻ ${lang==='en'?'New version':'Nouvelle version'}`:`✦ ${lang==='en'?'Generate the visual':'Générer le visuel'}`}
+                        </button>
+                      )}
+                      <label className="btn btn-ghost" style={{fontSize:12,cursor:'pointer'}}>
+                        <input type="file" accept="image/png,image/jpeg,image/svg+xml" style={{display:'none'}} onChange={handleVisualUpload}/>
+                        {customVisualBase64?(lang==='en'?'Replace image':"Remplacer l'image"):T('import_visual')}
+                      </label>
+                      {isPro && (aiImageUrl || !hasVisual) && (
+                        <label style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:'var(--text2)',marginLeft:'auto',cursor:'pointer'}}>
+                          {lang==='en'?'Hide Ecrira mention':'Masquer la mention Ecrira'}
+                          <div className={`toggle ${hideWatermark?'on':''}`} onClick={()=>setHideWatermark(v=>!v)}><div className="toggle-dot"/></div>
+                        </label>
+                      )}
+                    </div>
+                  {/* Affichage visuel SVG généré */}
+                  {aiSvgContent && (
+                    <div style={{marginTop:16,borderRadius:16,overflow:'hidden',border:'1px solid var(--border)',background:'var(--sand)'}}>
+                      {/* Toolbar */}
+                      <div style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',display:'flex',flexDirection:'column' as const,gap:8}}>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                          <span style={{fontSize:12,fontWeight:500,color:'var(--text2)'}}>Visuel généré</span>
+                          <button onClick={async()=>{
+                            try {
+                              const svgRes = await authFetch('/api/svg-to-png', { method:'POST', body:JSON.stringify({ svgContent: aiSvgContent }) })
+                              const data = await svgRes.json()
+                              if (data.base64) {
+                                const a = document.createElement('a')
+                                a.href = `data:image/png;base64,${data.base64}`
+                                a.download = 'visuel-ecrira.png'
+                                a.click()
+                              } else { showToast('Erreur conversion PNG') }
+                            } catch { showToast('Erreur téléchargement') }
+                          }} style={{fontSize:11,color:'var(--indigo)',fontWeight:500,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:8,background:'white',cursor:'pointer',fontFamily:'inherit'}}>⬇ Télécharger PNG</button>
+                        </div>
+                        {/* Palette couleurs */}
+                        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap' as const}}>
+                          <span style={{fontSize:10,color:'var(--text3)',flexShrink:0}}>Couleur :</span>
+                          {[
+                            '#3D52A0','#0077B5','#1F2421','#8B4513','#2C3E50',
+                            '#C0392B','#8E44AD','#16A085','#E67E22','#2980B9',
+                            '#27AE60','#D35400','#7F8C8D','#2C2C54','#B71C1C',
+                          ].map(c=>(
+                            <button key={c} onClick={()=>{
+                              const prev = svgEditAccent || profile?.brand_accent || '#3D52A0'
+                              const dark = darkenColor(c, 18)
+                              setAiSvgContent(svg=>{
+                                let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
+                                // Update gradient stop darker shade
+                                s = s.replace(new RegExp(darkenColor(prev,18).replace('#','\\#'),'gi'),dark)
+                                return s
+                              })
+                              setSvgEditAccent(c)
+                            }} style={{width:20,height:20,borderRadius:'50%',border:c===svgEditAccent?'3px solid #1F2421':'2px solid transparent',background:c,cursor:'pointer',padding:0,flexShrink:0}}/>
+                          ))}
+                          <input type="color" value={svgEditAccent||'#3D52A0'} onChange={e=>{
+                            const c=e.target.value
+                            const prev = svgEditAccent || profile?.brand_accent || '#3D52A0'
+                            const dark = darkenColor(c, 18)
+                            setAiSvgContent(svg=>{
+                              let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
+                              s = s.replace(new RegExp(darkenColor(prev,18).replace('#','\\#'),'gi'),dark)
+                              return s
+                            })
+                            setSvgEditAccent(c)
+                          }} title="Couleur personnalisée" style={{width:20,height:20,borderRadius:'50%',border:'1px solid var(--border)',cursor:'pointer',padding:0,flexShrink:0}}/>
+                        </div>
+                      </div>
+
+
+                      {/* Aperçu SVG */}
+                      <div style={{width:'100%',overflow:'hidden'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(aiSvgContent).replace(/<svg/, '<svg style="width:100%;height:auto;display:block;max-height:600px"')}}/>
+                    </div>
+                  )}
+                  </div>
+                )}
               </div>
 
-              {/* RIGHT: Résultat */}
-              <div className="card" style={{padding:'16px 18px'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10}}>
-                  <div className="section-label" style={{marginBottom:0}}>{T('result')}</div>
+              <div className="rediger-col">
+                {/* DROITE : post et retouches, puis publication */}
+              <div className="card rd-post" style={{padding:'16px 18px'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:10,gap:8,flexWrap:'wrap' as const}}>
+                  <div className="section-label" style={{marginBottom:0}}>{lang==='en'?'Your post':'Votre post'}</div>
                   <div style={{display:'flex',gap:6}}>
-                    <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={savePost} disabled={!postOutput}>{T('save')}</button>
                     <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={()=>postOutput&&copyText(postOutput)} disabled={!postOutput}>{T('copy_btn')}</button>
+                    <button className="btn btn-ghost" style={{fontSize:11,opacity:postOutput?1:0.4}} onClick={()=>{setShowPreviewModal(true);setPreviewExpanded(false)}} disabled={!postOutput}>{T('linkedin_preview')}</button>
                   </div>
                 </div>
                 {(batchTopics.length>1?loadingByTab[activeBatchTab]:loadingPost)&&<div style={{marginBottom:10}}><div className="strip"/></div>}
                 <div style={{position:'relative'}}>
-                <textarea className="post-editor" style={{minHeight:260}} value={postOutput} onChange={e=>setPostOutput(e.target.value.slice(0,3000))} placeholder={T('post_placeholder')} maxLength={3000}/>
-                <div style={{position:'absolute',bottom:8,right:10,fontSize:10,color:postOutput.length>2800?'#c0392b':'var(--text3)',fontFamily:'monospace',pointerEvents:'none'}}>{postOutput.length}/3000</div>
-              </div>
+                  <textarea ref={postEditorRef} className="post-editor rd-post-editor" aria-label={lang==='en'?'Post content':'Contenu du post'} style={{opacity:rewriting?0.5:1}} value={postOutput} onChange={e=>setPostOutput(e.target.value.slice(0,3000))} placeholder={T('post_placeholder')} maxLength={3000} readOnly={!!rewriting}/>
+                  <div style={{position:'absolute',bottom:8,right:10,fontSize:10,color:postOutput.length>2800?'#c0392b':'var(--text3)',fontFamily:'monospace',pointerEvents:'none'}}>{postOutput.length}/3000</div>
+                </div>
                 {postVariants.length > 1 && (
-                  <div style={{display:'flex',gap:6,marginBottom:6}}>
-                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i]);setAiImageUrl('')}} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--indigo)':'var(--border)'}`,background:activeVariant===i?'rgba(61,82,160,0.08)':'transparent',color:activeVariant===i?'var(--indigo)':'var(--text2)',cursor:'pointer',fontWeight:activeVariant===i?600:400}}>Post {i+1}</button>))}
+                  <div style={{display:'flex',gap:6,marginTop:6}}>
+                    {postVariants.map((_,i)=>(<button key={i} onClick={()=>{setActiveVariant(i);setPostOutput(postVariants[i])}} style={{fontSize:11,padding:'4px 12px',borderRadius:8,border:`1px solid ${activeVariant===i?'var(--indigo)':'var(--border)'}`,background:activeVariant===i?'rgba(61,82,160,0.08)':'white',color:activeVariant===i?'var(--indigo)':'var(--text2)',cursor:'pointer',fontFamily:'inherit'}}>{lang==='en'?'Variant':'Variante'} {i+1}</button>))}
                   </div>
                 )}
-                {/* Hashtags suggérés */}
-                {suggestedHashtags.length > 0 && (
-                  <div style={{marginTop:6,marginBottom:2,display:'flex',flexWrap:'wrap' as const,gap:5,alignItems:'center'}}>
+                {suggestedHashtags.length > 0 && postOutput && (
+                  <div style={{marginTop:6,display:'flex',flexWrap:'wrap' as const,gap:5,alignItems:'center'}}>
                     <span style={{fontSize:11,color:'var(--text3)',flexShrink:0}}>{lang==='en'?'Hashtags:':'Hashtags :'}</span>
                     {suggestedHashtags.map((tag,i)=>(
-                      <button key={i} onClick={()=>{
-                        if(!postOutput.includes(tag)) setPostOutput(p=>p+'\n'+tag)
-                      }} style={{fontSize:11,padding:'2px 8px',borderRadius:20,border:'1px solid rgba(61,82,160,0.3)',background:'rgba(61,82,160,0.06)',color:'var(--indigo)',cursor:'pointer',fontFamily:'inherit'}}>
-                        {tag}
-                      </button>
+                      <button key={i} onClick={()=>{ if(!postOutput.includes(tag)) setPostOutput(p=>p+'\n'+tag) }} style={{fontSize:11,padding:'2px 8px',borderRadius:20,border:'1px solid rgba(61,82,160,0.3)',background:'rgba(61,82,160,0.06)',color:'var(--indigo)',cursor:'pointer',fontFamily:'inherit'}}>{tag}</button>
                     ))}
                   </div>
                 )}
-                {/* Toggle aperçu LinkedIn */}
+
+                {/* Retouches en 1 clic */}
                 {postOutput && (
-                  <div style={{marginTop:6,marginBottom:2,display:'flex',justifyContent:'flex-end'}}>
-                    <button
-                      onClick={()=>{setShowPreviewModal(true);setPreviewExpanded(false)}}
-                      style={{fontSize:11,color:'var(--indigo)',background:'none',border:'1px solid rgba(61,82,160,0.3)',borderRadius:8,padding:'4px 10px',cursor:'pointer',display:'flex',alignItems:'center',gap:4}}
-                    >
-                      {'👁 ' + T('linkedin_preview')}
-                    </button>
+                  <div style={{marginTop:12,display:'flex',flexWrap:'wrap' as const,gap:6,alignItems:'center'}}>
+                    <span style={{fontSize:11,color:'var(--text3)',fontWeight:500}}>✦ {lang==='en'?'Improve:':'Améliorer :'}</span>
+                    {[
+                      {id:'expert',label:lang==='en'?'More expert':'Plus expert'},
+                      {id:'natural',label:lang==='en'?'More natural':'Plus naturel'},
+                      {id:'shorter',label:lang==='en'?'Shorter':'Plus court'},
+                      {id:'hook',label:lang==='en'?'Stronger hook':'Accroche plus forte'},
+                      {id:'cta',label:lang==='en'?'Better CTA':'CTA plus impactant'},
+                    ].map(a=>(
+                      <button key={a.id} type="button" className="chip" disabled={!!rewriting||loadingPost} onClick={()=>rewritePost(a.id)} style={{fontSize:11,padding:'4px 10px',cursor:rewriting?'default':'pointer',display:'inline-flex',alignItems:'center',gap:5,fontFamily:'inherit',opacity:rewriting&&rewriting!==a.id?0.5:1}}>
+                        {rewriting===a.id&&<span className="spinner"/>}{a.label}
+                      </button>
+                    ))}
+                    <span style={{flex:1}}/>
+                    {prevPostOutput && !rewriting && <button type="button" className="btn btn-ghost" style={{fontSize:11}} onClick={()=>{const cur=postOutput;setPostOutput(prevPostOutput);setPrevPostOutput(cur)}}>↶ {lang==='en'?'Undo':'Annuler'}</button>}
+                    <button type="button" className="btn btn-ghost" style={{fontSize:11}} disabled={loadingPost||!!rewriting||!postTopic.trim()} onClick={()=>{ if(!canGenerate){ setShowUpgradeModal(true); return; } setPrevPostOutput(postOutput); generatePost() }}>↻ {lang==='en'?'Regenerate':'Regénérer'}</button>
                   </div>
                 )}
-
-
-                {/* Action bar — always visible */}
-                <div style={{marginTop:16,display:'flex',flexDirection:'column' as const,gap:10}}>
-
-                  {/* Import visuel custom */}
-                  <label style={{display:'flex',alignItems:'center',gap:6,padding:'9px 14px',borderRadius:10,border:'1px solid var(--border)',background:customVisualBase64?'var(--indigo)':'white',cursor:'pointer',fontSize:12,fontWeight:500,color:customVisualBase64?'white':'var(--text2)',justifyContent:'center'}}>
-                    <input type="file" accept="image/png,image/jpeg,image/svg+xml" style={{display:'none'}} onChange={handleVisualUpload}/>
-                    {customVisualBase64 ? `✓ ${customVisualName||T('visual_imported_label')}` : T('import_visual')}
-                    {customVisualBase64 && <span onClick={(e)=>{e.preventDefault();e.stopPropagation();setCustomVisualBase64(null);setCustomVisualName('')}} style={{marginLeft:6,background:'rgba(255,255,255,0.3)',borderRadius:4,color:'white',cursor:'pointer',fontSize:10,padding:'1px 5px'}}>✕</span>}
-                  </label>
-
-                  {customVisualBase64 && (
-                    <div style={{borderRadius:12,overflow:'hidden',border:'1px solid var(--border)',marginTop:4}}>
-                      <img src={`data:image/png;base64,${customVisualBase64}`} style={{width:'100%',display:'block'}} alt={T('visual_imported_alt')}/>
-                    </div>
-                  )}
-
-                  {/* Créer le visuel — config + bouton */}
-                  <div style={{border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
-                    {/* Sélecteur type de visuel */}
-                    <div style={{display:'flex',gap:4,padding:'8px 10px',background:'white',borderTop:'1px solid var(--border)',flexWrap:'wrap' as const}}>
-                      {[{id:'editorial',label:'✨ Editorial'},{id:'stat',label:'📊 Stat'},{id:'comparaison',label:'⚡ VS'},{id:'citation',label:'💬 Citation'},{id:'liste',label:'📋 Liste'}].map(t=>(
-                        <button key={t.id} onClick={()=>setSelectedTemplate(t.id)} style={{padding:'4px 10px',borderRadius:20,border:'1.5px solid',borderColor:selectedTemplate===t.id?'var(--indigo)':'var(--border)',background:selectedTemplate===t.id?'rgba(61,82,160,0.08)':'transparent',color:selectedTemplate===t.id?'var(--indigo)':'var(--text2)',fontSize:11,fontWeight:selectedTemplate===t.id?600:400,cursor:'pointer',fontFamily:'inherit'}}>
-                          {t.label}
-                        </button>
-                      ))}
-                    </div>
-                    {/* Bouton générer template */}
-                    <button className="btn btn-primary" style={{width:'100%',fontSize:12,justifyContent:'center',background:'linear-gradient(135deg,#3D52A0,#5B6EBF)',opacity:postOutput?1:0.4,borderRadius:0,padding:'10px'}} onClick={()=>{ if(!isPro){ setShowUpgradeModal(true); return; } generateTemplate(); }} disabled={!postOutput||generatingTemplate}>
-                      {generatingTemplate?<><span className="spinner" style={{borderTopColor:'white'}}/>Génération…</>:'✦ Générer le visuel'}
-                    </button>
-
-                    {aiImageUrl && (
-                      <div style={{padding:14,background:'white',borderTop:'1px solid var(--border)'}}>
-                        <div style={{fontSize:10,fontWeight:600,color:'var(--text3)',letterSpacing:'0.07em',textTransform:'uppercase' as const,marginBottom:8}}>Visuel IA</div>
-                        <img src={aiImageUrl} alt="Visuel IA" style={{width:'100%',maxWidth:340,borderRadius:8,display:'block',marginBottom:8,margin:'0 auto 8px'}}/>
-                        <a href={aiImageUrl} download="visuel-ecrira-ia.png" className="btn btn-secondary" style={{fontSize:11,width:'100%',justifyContent:'center'}}>↓ Télécharger</a>
-                      </div>
-                    )}
-
-
-                    {/* Options visuels IA */}
-                    {isPro && (
-                      <div style={{display:'flex',flexDirection:'column' as const,gap:8,padding:'10px 14px',background:'white',borderTop:'1px solid var(--border)'}}>
-                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                          <span style={{fontSize:11,color:'var(--text2)'}}>Masquer la mention Ecrira</span>
-                          <div className={`toggle ${hideWatermark?'on':''}`} onClick={()=>setHideWatermark(v=>!v)}>
-                            <div className="toggle-dot"/>
-                          </div>
-                        </div>
-
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Boutons Publier + Planifier */}
-                  <div style={{display:'flex',gap:7}}>
-
-                    {/* Publier maintenant dropdown */}
-                    <div style={{position:'relative' as const,flex:1}}>
-                      {linkedinConnected ? (
-                        <>
-                          <button className="btn" onClick={(e)=>{e.stopPropagation();setShowPublishMenu(m=>!m);setShowScheduleMenu(false);}} disabled={publishing||!postOutput} style={{width:'100%',background:'#0077B5',color:'white',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',opacity:postOutput?1:0.5}}>
-                            {publishing?<><span className="spinner" style={{borderTopColor:'white'}}/>Publication…</>:T('publish_btn')}
-                          </button>
-                          {showPublishMenu && (
-                            <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:'100%',overflow:'hidden'}}>
-                              <button className="btn" onClick={()=>{publishPost(false);setShowPublishMenu(false);}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
-                                {T('text_only_option')}
-                              </button>
-                              <button className="btn" onClick={()=>{publishPost(true);setShowPublishMenu(false);}} disabled={!aiSvgContent&&!customVisualBase64&&!aiImageUrl} style={{width:'100%',padding:'10px 14px',fontSize:12,color:(aiSvgContent||customVisualBase64||aiImageUrl)?'var(--text1)':' var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:(aiSvgContent||customVisualBase64||aiImageUrl)?'pointer':'not-allowed'}}>
-                                {T('text_visual')}{(!aiSvgContent&&!customVisualBase64&&!aiImageUrl)?T('add_visual_hint'):''}
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <button className="btn btn-primary" style={{width:'100%',fontSize:12,justifyContent:'center',background:'#0077B5',borderRadius:10}} onClick={connectLinkedIn}>
-                          {T('connect_linkedin')}
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Planifier dropdown */}
-                    <div style={{position:'relative' as const,flex:1}}>
-                      <button className="btn" onClick={(e)=>{e.stopPropagation();setShowScheduleMenu(m=>!m);setShowPublishMenu(false);}} disabled={!postOutput} style={{width:'100%',background:'var(--indigo)',color:'white',justifyContent:'center',fontSize:12,borderRadius:10,padding:'9px 12px',border:'none',opacity:postOutput?1:0.5}}>
-                        Planifier ▾
+              </div>
+                {/* PUBLICATION : un seul bouton principal */}
+                {postOutput && (
+                  <div className="card rd-publish" style={{padding:'14px 18px'}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap' as const}}>
+                    <span style={{fontSize:12,color:'var(--text2)'}}>✓ {hasVisual?(lang==='en'?'Post and visual ready':'Post et visuel prêts à publier'):(lang==='en'?'Post ready (text only)':'Post prêt à publier (texte seul)')}</span>
+                    <div style={{position:'relative' as const}}>
+                      <button className="btn btn-primary" style={{minWidth:150,justifyContent:'center'}} aria-haspopup="menu" aria-expanded={showPublishMenu} disabled={publishing||scheduling||!!rewriting} onClick={(e)=>{e.stopPropagation();setShowPublishMenu(m=>!m);setShowScheduleMenu(false);}}>
+                        {publishing||scheduling?<><span className="spinner" style={{borderTopColor:'white'}}/>{publishing?(lang==='en'?'Publishing…':'Publication…'):(lang==='en'?'Scheduling…':'Programmation…')}</>:<>{lang==='en'?'Publish':'Publier'} ▾</>}
                       </button>
-                      {showScheduleMenu && (
-                        <div style={{position:'absolute' as const,bottom:'100%',left:0,marginBottom:4,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.15)',zIndex:100,minWidth:'100%',overflow:'hidden'}}>
-                          <button className="btn" onClick={()=>{setScheduleWithVisual(false);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} style={{width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent'}}>
-                            {T('text_only_option')}
-                          </button>
-                          <button className="btn" onClick={()=>{setScheduleWithVisual(true);setShowScheduleMenu(false);if(!scheduleDateTime){setScheduleDateTime(new Date().toISOString().split('T')[0]+'T'+getNextQuarterHour())}setShowDatePicker(true);}} disabled={!aiSvgContent&&!customVisualBase64&&!aiImageUrl} style={{width:'100%',padding:'10px 14px',fontSize:12,color:(aiSvgContent||customVisualBase64||aiImageUrl)?'var(--text1)':'var(--text3)',justifyContent:'flex-start',borderRadius:0,background:'transparent',cursor:(aiSvgContent||customVisualBase64||aiImageUrl)?'pointer':'not-allowed'}}>
-                            {T('text_visual')}{(!aiSvgContent&&!customVisualBase64&&!aiImageUrl)?T('create_visual_hint'):''}
-                          </button>
-                        </div>
-                      )}
+                      {showPublishMenu && (()=>{
+                        const slot = suggestedSlot()
+                        const item = {width:'100%',padding:'10px 14px',fontSize:12,color:'var(--text1)',justifyContent:'flex-start',borderRadius:0,borderBottom:'1px solid var(--border)',background:'transparent',textAlign:'left' as const}
+                        return (
+                          <div role="menu" style={{position:'absolute' as const,bottom:'100%',right:0,marginBottom:6,minWidth:280,background:'var(--white)',border:'1px solid var(--border)',borderRadius:10,boxShadow:'0 4px 20px rgba(0,0,0,0.12)',zIndex:50,overflow:'hidden'}}>
+                            {linkedinConnected ? (
+                              <button role="menuitem" className="btn" style={item} onClick={()=>{setShowPublishMenu(false);publishPost(hasVisual)}}>
+                                {lang==='en'?'Publish now':'Publier maintenant'}<span style={{marginLeft:'auto',fontSize:10,color:'var(--text3)'}}>{hasVisual?(lang==='en'?'with visual':'avec visuel'):(lang==='en'?'text only':'texte seul')}</span>
+                              </button>
+                            ) : (
+                              <button role="menuitem" className="btn" style={{...item,color:'#0077B5'}} onClick={()=>{setShowPublishMenu(false);connectLinkedIn()}}>
+                                {lang==='en'?'Connect LinkedIn to publish':'Connecter LinkedIn pour publier'}
+                              </button>
+                            )}
+                            <button role="menuitem" className="btn" style={item} onClick={()=>{setShowPublishMenu(false); if(!isPro){setShowUpgradeModal(true);return;} schedulePost(slot, hasVisual)}}>
+                              {lang==='en'?'Schedule':'Programmer'} · {slotLabel(slot)}
+                            </button>
+                            <button role="menuitem" className="btn" style={{...item,color:'var(--text2)'}} onClick={()=>{setShowPublishMenu(false); if(!isPro){setShowUpgradeModal(true);return;} setScheduleWithVisual(hasVisual); if(!scheduleDateTime){setScheduleDateTime(slot)} setPickerMonth(new Date(scheduleDateTime||slot)); setShowDatePicker(true);}}>
+                              {lang==='en'?'Choose another date…':'Choisir une autre date…'}
+                            </button>
+                            <button role="menuitem" className="btn" style={{...item,borderBottom:'none'}} onClick={()=>{setShowPublishMenu(false);savePost()}}>
+                              {lang==='en'?'Save as draft':'Enregistrer comme brouillon'}
+                            </button>
+                          </div>
+                        )
+                      })()}
                     </div>
                   </div>
-
                   {/* Picker date/heure inline (visible après choix planifier) */}
                   {showDatePicker && (
                     <div className="sched-picker">
@@ -1860,7 +2022,7 @@ export default function Home() {
                             </div>
                           )}
                         </div>
-                        <button type="button" className="btn btn-primary" style={{background:'var(--indigo)',fontSize:12,flexShrink:0}} onClick={schedulePost} disabled={scheduling||!scheduleDateTime.split('T')[0]}>
+                        <button type="button" className="btn btn-primary" style={{background:'var(--indigo)',fontSize:12,flexShrink:0}} onClick={()=>schedulePost()} disabled={scheduling||!scheduleDateTime.split('T')[0]}>
                           {scheduling?<><span className="spinner" style={{borderTopColor:'white'}}/>...</>:T('schedule_arrow')}
                         </button>
                       </div>
@@ -1872,67 +2034,8 @@ export default function Home() {
                       )}
                     </div>
                   )}
-
-                  {/* Affichage visuel SVG généré */}
-                  {aiSvgContent && (
-                    <div style={{marginTop:16,borderRadius:16,overflow:'hidden',border:'1px solid var(--border)',background:'var(--sand)'}}>
-                      {/* Toolbar */}
-                      <div style={{padding:'10px 14px',borderBottom:'1px solid var(--border)',display:'flex',flexDirection:'column' as const,gap:8}}>
-                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                          <span style={{fontSize:12,fontWeight:500,color:'var(--text2)'}}>Visuel généré</span>
-                          <button onClick={async()=>{
-                            try {
-                              const svgRes = await authFetch('/api/svg-to-png', { method:'POST', body:JSON.stringify({ svgContent: aiSvgContent }) })
-                              const data = await svgRes.json()
-                              if (data.base64) {
-                                const a = document.createElement('a')
-                                a.href = `data:image/png;base64,${data.base64}`
-                                a.download = 'visuel-ecrira.png'
-                                a.click()
-                              } else { showToast('Erreur conversion PNG') }
-                            } catch { showToast('Erreur téléchargement') }
-                          }} style={{fontSize:11,color:'var(--indigo)',fontWeight:500,padding:'4px 10px',border:'1px solid var(--border)',borderRadius:8,background:'white',cursor:'pointer',fontFamily:'inherit'}}>⬇ Télécharger PNG</button>
-                        </div>
-                        {/* Palette couleurs */}
-                        <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap' as const}}>
-                          <span style={{fontSize:10,color:'var(--text3)',flexShrink:0}}>Couleur :</span>
-                          {[
-                            '#3D52A0','#0077B5','#1F2421','#8B4513','#2C3E50',
-                            '#C0392B','#8E44AD','#16A085','#E67E22','#2980B9',
-                            '#27AE60','#D35400','#7F8C8D','#2C2C54','#B71C1C',
-                          ].map(c=>(
-                            <button key={c} onClick={()=>{
-                              const prev = svgEditAccent || profile?.brand_accent || '#3D52A0'
-                              const dark = darkenColor(c, 18)
-                              setAiSvgContent(svg=>{
-                                let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
-                                // Update gradient stop darker shade
-                                s = s.replace(new RegExp(darkenColor(prev,18).replace('#','\\#'),'gi'),dark)
-                                return s
-                              })
-                              setSvgEditAccent(c)
-                            }} style={{width:20,height:20,borderRadius:'50%',border:c===svgEditAccent?'3px solid #1F2421':'2px solid transparent',background:c,cursor:'pointer',padding:0,flexShrink:0}}/>
-                          ))}
-                          <input type="color" value={svgEditAccent||'#3D52A0'} onChange={e=>{
-                            const c=e.target.value
-                            const prev = svgEditAccent || profile?.brand_accent || '#3D52A0'
-                            const dark = darkenColor(c, 18)
-                            setAiSvgContent(svg=>{
-                              let s = svg.replace(new RegExp(prev.replace('#','\\#'),'gi'),c)
-                              s = s.replace(new RegExp(darkenColor(prev,18).replace('#','\\#'),'gi'),dark)
-                              return s
-                            })
-                            setSvgEditAccent(c)
-                          }} title="Couleur personnalisée" style={{width:20,height:20,borderRadius:'50%',border:'1px solid var(--border)',cursor:'pointer',padding:0,flexShrink:0}}/>
-                        </div>
-                      </div>
-
-
-                      {/* Aperçu SVG */}
-                      <div style={{width:'100%',overflow:'hidden'}} dangerouslySetInnerHTML={{__html: sanitizeSvg(aiSvgContent).replace(/<svg/, '<svg style="width:100%;height:auto;display:block;max-height:600px"')}}/>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

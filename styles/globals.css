@@ -366,6 +366,15 @@ select.form-input { cursor: pointer; }
 /* Rediger grid */
 .rediger-grid { grid-template-columns: 320px 1fr !important; }
 @media (max-width: 1024px) { .rediger-grid { grid-template-columns: 1fr !important; } }
+/* Colonnes de l'espace Creer : idee + visuel a gauche, post + publication a droite.
+   En une colonne (tablette, mobile), l'ordre devient idee, post, visuel, publication. */
+.rediger-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.rd-post-editor { min-height: 460px; overflow: hidden; resize: none; }
+@media (max-width: 1024px) { .rd-post-editor { min-height: 280px; } }
+@media (max-width: 1024px) {
+  .rediger-col { display: contents; }
+  .rd-idea { order: 1; } .rd-post { order: 2; } .rd-visual { order: 3; } .rd-publish { order: 4; }
+}
 
 /* ─── MOBILE ─────────────────────────────────────────── */
 @media (max-width: 768px) {
