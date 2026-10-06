@@ -129,22 +129,25 @@ export default function MentionsLegales() {
     <LegalLayout
       title="Mentions légales"
       description="Mentions légales du site Ecrira — éditeur, hébergeur et propriété intellectuelle."
-      updated="24 juillet 2026"
+      updated="6 octobre 2026"
     >
       <h2 style={h2}>1. Éditeur du site</h2>
       <p>
-        Le site ecrira.com est édité par <strong>David Benhamou</strong>, Entrepreneur individuel.
+        Le site ecrira.com est édité par <strong>ECRIRA</strong>, société par actions
+        simplifiée (SAS) au capital de 100 €.
         <br />
-        Numéro SIREN : XXX XXX XXX
+        Siège social : 85 rue Chaptal, 92300 Levallois-Perret, France
         <br />
-        Numéro de TVA intracommunautaire : FR XX XXX XXX XXX
+        Immatriculée au Registre du commerce et des sociétés de Nanterre sous le numéro 130 916 547
         <br />
-        Siège : XX rue Exemple, XXXXX Ville, France
+        SIRET du siège : 130 916 547 00016
+        <br />
+        Numéro de TVA intracommunautaire : FR48 130 916 547
         <br />
         Adresse électronique : <a href="mailto:contact@ecrira.com" style={{ color: "#3D52A0" }}>contact@ecrira.com</a>
       </p>
       <p>
-        Directeur de la publication : David Benhamou.
+        Directeur de la publication : David Ben Hamou.
       </p>
 
       <h2 style={h2}>2. Hébergement</h2>

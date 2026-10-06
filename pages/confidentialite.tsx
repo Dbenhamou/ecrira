@@ -129,7 +129,7 @@ export default function Confidentialite() {
     <LegalLayout
       title="Politique de confidentialité"
       description="Comment Ecrira collecte, utilise et protège vos données personnelles, conformément au RGPD."
-      updated="24 juillet 2026"
+      updated="6 octobre 2026"
     >
       <p>
         La présente politique décrit la manière dont Ecrira traite les données à caractère
@@ -139,7 +139,8 @@ export default function Confidentialite() {
 
       <h2 style={h2}>1. Responsable du traitement</h2>
       <p>
-        David Benhamou, Entrepreneur individuel — XX rue Exemple, XXXXX Ville, France.
+        ECRIRA, société par actions simplifiée au capital de 100 €, immatriculée au RCS de
+        Nanterre sous le numéro 130 916 547 — 85 rue Chaptal, 92300 Levallois-Perret, France.
         <br />
         Contact : <a href="mailto:contact@ecrira.com" style={{ color: "#3D52A0" }}>contact@ecrira.com</a>
       </p>

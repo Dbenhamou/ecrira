@@ -129,13 +129,16 @@ export default function CGV() {
     <LegalLayout
       title="Conditions générales de vente et d'utilisation"
       description="Conditions générales de vente et d'utilisation du service Ecrira."
-      updated="24 juillet 2026"
+      updated="6 octobre 2026"
     >
       <h2 style={h2}>1. Objet</h2>
       <p>
         Les présentes conditions régissent l'accès et l'utilisation du service Ecrira,
         application en ligne de génération, de planification et de publication de contenus
-        LinkedIn assistée par intelligence artificielle, éditée par David Benhamou.
+        LinkedIn assistée par intelligence artificielle, éditée par la société ECRIRA,
+        société par actions simplifiée au capital de 100 €, immatriculée au RCS de Nanterre
+        sous le numéro 130 916 547, dont le siège social est situé 85 rue Chaptal,
+        92300 Levallois-Perret, France (ci-après « Ecrira »).
       </p>
       <p>
         La création d'un compte emporte acceptation pleine et entière des présentes
@@ -182,7 +185,7 @@ export default function CGV() {
         mois calendaire. Les quotas non consommés ne sont pas reportables.
       </p>
       <p>
-        Les prix sont indiqués en euros, toutes taxes comprises. Ecrira se réserve le droit
+        Les prix sont indiqués en euros, toutes taxes comprises (TVA française incluse). Ecrira se réserve le droit
         de les modifier ; toute évolution tarifaire est notifiée au moins 30 jours à
         l'avance et ne prend effet qu'à l'échéance suivante.
       </p>
@@ -289,6 +292,8 @@ export default function CGV() {
 
       <h2 style={h2}>14. Contact</h2>
       <p>
+        ECRIRA SAS — 85 rue Chaptal, 92300 Levallois-Perret, France
+        <br />
         <a href="mailto:contact@ecrira.com" style={{ color: "#3D52A0" }}>contact@ecrira.com</a>
       </p>
     </LegalLayout>
