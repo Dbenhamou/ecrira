@@ -1442,7 +1442,6 @@ export default function Home() {
                   {[
                     {label:lang==='en'?'My profile':'Mon profil',action:()=>{setPage('profil');setShowAvatarMenu(false)},icon:'👤'},
                     {label:lang==='en'?'Visuals':'Visuels',action:()=>{setPage('visuels');setShowAvatarMenu(false)},icon:''},
-                    {label:lang==='en'?'Replay tour':'Revoir le tour',action:()=>{setShowAvatarMenu(false);setPage('apercu');setTourRun(true)},icon:'🧭'},
                   ].map((item,i)=>(
                     <button key={i} onClick={item.action} style={{width:'100%',display:'flex',alignItems:'center',gap:10,padding:'10px 14px',border:'none',background:'transparent',cursor:'pointer',fontSize:12,color:'var(--text1)',textAlign:'left' as const,fontFamily:'inherit',borderBottom:'0.5px solid var(--border)'}}>
                       <span>{item.icon}</span>{item.label}
