@@ -16,7 +16,7 @@ import {
   type ThemeContext,
   type IdeaLike,
 } from './themes'
-import { fetchSectorNews, dedupeNews, BROAD_TERMS, type NewsArticle } from './news'
+import { fetchSectorNews, dedupeNews, BROAD_TERMS, type NewsArticle, type NewsDiag } from './news'
 import { buildIdeasPrompt, parseIdeasResponse, parseRetainedNews, hasUnsourcedFigure, cleanIdeaText } from './ideasPrompt'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -158,9 +158,15 @@ export async function generateIdeas(opts: {
   count?: number
   pastTitles?: string[]
   onDebug?: (info: { system?: string; user?: string; news?: NewsArticle[]; raw?: string }) => void
+  // Origine de la generation, enregistree dans le diagnostic (ideas_runs).
+  // Absent = essai (script) : rien n'est enregistre.
+  source?: 'manual' | 'cron'
 }): Promise<{ ideas: GeneratedIdea[]; newsCount: number; freshCount: number }> {
   const { supabase, userId, profile } = opts
   const count = opts.count || IDEAS_PER_DAY
+  const started = Date.now()
+  const newsDiag: NewsDiag = { queries: [], calls: [], sensitive: 0, picked: 0 }
+  const modelDiag: { retained: number[] | null; newsClaimed: number; newsKept: number }[] = []
 
   const company = (profile?.company || '').toString().trim()
   const sector = (profile?.sector || '').toString().trim()
@@ -169,17 +175,16 @@ export async function generateIdeas(opts: {
   const isEn = profile?.lang === 'en'
 
   const [rawNews, ctx] = await Promise.all([
-    fetchSectorNews({ sector, keywords, lang: profile?.lang, limit: 12, days: NEWS_DAYS }),
+    fetchSectorNews({ sector, keywords, lang: profile?.lang, limit: 12, days: NEWS_DAYS, diag: newsDiag }),
     loadThemeContext(supabase, userId, `${sector} ${keywords} ${company}`),
   ])
   // On retire les actus deja exploitees ces 21 derniers jours (meme article).
   // Seuil a 3 mots communs : a 2, presque toute actu du metier etait ecartee
   // des que l'historique d'idees grossissait.
   // Puis on retire les doublons : un meme evenement repris par plusieurs medias.
-  const news = dedupeNews(
-    relevantNews(rawNews, sector, keywords).filter((a) => !ctx.recentTitles.some((t) => tooClose(t, a.title, 3))),
-    `${sector} ${keywords}`
-  ).slice(0, 6)
+  const relevant = relevantNews(rawNews, sector, keywords)
+  const unseen = relevant.filter((a) => !ctx.recentTitles.some((t) => tooClose(t, a.title, 3)))
+  const news = dedupeNews(unseen, `${sector} ${keywords}`).slice(0, 6)
   const newsQuota = Math.min(MAX_NEWS_IDEAS, news.length)
   const total = count + OVERSAMPLE
   const newsAsked = news.length ? Math.min(news.length, newsQuota + 1) : 0
@@ -217,13 +222,15 @@ export async function generateIdeas(opts: {
     // Une idee d'actu hors de cette liste est supprimee : l'IA ne peut plus
     // utiliser une actu qu'elle a elle-meme jugee hors sujet.
     const retained = parseRetainedNews(raw, news.length)
-    return parseIdeasResponse(raw)
-      .filter((i: any) => i && i.title)
-      .filter((i: any) => {
+    const parsed = parseIdeasResponse(raw).filter((i: any) => i && i.title)
+    const claimed = parsed.filter((i: any) => claimsNews(i)).length
+    const kept = parsed.filter((i: any) => {
         if (!claimsNews(i)) return true
         const n = newsIndex(i, news.length)
         return n > 0 && (retained === null || retained.includes(n))
       })
+    modelDiag.push({ retained, newsClaimed: claimed, newsKept: kept.filter((i: any) => claimsNews(i)).length })
+    return kept
       .map((i: any) => ({
         topic: cleanIdeaText(String(i.topic || '')),
         title: cleanIdeaText(String(i.title || '')),
@@ -275,7 +282,35 @@ export async function generateIdeas(opts: {
   })
 
   // newsCount = nombre d'idees reellement tirees d'une actualite.
-  return { ideas, newsCount: ranked.slice(0, count).filter((i) => i.news).length, freshCount }
+  const newsCount = ranked.slice(0, count).filter((i) => i.news).length
+
+  // Diagnostic : ou les actus se perdent (sources, filtres, choix de l'IA).
+  if (opts.source) {
+    try {
+      await supabase.from('ideas_runs').insert({
+        user_id: userId,
+        source: opts.source,
+        info: {
+          duree_s: Math.round((Date.now() - started) / 1000),
+          requetes: newsDiag.queries,
+          appels_sources: newsDiag.calls,
+          actus_faits_divers_ecartees: newsDiag.sensitive,
+          actus_trouvees: rawNews.length,
+          actus_du_metier: relevant.length,
+          actus_non_deja_vues: unseen.length,
+          actus_envoyees: news.map((a) => `${a.title} (${a.source})`),
+          appels_ia: modelDiag,
+          idees_actu_finales: newsCount,
+          idees_neuves: freshCount,
+          chiffres_inventes_rejetes: unsourced.length,
+        },
+      })
+    } catch (e) {
+      console.error('[ideas] diagnostic:', e)
+    }
+  }
+
+  return { ideas, newsCount, freshCount }
 }
 
 // Historique persistant (non bloquant).

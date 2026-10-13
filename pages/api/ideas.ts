@@ -26,7 +26,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const titles = Array.isArray(pastTitles) ? pastTitles.filter((t: any) => typeof t === 'string').slice(0, 20) : []
-    const { ideas, newsCount } = await generateIdeas({ supabase, userId, profile, count: IDEAS_PER_DAY, pastTitles: titles })
+    const { ideas, newsCount } = await generateIdeas({ supabase, userId, profile, count: IDEAS_PER_DAY, pastTitles: titles, source: 'manual' })
     if (!ideas.length) return res.status(500).json({ error: 'Aucune idée générée' })
 
     await replaceDailyIdeas(supabase, userId, ideas)

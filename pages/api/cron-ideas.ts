@@ -85,7 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
           const { data: prev } = await supabase.from('daily_ideas').select('title').eq('user_id', profile.id).limit(20)
           const pastTitles = (prev || []).map((r: any) => r.title).filter(Boolean)
-          const { ideas, freshCount } = await generateIdeas({ supabase, userId: profile.id, profile, count: IDEAS_PER_DAY, pastTitles })
+          const { ideas, freshCount } = await generateIdeas({ supabase, userId: profile.id, profile, count: IDEAS_PER_DAY, pastTitles, source: 'cron' })
           const who = [profile.full_name || profile.name, profile.company, profile.id].filter(Boolean).join(' / ')
           if (!ideas.length) { issues.push({ who, error: 'aucune idée' }); return }
           if (freshCount < MIN_FRESH) issues.push({ who, fresh: freshCount, titles: ideas.map((i) => i.title) })

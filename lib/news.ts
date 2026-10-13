@@ -107,55 +107,73 @@ export function buildNewsQueries(sector: string, keywords: string): string[] {
 
 const UA = { 'User-Agent': 'Mozilla/5.0 (compatible; EcriraBot/1.0; +https://ecrira.com)' }
 
+// Diagnostic : une entree par appel a une source (code HTTP, nb d'articles,
+// erreur). Sert a savoir ou les actus se perdent en production.
+export type SourceCall = { source: string; status: number | string; items: number; ms: number }
+export type NewsDiag = { queries: string[]; calls: SourceCall[]; sensitive: number; picked: number }
+
+async function timed(source: string, diag: NewsDiag | undefined, run: () => Promise<{ status: number | string; items: NewsArticle[] }>): Promise<NewsArticle[]> {
+  const t0 = Date.now()
+  let status: number | string = 'erreur'
+  let items: NewsArticle[] = []
+  try {
+    const r = await run()
+    status = r.status
+    items = r.items
+  } catch (e: any) {
+    status = e?.name === 'TimeoutError' || e?.name === 'AbortError' ? 'timeout' : 'erreur: ' + String(e?.message || e).slice(0, 60)
+  }
+  diag?.calls.push({ source, status, items: items.length, ms: Date.now() - t0 })
+  return items
+}
+
 // Source 1 : Google News RSS recherche — sans cle. "when:Nd" force des
 // resultats recents (sans lui, le flux est trie par pertinence et remonte
 // surtout des articles vieux de plusieurs mois).
-async function fetchGoogleNews(query: string, isEn: boolean, days: number): Promise<NewsArticle[]> {
+async function fetchGoogleNews(query: string, isEn: boolean, days: number, diag?: NewsDiag): Promise<NewsArticle[]> {
   if (!query) return []
   const hl = isEn ? 'en-US' : 'fr'
   const gl = isEn ? 'US' : 'FR'
   const ceid = isEn ? 'US:en' : 'FR:fr'
   const q = `${query} when:${days}d`
   const url = `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=${hl}&gl=${gl}&ceid=${ceid}`
-  try {
+  return timed('google', diag, async () => {
     const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(6000) })
-    if (!res.ok) return []
-    return parseItems(await res.text(), 'Google News')
-  } catch {
-    return []
-  }
+    if (!res.ok) return { status: res.status, items: [] }
+    const text = await res.text()
+    // Une page HTML (consentement, captcha) au lieu du flux RSS : on le signale.
+    const status = text.includes('<rss') || text.includes('<feed') ? res.status : `${res.status} sans flux (${res.url.slice(0, 60)})`
+    return { status, items: parseItems(text, 'Google News') }
+  })
 }
 
 // Source 2 (repli, sans cle) : Bing News RSS.
-async function fetchBingNews(query: string, isEn: boolean): Promise<NewsArticle[]> {
+async function fetchBingNews(query: string, isEn: boolean, diag?: NewsDiag): Promise<NewsArticle[]> {
   if (!query) return []
   const mkt = isEn ? 'en-US' : 'fr-FR'
   const url = `https://www.bing.com/news/search?q=${encodeURIComponent(query)}&format=rss&mkt=${mkt}&setlang=${isEn ? 'en' : 'fr'}`
-  try {
+  return timed('bing', diag, async () => {
     const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(6000) })
-    if (!res.ok) return []
-    return parseItems(await res.text(), 'Bing News')
-  } catch {
-    return []
-  }
+    if (!res.ok) return { status: res.status, items: [] }
+    return { status: res.status, items: parseItems(await res.text(), 'Bing News') }
+  })
 }
 
 // Source 3 (repli) : GNews.io — cle optionnelle.
-async function fetchGNews(query: string, isEn: boolean, limit: number): Promise<NewsArticle[]> {
+async function fetchGNews(query: string, isEn: boolean, limit: number, diag?: NewsDiag): Promise<NewsArticle[]> {
   const key = process.env.GNEWS_API_KEY
   if (!key || !query) return []
-  try {
-    const lang = isEn ? 'en' : 'fr'
-    const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=${lang}&max=${limit}&sortby=publishedAt&apikey=${key}`
+  const lang = isEn ? 'en' : 'fr'
+  const url = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=${lang}&max=${limit}&sortby=publishedAt&apikey=${key}`
+  return timed('gnews', diag, async () => {
     const res = await fetch(url, { signal: AbortSignal.timeout(6000) })
-    if (!res.ok) return []
+    if (!res.ok) return { status: res.status, items: [] }
     const data: any = await res.json()
-    return (data.articles || [])
+    const items = (data.articles || [])
       .map((a: any) => ({ title: (a.title || '').trim(), source: a.source?.name || 'GNews', date: a.publishedAt || '' }))
       .filter((a: NewsArticle) => a.title.length >= 12)
-  } catch {
-    return []
-  }
+    return { status: res.status, items }
+  })
 }
 
 function toTs(dateStr: string): number | null {
@@ -173,8 +191,10 @@ export function isSensitiveNews(title: string): boolean {
   return SENSITIVE.test(norm(title))
 }
 
-export function selectNews(items: NewsArticle[], terms: string[], days: number, limit: number, now = Date.now()): NewsArticle[] {
+export function selectNews(items: NewsArticle[], terms: string[], days: number, limit: number, now = Date.now(), diag?: NewsDiag): NewsArticle[] {
+  const before = items.length
   items = items.filter((a) => !isSensitiveNews(a.title))
+  if (diag) diag.sensitive = before - items.length
   const windowMs = days * 86400_000
   const seen = new Set<string>()
   const scored: { a: NewsArticle; score: number }[] = []
@@ -209,7 +229,9 @@ export async function fetchSectorNews(opts: {
   lang?: string
   limit?: number
   days?: number
+  diag?: NewsDiag
 }): Promise<NewsArticle[]> {
+  const diag = opts.diag
   const sector = opts.sector || ''
   const keywords = opts.keywords || ''
   const isEn = opts.lang === 'en'
@@ -217,27 +239,29 @@ export async function fetchSectorNews(opts: {
   const limit = opts.limit || 10
 
   const queries = buildNewsQueries(sector, keywords)
+  if (diag) diag.queries = queries
   // Pas de secteur renseigne => pas d'actu forcee (le prompt reste qualitatif).
   if (!queries.length) return []
 
   const items: NewsArticle[] = []
-  const google = await Promise.all(queries.map((q) => fetchGoogleNews(q, isEn, days)))
+  const google = await Promise.all(queries.map((q) => fetchGoogleNews(q, isEn, days, diag)))
   for (const list of google) items.push(...list)
 
   const terms = Array.from(new Set(
     `${keywords},${sector}`.toLowerCase().split(/[,;\s]+/).map((t) => t.trim()).filter((t) => t.length >= 3)
   )).slice(0, 12)
 
-  let picked = selectNews(items, terms, days, limit)
+  let picked = selectNews(items, terms, days, limit, Date.now(), diag)
   if (picked.length < 3) {
-    const bing = await Promise.all(queries.slice(0, 2).map((q) => fetchBingNews(q, isEn)))
+    const bing = await Promise.all(queries.slice(0, 2).map((q) => fetchBingNews(q, isEn, diag)))
     for (const list of bing) items.push(...list)
-    picked = selectNews(items, terms, days, limit)
+    picked = selectNews(items, terms, days, limit, Date.now(), diag)
   }
   if (picked.length < 3) {
-    items.push(...(await fetchGNews(queries[0], isEn, limit)))
-    picked = selectNews(items, terms, days, limit)
+    items.push(...(await fetchGNews(queries[0], isEn, limit, diag)))
+    picked = selectNews(items, terms, days, limit, Date.now(), diag)
   }
+  if (diag) diag.picked = picked.length
   return picked
 }
 
