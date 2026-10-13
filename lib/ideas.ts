@@ -16,7 +16,8 @@ import {
   type ThemeContext,
   type IdeaLike,
 } from './themes'
-import { fetchSectorNews, formatNewsBlock, type NewsArticle } from './news'
+import { fetchSectorNews, dedupeNews, BROAD_TERMS, type NewsArticle } from './news'
+import { buildIdeasPrompt, parseIdeasResponse, parseRetainedNews, hasUnsourcedFigure, cleanIdeaText } from './ideasPrompt'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -25,9 +26,9 @@ export const IDEAS_PER_DAY = 10
 const OVERSAMPLE = 6
 // Memoire des idees deja proposees (anti-repetition).
 const RECENT_TITLES_DAYS = 21
-// Actus : uniquement tres recentes, et au plus 2 idees par jour.
-const NEWS_DAYS = 3
-const MAX_NEWS_IDEAS = 2
+// Actus : 7 derniers jours, jusqu'a 3 idees par jour (places reservees).
+const NEWS_DAYS = 7
+const MAX_NEWS_IDEAS = 3
 // Fenetre d'apprentissage des formules / mots qui reviennent trop.
 const LEARN_DAYS = 7
 // En dessous de ce nombre d'idees neuves, on relance UNE fois la generation.
@@ -52,7 +53,7 @@ export async function loadThemeContext(supabase: SupabaseClient, userId: string,
 
     const [hist, titles, saved, scheduled] = await Promise.all([
       supabase.from('topic_history').select('theme').eq('user_id', userId).gte('created_at', sinceThemes).limit(2000),
-      supabase.from('topic_history').select('title, created_at').eq('user_id', userId).gte('created_at', sinceTitles).order('created_at', { ascending: false }).limit(250),
+      supabase.from('topic_history').select('title, topic, created_at').eq('user_id', userId).gte('created_at', sinceTitles).order('created_at', { ascending: false }).limit(250),
       supabase.from('saved_posts').select('topic').eq('user_id', userId).gte('created_at', sinceWritten).limit(120),
       supabase.from('scheduled_posts').select('topic').eq('user_id', userId).gte('created_at', sinceWritten).limit(120),
     ])
@@ -69,6 +70,9 @@ export async function loadThemeContext(supabase: SupabaseClient, userId: string,
     ].filter((t: string) => t && t.trim()).slice(0, 60)
 
     const recentTitles = (titles.data || []).map((r: any) => r.title).filter(Boolean)
+    const recentTopics = (titles.data || [])
+      .map((r: any) => (r.topic || '').toString().trim())
+      .filter((t: string) => t && !/^(actu|news) ·/i.test(t))
     const since7 = Date.now() - LEARN_DAYS * 86400_000
     const lastWeek = (titles.data || [])
       .filter((r: any) => r.title && new Date(r.created_at).getTime() >= since7)
@@ -79,6 +83,7 @@ export async function loadThemeContext(supabase: SupabaseClient, userId: string,
       avoid: topThemes(counts),
       writtenTopics: Array.from(new Set(writtenTopics)),
       recentTitles: Array.from(new Set(recentTitles)) as string[],
+      recentTopics: Array.from(new Set(recentTopics)) as string[],
       overusedOpeners: overused.openers,
       overusedWords: overused.words,
     }
@@ -93,37 +98,49 @@ const GENERIC_TERMS = new Set([
   'france', 'french', 'paris', 'europe', 'entreprise', 'entreprises', 'service', 'services',
   'gestion', 'solution', 'solutions', 'marche', 'business', 'protection', 'operation', 'professionnel',
   'professionnels', 'conseil', 'client', 'clients', 'societe', 'groupe', 'digital', 'numerique',
+  'reseaux', 'sociaux', 'social', 'numeriques', 'digitale', 'digitales', 'plateforme', 'plateformes',
+  'application', 'applications', 'communication', 'entrepreneuriat', 'innovation', 'strategie',
+  'croissance', 'marketing', 'internet', 'donnees', 'technologie', 'technologies', 'performance',
+  'optimisation', 'transformation', 'acceleration', 'infrastructure', 'presence', 'media', 'medias',
 ])
 const STOP_SHORT = new Set(['de', 'la', 'le', 'les', 'des', 'du', 'et', 'en', 'un', 'une', 'pour', 'par', 'sur', 'au', 'aux', 'the', 'and', 'of', 'to', 'in', 'b2b', 'b2c'])
 
-// Ne garde que les actus dont le titre contient au moins un terme du metier.
-function relevantNews(articles: NewsArticle[], sector: string, keywords: string): NewsArticle[] {
-  const terms = new Set([
-    ...keywordsOf(`${sector} ${keywords}`).filter((t) => !GENERIC_TERMS.has(t)),
-    // sigles courts (EDR, SOC, MSP, RH...) ignores par keywordsOf
-    ...`${sector},${keywords}`.split(/[,;\s]+/).map((t) => t.trim().toLowerCase()).filter((t) => t.length >= 2 && t.length <= 4 && /^[a-z0-9]+$/.test(t) && /[a-z]/.test(t) && !STOP_SHORT.has(t)),
-  ])
-  if (!terms.size) return []
-  return articles.filter((a) => {
-    const words = new Set(
-      a.title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ').split(/\s+/)
-    )
-    return Array.from(terms).some((t) => words.has(t))
-  })
+function termsOf(text: string): string[] {
+  const kept = text.split(/[,;|\n]/).filter((t) => !BROAD_TERMS.has(keywordsOf(t).join(' ')) && t.trim())
+  const src = kept.join(',')
+  return Array.from(new Set([
+    ...keywordsOf(src).filter((t) => !GENERIC_TERMS.has(t)),
+    // sigles courts (EDR, SOC, MSP, RH, BTP...) ignores par keywordsOf
+    ...src.split(/[,;\s]+/).map((t) => t.trim().toLowerCase()).filter((t) => t.length >= 2 && t.length <= 4 && /^[a-z0-9]+$/.test(t) && /[a-z]/.test(t) && !STOP_SHORT.has(t)),
+  ]))
 }
 
-// Exemples de style : 2 posts max, 700 caracteres chacun.
-function styleExamples(writingStyle: any): string {
-  const raw = (writingStyle || '').toString().trim()
-  if (!raw) return ''
-  let posts: string[] = []
-  try {
-    const parsed = JSON.parse(raw)
-    posts = Array.isArray(parsed) ? parsed.map(String) : [raw]
-  } catch {
-    posts = [raw]
-  }
-  return posts.filter((p) => p.trim()).slice(0, 2).map((p, i) => `--- Exemple ${i + 1} ---\n${p.slice(0, 700)}`).join('\n\n')
+function titleMatches(title: string, terms: string[]): boolean {
+  const words = title.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, ' ').split(/\s+/)
+  // Racine sur 7 lettres pour les mots longs (immobilier / immobiliere).
+  return terms.some((t) => words.some((w) => w === t || (t.length >= 7 && w.length >= 7 && w.slice(0, 7) === t.slice(0, 7))))
+}
+
+// Ne garde que les actus du metier : d'abord celles qui citent un terme du
+// SECTEUR, puis, s'il en manque, celles qui citent un mot-cle specifique.
+function relevantNews(articles: NewsArticle[], sector: string, keywords: string): NewsArticle[] {
+  const sectorTerms = termsOf(sector)
+  const keywordTerms = termsOf(keywords).filter((t) => !sectorTerms.includes(t))
+  const bySector = articles.filter((a) => titleMatches(a.title, sectorTerms))
+  if (bySector.length >= 3) return bySector
+  const byKeyword = articles.filter((a) => !bySector.includes(a) && titleMatches(a.title, keywordTerms))
+  return [...bySector, ...byKeyword]
+}
+
+// Numero d'actu renvoye par l'IA (1..n), 0 si absent ou invalide.
+function newsIndex(idea: any, max: number): number {
+  const n = Number(idea?.news)
+  return Number.isInteger(n) && n >= 1 && n <= max ? n : 0
+}
+
+// Une idee se presente comme une idee d'actu (format "actu" ou numero d'actu).
+function claimsNews(idea: any): boolean {
+  return String(idea?.format || '').trim().toLowerCase() === 'actu' || Number(idea?.news) > 0
 }
 
 function toPlan(idea: any): string {
@@ -140,126 +157,125 @@ export async function generateIdeas(opts: {
   profile: any
   count?: number
   pastTitles?: string[]
+  onDebug?: (info: { system?: string; user?: string; news?: NewsArticle[]; raw?: string }) => void
 }): Promise<{ ideas: GeneratedIdea[]; newsCount: number; freshCount: number }> {
   const { supabase, userId, profile } = opts
   const count = opts.count || IDEAS_PER_DAY
 
-  const role = (profile?.role || 'Professionnel').toString().trim()
   const company = (profile?.company || '').toString().trim()
   const sector = (profile?.sector || '').toString().trim()
-  const audience = (profile?.audience || 'Professionnels LinkedIn').toString().trim()
+  // Mots-cles d'expertise ; la stack technique ne sert qu'a defaut.
   const keywords = (profile?.keywords || profile?.tech_stack || '').toString().trim()
   const isEn = profile?.lang === 'en'
-  const year = new Date().getFullYear()
 
   const [rawNews, ctx] = await Promise.all([
     fetchSectorNews({ sector, keywords, lang: profile?.lang, limit: 12, days: NEWS_DAYS }),
     loadThemeContext(supabase, userId, `${sector} ${keywords} ${company}`),
   ])
-  // On retire les actus deja exploitees ces 21 derniers jours (meme article
-  // ou meme entreprise : "Ingram Micro", "HarfangLab"...).
-  const news = relevantNews(rawNews, sector, keywords)
-    .filter((a) => !ctx.recentTitles.some((t) => tooClose(t, a.title)))
-    .slice(0, 5)
-  const newsBlock = formatNewsBlock(news)
+  // On retire les actus deja exploitees ces 21 derniers jours (meme article).
+  // Seuil a 3 mots communs : a 2, presque toute actu du metier etait ecartee
+  // des que l'historique d'idees grossissait.
+  // Puis on retire les doublons : un meme evenement repris par plusieurs medias.
+  const news = dedupeNews(
+    relevantNews(rawNews, sector, keywords).filter((a) => !ctx.recentTitles.some((t) => tooClose(t, a.title, 3))),
+    `${sector} ${keywords}`
+  ).slice(0, 6)
+  const newsQuota = Math.min(MAX_NEWS_IDEAS, news.length)
+  const total = count + OVERSAMPLE
+  const newsAsked = news.length ? Math.min(news.length, newsQuota + 1) : 0
+  const newsText = news.map((a) => a.title).join(' \n ')
 
-  const alreadyProposed = Array.from(new Set([...(opts.pastTitles || []), ...ctx.recentTitles])).slice(0, 60)
-  const allowedThemes = THEMES.filter((t) => !ctx.avoid.includes(t))
-  const examples = styleExamples(profile?.writing_style)
-
-  const system = `Tu es un stratège de contenu LinkedIn B2B. Tu proposes des idées de posts pour UN professionnel précis.
-Langue de sortie : ${isEn ? 'English' : 'Français'}.
-
-PROFIL
-Rôle : ${role}${company ? ` chez ${company}` : ''}
-Secteur : ${sector || 'non précisé'}
-Audience : ${audience}
-${keywords ? `Expertise : ${keywords}` : ''}
-${examples ? `\nSES POSTS (pour comprendre ses sujets et son angle, ne pas recopier) :\n${examples}\n` : ''}`
-
-  const user = `${newsBlock ? `ACTUALITÉS RÉCENTES DU SECTEUR :\n${newsBlock}\n\n` : ''}${alreadyProposed.length ? `DÉJÀ PROPOSÉS (ne pas reproposer, même reformulé) :\n${alreadyProposed.map((t) => `- ${t}`).join('\n')}\n\n` : ''}${ctx.writtenTopics.length ? `DÉJÀ PUBLIÉS PAR L'UTILISATEUR (exclus) :\n${ctx.writtenTopics.slice(0, 30).map((t) => `- ${t}`).join('\n')}\n\n` : ''}Propose exactement ${count + OVERSAMPLE} idées de posts LinkedIn. Nous sommes en ${year}.
-
-6 RÈGLES :
-1. MÉTIER : chaque idée parle directement du quotidien, des clients ou des enjeux de ce professionnel et de son audience. Rien de générique ni de philosophique (pas de réflexions vagues sur les réunions, le silence, la productivité...).
-2. FAITS : aucun pourcentage, montant ou statistique inventé. Un chiffre n'est autorisé que s'il figure dans une actualité ci-dessus. Au maximum 1 idée de type prédiction (« ${year + 1} : ... »).
-3. ACTU : ${newsBlock ? `au maximum ${MAX_NEWS_IDEAS} idées peuvent partir d'une actualité ci-dessus, chacune sur une actu DIFFÉRENTE, uniquement si elle concerne vraiment ce métier. Toutes les autres idées viennent du terrain.` : 'pas d\'actualité disponible : reste sur du vécu terrain, des méthodes et des prises de position.'}
-4. VARIÉTÉ : un thème différent par idée, et des types d'accroche variés (histoire terrain, erreur fréquente, question, conseil concret, coulisses, prise de position). Deux titres ne commencent jamais par les mêmes mots. Varie aussi la forme des titres : question, affirmation, chiffre issu d'une actu, « Comment... », récit à la 1ère personne. Au maximum 3 titres sur le modèle « Phrase courte. Chute. ».
-5. FORMULES INTERDITES dans les titres et accroches : « l'illusion de », « le vrai problème », « la vraie raison », « personne ne », « ce n'est pas X, c'est Y », « et si ».
-6. NOUVEAUTÉ : aucune idée proche de la liste « DÉJÀ PROPOSÉS », même avec d'autres mots. Cherche des angles concrets et inattendus.
-
-THÈMES AUTORISÉS (valeur exacte) : ${allowedThemes.join(', ')}
-
-FORMAT DE CHAQUE IDÉE :
-- "topic" : étiquette de 2 à 4 mots
-- "title" : le sujet du post, 12 mots maximum
-- "hook" : la première phrase du post, 20 mots maximum
-- "plan" : exactement 3 éléments courts (10 mots maximum chacun), sans flèche ni symbole :
-  1) l'ouverture, 2) l'idée centrale à développer, 3) la chute ou la question finale
-- "theme" : un des thèmes autorisés
-
-Classe les idées de la plus forte à la moins forte.
-Réponds UNIQUEMENT avec un tableau JSON valide :
-[{"topic":"...","title":"...","hook":"...","plan":["...","...","..."],"theme":"..."}]`
-
-  // Mots et debuts de titre appris automatiquement (sans IA) sur 7 jours.
-  const learned = [...(ctx.overusedOpeners || []).map((o) => `« ${o}... »`), ...(ctx.overusedWords || [])]
-  const learnedBlock = learned.length
-    ? `DÉJÀ TROP UTILISÉS CES DERNIERS JOURS (à ne pas employer dans les titres) : ${learned.join(', ')}\n\n`
-    : ''
+  // Le prompt lui-meme vit dans lib/ideasPrompt.ts.
+  // Sujets deja proposes : on envoie les ETIQUETTES (2-4 mots), pas les titres
+  // (une liste de titres servait de modele a l'IA, qui en recopiait la forme).
+  const { system, user } = buildIdeasPrompt({
+    profile,
+    news,
+    newsDays: NEWS_DAYS,
+    newsAsked,
+    total,
+    pastTopics: (ctx.recentTopics || []).slice(0, 90),
+    writtenTopics: ctx.writtenTopics,
+    allowedThemes: THEMES.filter((t) => !ctx.avoid.includes(t)),
+    overused: [...(ctx.overusedOpeners || []).map((o) => `« ${o}... »`), ...(ctx.overusedWords || [])],
+  })
+  opts.onDebug?.({ system, user, news })
 
   const callModel = async (extraAvoid: string[]): Promise<IdeaLike[]> => {
     const extra = extraAvoid.length
-      ? `\n\nREFUSÉES CAR TROP PROCHES DE L'HISTORIQUE (propose des sujets totalement différents) :\n${extraAvoid.map((t) => `- ${t}`).join('\n')}`
+      ? `\n\nCes idées ont été REFUSÉES (trop proches de l'historique ou chiffre non sourcé). Propose des sujets totalement différents :\n${extraAvoid.map((t) => `- ${t}`).join('\n')}`
       : ''
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 5000,
+      max_tokens: 6000,
       system,
-      messages: [{ role: 'user', content: learnedBlock + user + extra }],
+      messages: [{ role: 'user', content: user + extra }],
     })
     const raw = (message.content[0] as { text: string }).text || ''
-    const clean = raw.replace(/```json|```/g, '').trim()
-    const s0 = clean.indexOf('[')
-    const e0 = clean.lastIndexOf(']')
-    const parsed = JSON.parse(s0 >= 0 && e0 > s0 ? clean.slice(s0, e0 + 1) : clean)
-    return (Array.isArray(parsed) ? parsed : [])
+    opts.onDebug?.({ raw })
+    // Actus que l'IA a declarees exploitables (une par type d'evenement).
+    // Une idee d'actu hors de cette liste est supprimee : l'IA ne peut plus
+    // utiliser une actu qu'elle a elle-meme jugee hors sujet.
+    const retained = parseRetainedNews(raw, news.length)
+    return parseIdeasResponse(raw)
       .filter((i: any) => i && i.title)
+      .filter((i: any) => {
+        if (!claimsNews(i)) return true
+        const n = newsIndex(i, news.length)
+        return n > 0 && (retained === null || retained.includes(n))
+      })
       .map((i: any) => ({
-        topic: String(i.topic || '').trim(),
-        title: String(i.title || '').trim(),
-        hook: String(i.hook || '').trim(),
-        angle: toPlan(i),
+        topic: cleanIdeaText(String(i.topic || '')),
+        title: cleanIdeaText(String(i.title || '')),
+        hook: cleanIdeaText(String(i.hook || '')),
+        angle: toPlan(i).split('\n').map(cleanIdeaText).join('\n'),
         theme: (THEMES as readonly string[]).includes(i.theme) ? i.theme : undefined,
+        format: String(i.format || '').trim().toLowerCase() || undefined,
+        zone: String(i.zone || '').trim().toLowerCase() || undefined,
+        news: newsIndex(i, news.length),
       }))
+      // Garde-fou : un chiffre absent des actus est un chiffre invente.
+      .filter((i: IdeaLike) => {
+        const ok = !hasUnsourcedFigure(`${i.title} \n ${i.hook} \n ${i.angle}`, newsText)
+        if (!ok) unsourced.push(i.title || '')
+        return ok
+      })
   }
+  const unsourced: string[] = []
 
   let pool = await callModel([])
-  let ranked = rankIdeas(pool, ctx, count)
+  let ranked = rankIdeas(pool, ctx, count, newsQuota)
   let freshCount = ranked.filter((i) => i.fresh).length
 
   // Auto-correction : trop peu d'idees neuves => UNE seule relance.
   if (freshCount < MIN_FRESH) {
     try {
-      const rejected = pool.filter((p) => !ranked.some((r) => r.title === p.title && r.fresh)).map((p) => p.title || '')
+      const rejected = [...unsourced, ...pool.filter((p) => !ranked.some((r) => r.title === p.title && r.fresh)).map((p) => p.title || '')]
       const second = await callModel(rejected.slice(0, 20))
       pool = pool.concat(second)
-      ranked = rankIdeas(pool, ctx, count)
+      ranked = rankIdeas(pool, ctx, count, newsQuota)
       freshCount = ranked.filter((i) => i.fresh).length
     } catch (e) {
       console.error('[ideas] relance:', e)
     }
   }
 
-  const ideas: GeneratedIdea[] = ranked.slice(0, count).map((i) => ({
-    topic: i.topic || '',
-    title: i.title || '',
-    hook: i.hook || '',
-    angle: i.angle || '',
-    theme: i.theme || null,
-    recommended: !!i.recommended,
-  }))
+  // Idee d'actu : l'etiquette affichee devient "Actu · Media" (theme vide,
+  // l'app affiche alors le topic) et l'idee ne compte pas dans la rotation.
+  const ideas: GeneratedIdea[] = ranked.slice(0, count).map((i) => {
+    const article = i.news ? news[i.news - 1] : undefined
+    return {
+      topic: article ? `${isEn ? 'News' : 'Actu'} · ${article.source.slice(0, 28)}` : i.topic || '',
+      title: i.title || '',
+      hook: i.hook || '',
+      angle: i.angle || '',
+      theme: article ? null : i.theme || null,
+      recommended: !!i.recommended,
+    }
+  })
 
-  return { ideas, newsCount: news.length, freshCount }
+  // newsCount = nombre d'idees reellement tirees d'une actualite.
+  return { ideas, newsCount: ranked.slice(0, count).filter((i) => i.news).length, freshCount }
 }
 
 // Historique persistant (non bloquant).

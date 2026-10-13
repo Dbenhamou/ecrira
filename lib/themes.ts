@@ -62,12 +62,19 @@ export function tooClose(a: string, b: string, minCommon = 2): boolean {
   return false
 }
 
-export type IdeaLike = { topic?: string; title?: string; hook?: string; angle?: string; theme?: string; recommended?: boolean; fresh?: boolean }
+export type IdeaLike = {
+  topic?: string; title?: string; hook?: string; angle?: string; theme?: string
+  recommended?: boolean; fresh?: boolean
+  format?: string // type de post (conseil, opinion, question, recit...)
+  news?: number   // numero de l'actualite utilisee (0 ou absent = idee terrain)
+  zone?: string   // territoire : expertise, audience, metier
+}
 
 export type ThemeContext = {
   avoid: string[]          // themes les plus utilises recemment (a eviter)
   writtenTopics: string[]  // sujets deja publies par l'utilisateur
   recentTitles: string[]   // titres d'idees deja proposees recemment
+  recentTopics?: string[]  // etiquettes (2-4 mots) des idees deja proposees
   overusedOpeners?: string[] // debuts de titre qui reviennent trop (appris automatiquement)
   overusedWords?: string[]   // mots / entreprises qui reviennent trop (appris automatiquement)
 }
@@ -135,23 +142,76 @@ function isPrediction(title: string): boolean {
   return /^\s*20\d\d\b/.test(title || '')
 }
 
+// Titre en deux temps "Phrase courte. Chute." : efficace, mais lassant
+// quand toutes les idees du jour ont cette forme.
+export function isTwoBeat(title: string): boolean {
+  const t = (title || '').trim().replace(/[.!?…]+$/, '')
+  return /[.!?…]\s+\S/.test(t)
+}
+
+// Au plus FORMAT_MAX idees du meme type et TWO_BEAT_MAX titres en deux temps.
+export const FORMAT_MAX = 2
+export const TWO_BEAT_MAX = 2
+// Longueurs au-dela desquelles une idee passe en complement (le prompt
+// demande 12 mots pour le titre, 20 pour l'accroche).
+export const TITLE_MAX_WORDS = 14
+export const HOOK_MAX_WORDS = 28
+function wordCount(s: string): number {
+  return (s || '').trim().split(/\s+/).filter(Boolean).length
+}
+// Titre qui commence par un nombre (« 3 questions... ») : 1 par jour au plus.
+function isListicle(title: string): boolean {
+  return /^\s*\d+\s+\S/.test(title || '') && !isPrediction(title)
+}
+
+// Au plus ZONE_MAX idees terrain sur le meme territoire (expertise / audience / metier).
+export const ZONE_MAX = 4
+
 // Filtre et reordonne les idees generees.
 // On genere plus d'idees que necessaire : les doublons et formules sont
 // VRAIMENT ecartes. Les rejetees ne servent de complement que si on
 // manque d'idees propres.
-export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number): IdeaLike[] {
+// Les idees tirees d'une actualite ont des places reservees (maxNews) :
+// elles ne sont pas soumises aux filtres de themes / mots trop utilises.
+export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number, maxNews = 0): IdeaLike[] {
   const avoid = new Set(ctx.avoid)
   // recentTitles est trie du plus recent au plus ancien : ~3 derniers jours
   const recentOpeners = new Set([...ctx.recentTitles.slice(0, 30).map(openerOf), ...(ctx.overusedOpeners || [])])
   const overusedWords = new Set(ctx.overusedWords || [])
+  const newsKept: IdeaLike[] = []
   const kept: IdeaLike[] = []
-  const softRejected: IdeaLike[] = [] // theme deja pris : acceptable en complement
+  const softRejected: IdeaLike[] = [] // theme / format deja pris : acceptable en complement
+  const beatRejected: IdeaLike[] = [] // titre en deux temps en trop : complement de second rang
   const hardRejected: IdeaLike[] = [] // dernier recours si l'IA a trop peu produit
   const usedThemes = new Set<string>()
   const usedOpeners = new Set<string>()
+  const usedNews = new Set<number>()
+  const formatCount: Record<string, number> = {}
+  const zoneCount: Record<string, number> = {}
+  let twoBeats = 0
+  let listicles = 0
   let predictions = 0
 
+  // 1) Idees d'actualite : une par actu, jamais deux fois le meme sujet.
   for (const idea of ideas) {
+    if (!idea.news || newsKept.length >= maxNews) continue
+    const title = idea.title || ''
+    const opener = openerOf(title)
+    if (
+      usedNews.has(idea.news) ||
+      usedOpeners.has(opener) ||
+      isFormulaic(`${title} ${idea.hook || ''}`) ||
+      ctx.recentTitles.some((t) => tooClose(t, title, 3)) ||
+      newsKept.some((k) => tooClose(k.title || '', title))
+    ) continue
+    newsKept.push(idea)
+    usedNews.add(idea.news)
+    usedOpeners.add(opener)
+  }
+
+  // 2) Idees terrain.
+  for (const idea of ideas) {
+    if (idea.news) continue // actus non retenues : ecartees
     const title = idea.title || ''
     const label = `${idea.topic || ''} ${title}`
     const opener = openerOf(title)
@@ -159,6 +219,7 @@ export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number
       ctx.writtenTopics.some((t) => tooClose(t, label)) ||
       ctx.recentTitles.some((t) => tooClose(t, title, 3)) ||
       kept.some((k) => tooClose(`${k.topic || ''} ${k.title || ''}`, label)) ||
+      newsKept.some((k) => tooClose(k.title || '', title)) ||
       isFormulaic(`${title} ${idea.hook || ''}`) ||
       usedOpeners.has(opener) ||
       recentOpeners.has(opener) ||
@@ -170,20 +231,43 @@ export function rankIdeas(ideas: IdeaLike[], ctx: ThemeContext, minCount: number
     }
 
     const themeClash = !!idea.theme && (avoid.has(idea.theme) || usedThemes.has(idea.theme))
-    if (themeClash) {
+    const formatClash = !!idea.format && (formatCount[idea.format] || 0) >= FORMAT_MAX
+    const beatClash =
+      (isTwoBeat(title) && twoBeats >= TWO_BEAT_MAX) ||
+      (isListicle(title) && listicles >= 1) ||
+      wordCount(title) > TITLE_MAX_WORDS ||
+      wordCount(idea.hook || '') > HOOK_MAX_WORDS
+    const zoneClash = !!idea.zone && (zoneCount[idea.zone] || 0) >= ZONE_MAX
+    if (beatClash) {
+      beatRejected.push(idea)
+      continue
+    }
+    if (themeClash || formatClash || zoneClash) {
       softRejected.push(idea)
       continue
     }
     kept.push(idea)
     usedOpeners.add(opener)
     if (idea.theme) usedThemes.add(idea.theme)
+    if (idea.format) formatCount[idea.format] = (formatCount[idea.format] || 0) + 1
+    if (idea.zone) zoneCount[idea.zone] = (zoneCount[idea.zone] || 0) + 1
+    if (isTwoBeat(title)) twoBeats++
+    if (isListicle(title)) listicles++
     if (isPrediction(title)) predictions++
   }
 
-  const out = [
+  const field = [
     ...kept.map((i) => ({ ...i, fresh: true })),
-    ...softRejected.map((i) => ({ ...i, fresh: true })), // theme repete mais sujet neuf
+    ...softRejected.map((i) => ({ ...i, fresh: true })), // theme / format repete mais sujet neuf
+    ...beatRejected.map((i) => ({ ...i, fresh: true })),
     ...hardRejected.map((i) => ({ ...i, fresh: false })),
-  ].slice(0, minCount)
-  return out.map((idea, i) => ({ ...idea, recommended: i < 2 }))
+  ].slice(0, Math.max(0, minCount - newsKept.length))
+
+  // Les actus sont inserees en positions 2, 4, 6... pour rester visibles
+  // sans occuper tout le haut de la liste.
+  const out: IdeaLike[] = [...field]
+  newsKept.forEach((n, i) => {
+    out.splice(Math.min(out.length, 1 + i * 2), 0, { ...n, fresh: true })
+  })
+  return out.slice(0, minCount).map((idea, i) => ({ ...idea, recommended: i < 2 }))
 }

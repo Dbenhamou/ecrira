@@ -23,7 +23,7 @@
       "maxDuration": 60
     },
     "pages/api/ideas.ts": {
-      "maxDuration": 120
+      "maxDuration": 300
     }
   },
   "buildCommand": "NODE_OPTIONS=\"--max-old-space-size=3008\" npm run build"
